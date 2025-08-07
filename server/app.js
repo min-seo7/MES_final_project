@@ -18,11 +18,22 @@ app.listen(3000, () => {
 });
 
 // 3. 라우팅
-const boardRouter = require("./routers/board_router.js");
+const informationRouter = require("./routers/information_router.js");
+const salesRouter = require("./routers/sales_router.js");
+const stockRouter = require("./routers/stock_router.js");
+const productionRouter = require("./routers/production_router.js");
+const equipmentRouter = require("./routers/equipment_router.js");
+const testRouter = require("./routers/test_router.js");
+
 
 //기본라우팅
 app.get("/", (req, res) => {
   res.send("Welcome!!");
 });
 
-app.use(boardRouter);
+app.use("/api/information",informationRouter);
+app.use("/api/sales",salesRouter);
+app.use("/api/stock", stockRouter);
+app.use("/api/production", productionRouter);
+app.use("/api/equipment", equipmentRouter);
+app.use("/api/test", testRouter);
