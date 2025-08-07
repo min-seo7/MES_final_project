@@ -267,6 +267,7 @@ const onSearchReset = () => {
                 <div v-else>
                     <Button label="예시값1" @click="selectModalValue('예시값1')" />
                     <Button label="예시값2" @click="selectModalValue('예시값2')" />
+                    <Button label="예시값3" @click="selectModalValue('예시값3')" />
                 </div>
             </div>
         </Dialog>
