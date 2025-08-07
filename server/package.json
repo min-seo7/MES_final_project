@@ -4,12 +4,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev" : "nodemon app.js"
+    "dev": "nodemon app.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "date-fns": "^4.1.0",
+    "dateformat": "^5.0.3",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "mariadb": "^3.4.5"

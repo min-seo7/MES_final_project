@@ -1,40 +1,18 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref } from 'vue';
 
 const items = ref([]);
-
-// API 호출 함수
-const fetchEmployees = async () => {
-    try {
-        const response = await axios.get('/api/information/employee');
-        items.value = response.data.map((item, index) => ({
-            num: index + 1,
-            ecode: item.employee_id,
-            name: item.name,
-            department: item.department,
-            phone: item.phone,
-            email: item.email,
-            hiredate: item.hire_date,
-            enddate: item.leave_date || '',
-            pw: item.login_pw || '',
-            pwstatus: item.pw_change || '',
-            status: item.status,
-            role: item.auth
-        }));
-    } catch (error) {
-        console.error('실패:', error);
-    }
-};
-
-onMounted(() => {
-    fetchEmployees();
-});
 </script>
 
 <template>
+    <!--
+    <div class="flex flex-col">
+        <div class="card">
+            
+    <div class="p-4">
+                    -->
     <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">목록</h2>
+        <h2 class="text-xl font-bold">직원 목록</h2>
         <div class="flex gap-2">
             <Button label="등록" icon="pi pi-plus" />
             <Button label="삭제" icon="pi pi-trash" severity="danger" />
@@ -51,8 +29,15 @@ onMounted(() => {
         <Column field="hiredate" header="입사일자" />
         <Column field="enddate" header="퇴사일자" />
         <Column field="pw" header="비밀번호" />
+
         <Column field="pwstatus" header="비밀번호변경유무" />
         <Column field="status" header="상태" />
         <Column field="role" header="권한" />
     </DataTable>
+
+    <!--
+        </div>
+        </div>
+    </div>
+    -->
 </template>
