@@ -5,16 +5,10 @@ const sqlList = require("./sqlList.js");
 //몇개의 커넥션을 만들어두고 진행
 const connectionPool = mariadb.createPool({
   //DB에 접속하는 정보,네이버 공인 아이디 변경
-  // host: "localhost",
-  // port: 3306,
-  // user: "dev01",
-  // password: "dev01",
-  // database: "dev",
-  // connectionLimit: 10,
-  host: "localhost",
+  host: "223.130.137.23",
   port: 3306,
   user: "dev01",
-  password: "dev01",
+  password: "1234",
   database: "dev",
   connectionLimit: 10,
   //추가옵션
