@@ -1,149 +1,274 @@
+<script setup>
+import { ref, computed } from 'vue';
+import InputText from 'primevue/inputtext';
+import RadioButton from 'primevue/radiobutton';
+import Button from 'primevue/button';
+import Calendar from 'primevue/calendar';
+import Textarea from 'primevue/textarea';
+import FileUpload from 'primevue/fileupload';
+import Dialog from 'primevue/dialog';
+
+// 🔍 폼/조회 데이터
+const form = ref({
+    equipmentCode: '',
+    equipmentName: '',
+    manufacturer: '',
+    serialNo: '',
+    purchaseDate: null,
+    startDate: null,
+    equipmentType: '',
+    location: '',
+    status: '사용',
+    note: '',
+    lawFile: null,
+    manualFile: null,
+    equipmentLocation: ''
+});
+
+const search = ref({
+    equipmentCode: '',
+    equipmentType: '',
+    equipmentName: '',
+    location: '',
+    status: ''
+});
+
+// 모달 상태 관리
+const showModal = ref(false);
+const modalType = ref('');
+
+const openModal = (type) => {
+    modalType.value = type;
+    showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+};
+
+const selectModalValue = (value) => {
+    if (modalType.value === 'equipmentCode') search.value.equipmentCode = value;
+    else if (modalType.value === 'equipmentType') search.value.equipmentType = value;
+    else if (modalType.value === 'equipmentName') search.value.equipmentName = value;
+    else if (modalType.value === 'location') search.value.location = value;
+    showModal.value = false;
+};
+const equipmentCodeList = [
+    'EQP-0001',
+    'EQP-0002',
+    'EQP-0003',
+    'EQP-0004',
+    'EQP-0005',
+    'EQP-0006',
+    'EQP-0007',
+    'EQP-0008',
+    'EQP-0009',
+    'EQP-0010',
+    'EQP-0011',
+    'EQP-0012',
+    'EQP-0013',
+    'EQP-0014',
+    'EQP-0015',
+    'EQP-0016',
+    'EQP-0017',
+    'EQP-0018',
+    'EQP-0019',
+    'EQP-0020'
+];
+
+const currentPage = ref(1);
+const pageSize = 5;
+
+// eslint-disable-next-line no-undef
+const totalPages = computed(() => Math.ceil(equipmentCodeList.length / pageSize));
+
+// eslint-disable-next-line no-undef
+const pagedEquipmentCodes = computed(() => {
+    const start = (currentPage.value - 1) * pageSize;
+    return equipmentCodeList.slice(start, start + pageSize);
+});
+
+//  기능 함수
+const onFileLaw = (event) => {
+    form.value.lawFile = event.files;
+};
+const onFileManual = (event) => {
+    form.value.manualFile = event.files;
+};
+
+const onSave = () => {
+    console.log('저장할 데이터:', form.value);
+};
+const onReset = () => {
+    Object.assign(form.value, {
+        equipmentCode: '',
+        equipmentName: '',
+        manufacturer: '',
+        serialNo: '',
+        purchaseDate: null,
+        startDate: null,
+        equipmentType: '',
+        location: '',
+        status: '사용',
+        note: '',
+        lawFile: null,
+        manualFile: null
+    });
+};
+
+const onSearch = () => {
+    console.log('조회조건:', search.value);
+};
+const onSearchReset = () => {
+    Object.assign(search.value, {
+        equipmentCode: '',
+        equipmentType: '',
+        equipmentName: '',
+        location: '',
+        status: ''
+    });
+};
+</script>
+
 <template>
-    <div class="card">
-        <div class="font-semibold text-2xl mb-4">설비정보등록/수정</div>
-        <div class="font-semibold text-xl mb-4">Get Started</div>
-        <p class="text-lg mb-4">
-            Sakai is an application template for Vue based on the <a href="https://github.com/vuejs/create-vue" class="font-medium text-primary hover:underline">create-vue</a>, the recommended way to start a <strong>Vite-powered</strong> Vue
-            projects. To get started, clone the <a href="https://github.com/primefaces/sakai-vue" class="font-medium text-primary hover:underline">repository</a> from GitHub and install the dependencies with npm or yarn.
-        </p>
-        <pre class="app-code">
-<code>git clone https://github.com/primefaces/sakai-vue
-npm install
-npm run dev</code></pre>
+    <div class="card p-6">
+        <div class="text-2xl font-semibold mb-6">설비정보 등록 / 수정</div>
 
-        <p class="text-lg mb-4">Navigate to <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">http://localhost:5173/</i> to view the application in your local environment.</p>
+        <!-- ✅ 조회 조건 -->
+        <div class="grid grid-cols-6 gap-3 mb-4">
+            <InputText v-model="search.equipmentCode" placeholder="설비코드" @click="openModal('equipmentCode')" readonly />
+            <InputText v-model="search.equipmentType" placeholder="설비유형" @click="openModal('equipmentType')" readonly />
+            <InputText v-model="search.equipmentName" placeholder="설비명" @click="openModal('equipmentName')" readonly />
+            <InputText v-model="search.location" placeholder="설비위치" @click="openModal('location')" readonly />
+            <div class="flex items-center gap-2">
+                <RadioButton inputId="use" name="searchStatus" value="사용" v-model="search.status" />
+                <label for="use">사용</label>
+                <RadioButton inputId="notUse" name="searchStatus" value="미사용" v-model="search.status" />
+                <label for="notUse">미사용</label>
+            </div>
+            <div class="flex gap-2">
+                <Button label="조회" class="w-full" @click="onSearch" />
+                <Button label="초기화" severity="secondary" class="w-full" @click="onSearchReset" />
+            </div>
+        </div>
 
-        <pre class="app-code"><code>npm run dev</code></pre>
+        <!-- 입력폼 -->
+        <div class="grid grid-cols-12 gap-3 mb-4">
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">설비코드 *</label>
+                <div class="flex gap-2">
+                    <InputText v-model="form.equipmentCode" class="flex-1" readonly @click="openModal('equipmentCode')" />
+                    <Button label="검색" class="px-3 py-1" @click="openModal('equipmentCode')" />
+                </div>
+            </div>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">설비명 *</label>
+                <InputText v-model="form.equipmentName" />
+            </div>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">제조사 *</label>
+                <InputText v-model="form.manufacturer" />
+            </div>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">제조번호</label>
+                <InputText v-model="form.serialNo" placeholder="serial No." />
+            </div>
 
-        <div class="font-semibold text-xl mb-4">Structure</div>
-        <p class="text-lg mb-4">Templates consists of a couple folders, demos and layout have been separated so that you can easily remove what is not necessary for your application.</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">src/layout</span>: Main layout files, needs to be present.</li>
-            <li><span class="text-primary font-medium">src/views</span>: Demo pages like Dashboard.</li>
-            <li><span class="text-primary font-medium">public/demo</span>: Assets used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/demo</span>: Styles used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/layout</span>: SCSS files of the main layout</li>
-        </ul>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">구매일 *</label>
+                <Calendar v-model="form.purchaseDate" showIcon dateFormat="yy-mm-dd" />
+            </div>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">사용시작일</label>
+                <Calendar v-model="form.startDate" showIcon dateFormat="yy-mm-dd" />
+            </div>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">설비유형 *</label>
+                <InputText v-model="form.equipmentType" />
+            </div>
+            <div class="col-span-3">
+                <label class="block text-sm mb-1">설비위치</label>
+                <div class="flex gap-2">
+                    <InputText v-model="form.location" class="flex-1" />
+                    <Button icon="pi pi-search" class="p-button-secondary px-3" />
+                </div>
+            </div>
 
-        <div class="font-semibold text-xl mb-4">Menu</div>
-        <p class="text-lg mb-4">
-            Main menu is defined at <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/AppMenu.vue</span> file. Update the <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">model</i> property to
-            define your own menu items.
-        </p>
+            <div class="col-span-3 flex items-end">
+                <div>
+                    <label class="block text-sm mb-1">설비상태 *</label>
+                    <div class="flex gap-3 items-center">
+                        <RadioButton inputId="useStatus" name="status" value="사용" v-model="form.status" />
+                        <label for="useStatus">사용</label>
+                        <RadioButton inputId="notUseStatus" name="status" value="미사용" v-model="form.status" />
+                        <label for="notUseStatus">미사용</label>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div class="font-semibold text-xl mb-4">Layout Composable</div>
-        <p class="text-lg mb-4">
-            The <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span> is a composable that manages the layout state changes including dark mode, PrimeVue theme, menu modes and states. If you
-            change the initial values like the preset or colors, make sure to apply them at PrimeVue config at main.js as well.
-        </p>
+        <!-- 비고 -->
+        <div class="mb-4">
+            <label class="block text-sm mb-1">비고</label>
+            <Textarea v-model="form.note" rows="3" class="w-full" />
+        </div>
 
-        <div class="font-semibold text-xl mb-4">Tailwind CSS</div>
-        <p class="text-lg mb-4">The demo pages are developed with Tailwind CSS however the core application shell mainly uses custom CSS.</p>
+        <!-- 파일첨부 -->
+        <div class="mb-4">
+            <label class="block font-medium mb-2">파일첨부</label>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <div class="text-sm mb-1">• 법적안전점검기준</div>
+                    <FileUpload mode="basic" name="lawFile" chooseLabel="파일 선택" @select="onFileLaw" />
+                </div>
+                <div>
+                    <div class="text-sm mb-1">• 작동매뉴얼</div>
+                    <FileUpload mode="basic" name="manualFile" chooseLabel="파일 선택" @select="onFileManual" />
+                </div>
+            </div>
+        </div>
 
-        <div class="font-semibold text-xl mb-4">Variables</div>
-        <p class="text-lg mb-4">
-            CSS variables used in the template derive their values from the PrimeVue styled mode presets, use the files under <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets/layout/_variables.scss</span> to customize
-            according to your requirements.
-        </p>
+        <!-- 버튼 -->
+        <div class="flex justify-end gap-2">
+            <Button label="저장" icon="pi pi-save" @click="onSave" />
+            <Button label="초기화" icon="pi pi-refresh" severity="secondary" @click="onReset" />
+        </div>
 
-        <div class="font-semibold text-xl mb-4">Add Sakai-Vue to a Nuxt Project</div>
-        <p class="text-lg mb-4">To get started, create a Nuxt project.</p>
-        <pre class="app-code">
-<code>npx nuxi@latest init sakai-nuxt</code></pre>
+        <!-- ✅ 모달창 -->
+        <Dialog v-model:visible="showModal" modal header="검색" :style="{ width: '40vw' }" @hide="closeModal">
+            <div class="p-4">
+                <p class="font-bold mb-3 text-lg">
+                    🔍
+                    {{
+                        {
+                            equipmentCode: '설비코드',
+                            equipmentType: '설비유형',
+                            equipmentName: '설비명',
+                            location: '설비위치'
+                        }[modalType]
+                    }}
+                    검색
+                </p>
 
-        <p class="text-lg mb-4">Add Prime related libraries to the project.</p>
-        <pre class="app-code">
-<code>npm install primevue @primevue/themes tailwindcss-primeui primeicons
-npm install --save-dev @primevue/nuxt-module</code></pre>
+                <div v-if="modalType === 'equipmentCode'">
+                    <ul class="mb-3">
+                        <li v-for="code in pagedEquipmentCodes" :key="code" class="cursor-pointer hover:text-blue-600" @click="selectModalValue(code)">• {{ code }}</li>
+                    </ul>
 
-        <p class="text-lg mb-4">Add PrimeVue-Nuxt module to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>modules: [
-    '@primevue/nuxt-module',
-]</code></pre>
+                    <!-- 페이징 -->
+                    <div class="flex justify-center gap-2">
+                        <Button label="이전" @click="currentPage--" :disabled="currentPage === 1" size="small" />
+                        <span class="px-2">페이지 {{ currentPage }} / {{ totalPages }}</span>
+                        <Button label="다음" @click="currentPage++" :disabled="currentPage === totalPages" size="small" />
+                    </div>
+                </div>
 
-        <p class="text-lg mb-4">Install <a href="https://tailwindcss.com/docs/guides/nuxtjs" class="font-medium text-primary hover:underline">Tailwind CSS</a> with Nuxt using official documentation.</p>
-
-        <p class="text-lg mb-4">
-            Add <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwindcss-primeui</span> package as a plugin to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwind.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>plugins: [require('tailwindcss-primeui')]</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue to in <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>import Aura from '@primevue/themes/aura';
-
-primevue: {
-    options: {
-        theme: {
-            preset: Aura,
-            options: {
-                darkModeSelector: '.app-dark'
-            }
-        }
-    }
-}</code></pre>
-
-        <p class="text-lg mb-4">
-            Copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/assets</span> folder and paste them to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets</span> folder to your Nuxt project.
-            And add to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>css: ['~/assets/tailwind.css', '~/assets/styles.scss']</code></pre>
-
-        <p class="text-lg mb-4">Change <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">app.vue</span></p>
-        <pre class="app-code">
-<code>&lt;template&gt;
-    &lt;NuxtLayout&gt;
-        &lt;NuxtPage /&gt;
-    &lt;/NuxtLayout&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts/default.vue</span> and paste this code:</p>
-        <pre class="app-code">
-<code>&lt;script setup&gt;
-import AppLayout from './AppLayout.vue';
-&lt;/script&gt;
-
-&lt;template&gt;
-    &lt;AppLayout /&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">
-            Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts</span> folder and copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout</span> folder and paste them. And then
-            create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">composables/use-layout.vue</span> and replace it with
-            <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span>. Then remove this line:
-        </p>
-        <pre class="app-code">
-<code>import { useLayout } from '@/layout/composables/layout';</code></pre>
-
-        <p class="text-lg mb-4">As a final step, copy the following folders:</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">public/demo</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">public</span></li>
-            <li><span class="text-primary font-medium">src/components</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">components</span></li>
-            <li><span class="text-primary font-medium">src/service</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">service</span></li>
-            <li><span class="text-primary font-medium">src/views/uikit</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages/uikit</span></li>
-            <li><span class="text-primary font-medium">src/views/pages</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages</span></li>
-        </ul>
+                <!-- 그 외는 예시 -->
+                <div v-else>
+                    <Button label="예시값1" @click="selectModalValue('예시값1')" />
+                    <Button label="예시값2" @click="selectModalValue('예시값2')" />
+                </div>
+            </div>
+        </Dialog>
     </div>
 </template>
-
-<style lang="scss" scoped>
-@media screen and (max-width: 991px) {
-    .video-container {
-        position: relative;
-        width: 100%;
-        height: 0;
-        padding-bottom: 56.25%;
-
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    }
-}
-</style>
