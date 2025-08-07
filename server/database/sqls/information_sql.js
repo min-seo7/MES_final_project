@@ -1,22 +1,5 @@
-//Table : t_board_board
 
-//조건없이 전체조회
-const selectBoardList = `
-SELECT  no,
-	      title,
-        writer,
-        content,
-        created_date
-FROM t_board_board
-ORDER BY no
-`;
-
-//등록
-const boardInsert = `
-INSERT  INTO t_board_board (title, writer, content)
-VALUES (?,?,?)
-`;
-
+// 사원등록
 const insertEmployee = `
 INSERT INTO employee(employee_id,
                     name,
@@ -30,6 +13,7 @@ INSERT INTO employee(employee_id,
 VALUES (?,?,?,?,?,?,?,?,?)
 `;
 
+// 사원조회
 const selectEmployeeList = `
 SELECT employee_id,
        name,
@@ -46,8 +30,6 @@ FROM employee;
 `;
 
 module.exports = {
-  selectBoardList,
-  boardInsert,
   insertEmployee,
   selectEmployeeList,
 };
