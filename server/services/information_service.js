@@ -1,5 +1,16 @@
 const mariadb = require("../database/mapper.js");
 
+// 전체 BOM 목록 조회
+const findAllBOM = async () => {
+  let list = await mariadb.query("selectBomList");
+  return list;
+};
+
+const findDetailBOM = async () => {
+  let list = await mariadb.query("selectBomDetail");
+  return list;
+};
+
 // 전체 사원 목록 조회
 const findAllEmployees = async () => {
   let list = await mariadb.query("selectEmployeeList");
@@ -66,4 +77,6 @@ function convertToArray(obj, columns) {
 module.exports = {
   findAllEmployees,
   insertEmployee,
+  findAllBOM,
+  findDetailBOM,
 };
