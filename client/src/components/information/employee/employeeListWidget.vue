@@ -35,10 +35,6 @@ onMounted(() => {
 <template>
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">목록</h2>
-        <div class="flex gap-2">
-            <Button label="등록" icon="pi pi-plus" />
-            <Button label="삭제" icon="pi pi-trash" severity="danger" />
-        </div>
     </div>
 
     <DataTable :value="items" :rows="5" :paginator="true" showGridlines>

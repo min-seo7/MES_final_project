@@ -1,5 +1,5 @@
 <script setup>
-import stockCommButton from '@/components/stock/stockCommButton.vue';
+import stockCommButton from '@/components/stock/stockCommBtn.vue';
 //import stockCommSearchBox from '@/components/stock/stockCommSearchBox.vue';
 </script>
 
@@ -9,70 +9,56 @@ import stockCommButton from '@/components/stock/stockCommButton.vue';
     </div>
     <stockCommButton />
 
-    <div class="flex flex-col items-center">
-        <!--검색박스영역-->
-        <div class="card w-full">
-            <!--검색1열-->
-            <div class="flex flex-wrap justify-center gap-6 my-6">
-                <!-- 등록일 -->
-                <div class="flex items-center gap-2">
-                    <label for="registerDate" class="whitespace-nowrap">등록일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue"></DatePicker>
-                </div>
+    <!--검색박스영역-->
+    <div class="card w-full">
+        <!--검색1열-->
+        <div class="flex flex-wrap justify-center gap-6 my-6">
+            <!-- 등록일 -->
+            <div class="flex items-center gap-2">
+                <label for="registerDate" class="whitespace-nowrap">등록일</label>
+                <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue" dateFormat="yy-mm-dd"></DatePicker>
+            </div>
 
-                <!-- 발주번호 -->
-                <div class="flex items-center gap-2">
-                    <label for="orderNumber" class="whitespace-nowrap">발주번호</label>
-                    <InputText id="orderNumber" type="text" class="w-60" />
-                </div>
+            <!-- 발주번호 -->
+            <div class="flex items-center gap-2">
+                <label for="orderNumber" class="whitespace-nowrap">발주번호</label>
+                <InputText id="orderNumber" type="text" class="w-60" />
+            </div>
 
-                <!-- 자재코드 -->
-                <div class="flex items-center gap-2">
-                    <label for="materialCode" class="whitespace-nowrap">자재코드</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="name2" type="text" class="w-60" />
-                        <InputIcon class="pi pi-search" />
-                    </IconField>
-                </div>
+            <!-- 자재코드 -->
+            <div class="flex items-center gap-2">
+                <label for="materialCode" class="whitespace-nowrap">자재코드</label>
+                <IconField iconPosition="left" class="w-full">
+                    <InputText id="name2" type="text" class="w-60" />
+                    <InputIcon class="pi pi-search" />
+                </IconField>
+            </div>
 
-                <!-- 자재명 -->
-                <div class="flex items-center gap-2">
-                    <label for="materialName" class="whitespace-nowrap">자재명</label>
-                    <InputText id="materialName" type="text" class="w-60" />
-                </div>
+            <!-- 자재명 -->
+            <div class="flex items-center gap-2">
+                <label for="materialName" class="whitespace-nowrap">자재명</label>
+                <InputText id="materialName" type="text" class="w-60" />
             </div>
         </div>
-        <!--테이블 -->
-        <div class="card">
-            <DataTable
-                :value="customers3"
-                rowGroupMode="subheader"
-                selectionMode="checkbox"
-                groupRowsBy="representative.name"
-                sortMode="single"
-                sortField="representative.name"
-                :sortOrder="1"
-                scrollable
-                scrollHeight="400px"
-                tableStyle="min-width: 50rem"
-            >
-                <template #groupheader="slotProps">
-                    <div class="flex items-center gap-2">
-                        <img :alt="slotProps.data.representative.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/${slotProps.data.representative.image}`" width="32" style="vertical-align: middle" />
-                        <span>{{ slotProps.data.representative.name }}</span>
-                    </div>
-                </template>
-                <Column field="representative.name" header="Representative"></Column>
-                <Column field="name" header="발행번호" style="min-width: 200px" selectionMode="checkbox"></Column>
-                <Column field="date" header="등록일" style="min-width: 30px"></Column>
-                <Column field="country" header="자재코드" style="min-width: 30px"></Column>
-                <Column field="company" header="자재명" style="min-width: 100px"></Column>
-                <Column field="status" header="발주수량" style="min-width: 30px"></Column>
-                <Column field="status" header="단위" style="min-width: 50px"></Column>
-                <Column field="status" header="공급처" style="min-width: 200px"></Column>
-                <Column field="status" header="담당자" style="min-width: 200px"></Column>
-                <Column field="date" header="납기요청일" style="min-width: 200px"></Column>
-            </DataTable>
-        </div>
+    </div>
+    <!--삭제버튼-->
+    <div class="flex justify-end mb-4 space-x-2">
+        <Button label="삭제" />
+    </div>
+    <!--목록 테이블 -->
+    <div class="card w-full">
+        <DataTable v-model:selection="selectedProducts" :value="products" dataKey="id" tableStyle="min-width: 50rem">
+            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column field="reDate" header="등록일"></Column>
+            <Column field="purNo" header="발주번호"></Column>
+            <Column field="matCode" header="자재코드"></Column>
+            <Column field="matName" header="자재명"></Column>
+            <Column field="purQty" header="발주량"></Column>
+            <Column field="unit" header="단위"></Column>
+            <Column field="supPatner" header="공급처"></Column>
+            <Column field="eName" header="담당자"></Column>
+            <Column field="dueDate" header="납기요청일"></Column>
+            <Column field="status" header="진행상태"></Column>
+        </DataTable>
     </div>
 </template>

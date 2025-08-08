@@ -1,149 +1,179 @@
+<script setup>
+import { ref } from 'vue';
+import InputText from 'primevue/inputtext';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+
+const form = ref({
+    inspCode: 'P-T03',
+    writer: '품질관리자',
+    productType: '분말형비료',
+    range: '±50%',
+    inspPurpose: '샘플링검사',
+    writeAt: '2025-08-01',
+    inspItem: '유기물',
+    remark: ''
+});
+
+const search = ref({
+    productType: '',
+    inspPurpose: '',
+    inspItem: ''
+});
+
+const showModal = ref(false);
+const modalType = ref('');
+
+const openModal = (type) => {
+    modalType.value = type;
+    showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+};
+
+const selectModalValue = (value) => {
+    if (modalType.value === 'productType') {
+        search.value.productType = value.Type;
+    } else if (modalType.value === 'inspPurpose') {
+        search.value.inspPurpose = value.Type;
+    } else if (modalType.value === 'inspItem') {
+        search.value.inspItem = value.Type;
+    }
+    showModal.value = false;
+};
+
+const productCodeList = ref([
+    { code: 'PL20250808P002-20', Type: '과립형' },
+    { code: 'PL20250808P002-20', Type: '분말형' },
+    { code: 'PL20250808P002-20', Type: '액상형' }
+]);
+
+const products = ref([
+    { id: 1, inspCode: 'P-T01', productType: '분말형비료', inspPurpose: '샘플링검사', inspItem: '수분', range: '±30%', writer: '품질관리자', writeAt: '2025-08-01', remark: '-' },
+    { id: 2, inspCode: 'P-T02', productType: '분말형비료', inspPurpose: '샘플링검사', inspItem: '질소', range: '±3%', writer: '품질관리자', writeAt: '2025-08-01', remark: '-' },
+    { id: 3, inspCode: 'P-T03', productType: '분말형비료', inspPurpose: '샘플링검사', inspItem: '유기물', range: '±50%', writer: '품질관리자', writeAt: '2025-08-01', remark: '-' }
+]);
+
+const columns = ref([
+    { field: 'inspCode', header: '항목코드' },
+    { field: 'productType', header: '제품유형' },
+    { field: 'inspPurpose', header: '검사목적' },
+    { field: 'inspItem', header: '검사항목' },
+    { field: 'range', header: '허용범위' },
+    { field: 'writer', header: '작성자' },
+    { field: 'writeAt', header: '작성날짜' },
+    { field: 'remark', header: '비고' }
+]);
+</script>
+
 <template>
-    <div class="card">
-        <div class="font-semibold text-2xl mb-4">품질정보페이지</div>
-        <div class="font-semibold text-xl mb-4">Get Started</div>
-        <p class="text-lg mb-4">
-            Sakai is an application template for Vue based on the <a href="https://github.com/vuejs/create-vue" class="font-medium text-primary hover:underline">create-vue</a>, the recommended way to start a <strong>Vite-powered</strong> Vue
-            projects. To get started, clone the <a href="https://github.com/primefaces/sakai-vue" class="font-medium text-primary hover:underline">repository</a> from GitHub and install the dependencies with npm or yarn.
-        </p>
-        <pre class="app-code">
-<code>git clone https://github.com/primefaces/sakai-vue
-npm install
-npm run dev</code></pre>
-
-        <p class="text-lg mb-4">Navigate to <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">http://localhost:5173/</i> to view the application in your local environment.</p>
-
-        <pre class="app-code"><code>npm run dev</code></pre>
-
-        <div class="font-semibold text-xl mb-4">Structure</div>
-        <p class="text-lg mb-4">Templates consists of a couple folders, demos and layout have been separated so that you can easily remove what is not necessary for your application.</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">src/layout</span>: Main layout files, needs to be present.</li>
-            <li><span class="text-primary font-medium">src/views</span>: Demo pages like Dashboard.</li>
-            <li><span class="text-primary font-medium">public/demo</span>: Assets used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/demo</span>: Styles used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/layout</span>: SCSS files of the main layout</li>
-        </ul>
-
-        <div class="font-semibold text-xl mb-4">Menu</div>
-        <p class="text-lg mb-4">
-            Main menu is defined at <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/AppMenu.vue</span> file. Update the <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">model</i> property to
-            define your own menu items.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Layout Composable</div>
-        <p class="text-lg mb-4">
-            The <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span> is a composable that manages the layout state changes including dark mode, PrimeVue theme, menu modes and states. If you
-            change the initial values like the preset or colors, make sure to apply them at PrimeVue config at main.js as well.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Tailwind CSS</div>
-        <p class="text-lg mb-4">The demo pages are developed with Tailwind CSS however the core application shell mainly uses custom CSS.</p>
-
-        <div class="font-semibold text-xl mb-4">Variables</div>
-        <p class="text-lg mb-4">
-            CSS variables used in the template derive their values from the PrimeVue styled mode presets, use the files under <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets/layout/_variables.scss</span> to customize
-            according to your requirements.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Add Sakai-Vue to a Nuxt Project</div>
-        <p class="text-lg mb-4">To get started, create a Nuxt project.</p>
-        <pre class="app-code">
-<code>npx nuxi@latest init sakai-nuxt</code></pre>
-
-        <p class="text-lg mb-4">Add Prime related libraries to the project.</p>
-        <pre class="app-code">
-<code>npm install primevue @primevue/themes tailwindcss-primeui primeicons
-npm install --save-dev @primevue/nuxt-module</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue-Nuxt module to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>modules: [
-    '@primevue/nuxt-module',
-]</code></pre>
-
-        <p class="text-lg mb-4">Install <a href="https://tailwindcss.com/docs/guides/nuxtjs" class="font-medium text-primary hover:underline">Tailwind CSS</a> with Nuxt using official documentation.</p>
-
-        <p class="text-lg mb-4">
-            Add <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwindcss-primeui</span> package as a plugin to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwind.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>plugins: [require('tailwindcss-primeui')]</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue to in <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>import Aura from '@primevue/themes/aura';
-
-primevue: {
-    options: {
-        theme: {
-            preset: Aura,
-            options: {
-                darkModeSelector: '.app-dark'
-            }
-        }
-    }
-}</code></pre>
-
-        <p class="text-lg mb-4">
-            Copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/assets</span> folder and paste them to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets</span> folder to your Nuxt project.
-            And add to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>css: ['~/assets/tailwind.css', '~/assets/styles.scss']</code></pre>
-
-        <p class="text-lg mb-4">Change <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">app.vue</span></p>
-        <pre class="app-code">
-<code>&lt;template&gt;
-    &lt;NuxtLayout&gt;
-        &lt;NuxtPage /&gt;
-    &lt;/NuxtLayout&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts/default.vue</span> and paste this code:</p>
-        <pre class="app-code">
-<code>&lt;script setup&gt;
-import AppLayout from './AppLayout.vue';
-&lt;/script&gt;
-
-&lt;template&gt;
-    &lt;AppLayout /&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">
-            Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts</span> folder and copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout</span> folder and paste them. And then
-            create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">composables/use-layout.vue</span> and replace it with
-            <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span>. Then remove this line:
-        </p>
-        <pre class="app-code">
-<code>import { useLayout } from '@/layout/composables/layout';</code></pre>
-
-        <p class="text-lg mb-4">As a final step, copy the following folders:</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">public/demo</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">public</span></li>
-            <li><span class="text-primary font-medium">src/components</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">components</span></li>
-            <li><span class="text-primary font-medium">src/service</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">service</span></li>
-            <li><span class="text-primary font-medium">src/views/uikit</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages/uikit</span></li>
-            <li><span class="text-primary font-medium">src/views/pages</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages</span></li>
-        </ul>
+    <div class="flex justify-end space-x-2">
+        <Button label=" 조회 " rounded />
+        <Button label=" 초기화 " severity="info" rounded />
     </div>
+    <div class="font-semibold text-xl my-4">검사 항목 조회</div>
+    <div class="card p-4">
+        <div class="flex gap-6">
+            <div class="flex flex-col">
+                <label for="productType" class="mb-2">제품유형</label>
+                <IconField iconPosition="right" class="w-full">
+                    <InputText v-model="search.productType" readonly @click="openModal('productType')" class="w-full" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="openModal('productType')" />
+                </IconField>
+            </div>
+            <div class="flex flex-col">
+                <label for="inspType" class="mb-2">검사유형</label>
+                <IconField iconPosition="right" class="w-full">
+                    <InputText v-model="search.inspType" readonly @click="openModal('inspType')" class="w-full" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspType')" />
+                </IconField>
+            </div>
+            <div class="flex flex-col">
+                <label for="inspItem" class="mb-2">검사항목</label>
+                <IconField iconPosition="right" class="w-full">
+                    <InputText v-model="search.inspItem" readonly @click="openModal('inspItem')" class="w-full" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspItem')" />
+                </IconField>
+            </div>
+        </div>
+    </div>
+
+    <div class="font-semibold text-xl my-4">검사 항목 리스트</div>
+    <div class="flex-auto card">
+        <DataTable :value="products" scrollable scrollHeight="400px" tableStyle="min-width: 50rem">
+            <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header"></Column>
+        </DataTable>
+    </div>
+
+    <div class="font-semibold text-xl my-4">제품 품질 검사 등록</div>
+    <div class="card p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="flex flex-col">
+                <label for="inspCode">검사항목코드</label>
+                <InputText id="inspCode" v-model="form.inspCode" readonly style="background-color: #f0f0f0" />
+            </div>
+            <div class="flex flex-col">
+                <label for="writer">작성자</label>
+                <InputText id="writer" v-model="form.writer" readonly style="background-color: #f0f0f0" />
+            </div>
+            <div class="flex flex-col">
+                <label for="productType">제품유형</label>
+                <IconField iconPosition="right" class="w-full">
+                    <InputText id="productType" v-model="form.productType" readonly @click="openModal('productType')" class="w-full" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="openModal('productType')" />
+                </IconField>
+            </div>
+            <div class="flex flex-col">
+                <label for="range">허용범위</label>
+                <InputText id="range" v-model="form.range" />
+            </div>
+            <div class="flex flex-col">
+                <label for="inspPurpose">검사목적</label>
+                <IconField iconPosition="right" class="w-full">
+                    <InputText id="inspPurpose" v-model="form.inspPurpose" readonly @click="openModal('inspPurpose')" class="w-full" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspPurpose')" />
+                </IconField>
+            </div>
+            <div class="flex flex-col">
+                <label for="writeAt">작성날짜</label>
+                <InputText id="writeAt" v-model="form.writeAt" readonly style="background-color: #f0f0f0" />
+            </div>
+            <div class="flex flex-col">
+                <label for="inspItem">검사항목</label>
+                <IconField iconPosition="right" class="w-full">
+                    <InputText id="inspItem" v-model="form.inspItem" readonly @click="openModal('inspItem')" class="w-full" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspItem')" />
+                </IconField>
+            </div>
+            <div class="flex flex-col">
+                <label for="remark">비고</label>
+                <InputText id="remark" v-model="form.remark" />
+            </div>
+        </div>
+    </div>
+    <div class="flex justify-end mb-4 space-x-2">
+        <Button label=" 등록 " rounded />
+        <Button label=" 초기화 " severity="info" rounded />
+    </div>
+
+    <Dialog v-model:visible="showModal" modal header="선택 리스트" :style="{ width: '40vw' }" @hide="closeModal">
+        <p class="font-bold text-lg mb-4">
+            {{ { productType: '제품유형', inspPurpose: '검사유형', inspItem: '검사항목' }[modalType] }}
+        </p>
+        <DataTable :value="productCodeList" paginator :rows="10" tableStyle="min-width: 20rem">
+            <Column field="Type" header="항목">
+                <template #body="{ data }">
+                    <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
+                        {{ data.Type }}
+                    </span>
+                </template>
+            </Column>
+        </DataTable>
+    </Dialog>
 </template>
-
-<style lang="scss" scoped>
-@media screen and (max-width: 991px) {
-    .video-container {
-        position: relative;
-        width: 100%;
-        height: 0;
-        padding-bottom: 56.25%;
-
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    }
-}
-</style>
