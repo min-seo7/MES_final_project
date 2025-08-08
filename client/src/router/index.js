@@ -54,6 +54,11 @@ const router = createRouter({
                     component: () => import('@/views/information/line.vue')
                 },
                 {
+                    path: '/information/warehouse',
+                    name: 'warehouse',
+                    component: () => import('@/views/information/warehouse.vue')
+                },
+                {
                     path: '/sales/orderSearch',
                     name: 'orderSearch',
                     component: () => import('@/views/sales/orderSearch.vue')
@@ -157,16 +162,6 @@ const router = createRouter({
                     path: '/test/matTestResult',
                     name: 'matTestResult',
                     component: () => import('@/views/test/matTestResult.vue')
-                },
-                {
-                    path: '/test/matTestSearch',
-                    name: 'matTestSearch',
-                    component: () => import('@/views/test/matTestSearch.vue')
-                },
-                {
-                    path: '/test/prdTestSearch',
-                    name: 'prdTestSearch',
-                    component: () => import('@/views/test/prdTestSearch.vue')
                 },
                 {
                     path: '/test/prdTestRegist',

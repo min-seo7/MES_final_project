@@ -54,6 +54,11 @@ const model = ref([
                         label: '라인정보',
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/information/line'
+                    },
+                    {
+                        label: '창고정보',
+                        icon: 'pi pi-fw pi-bookmark',
+                        to: '/information/warehouse'
                     }
                 ]
             },
@@ -190,8 +195,7 @@ const model = ref([
                         label: '자재입고검사',
                         icon: 'pi pi-fw pi-bookmark',
                         items: [
-                            { label: '검사목록조회', icon: 'pi pi-fw pi-bookmark', to: '/test/matTestSearch' },
-                            { label: '검사등록', icon: 'pi pi-fw pi-bookmark', to: '/test/matTestRegist' },
+                            { label: '검사조회/등록', icon: 'pi pi-fw pi-bookmark', to: '/test/matTestRegist' },
                             { label: '검사결과', icon: 'pi pi-fw pi-bookmark', to: '/test/matTestResult' }
                         ]
                     },
@@ -199,8 +203,7 @@ const model = ref([
                         label: '제품품질검사',
                         icon: 'pi pi-fw pi-bookmark',
                         items: [
-                            { label: '검사목록조회', icon: 'pi pi-fw pi-bookmark', to: '/test/prdTestSearch' },
-                            { label: '검사등록', icon: 'pi pi-fw pi-bookmark', to: '/test/prdTestRegist' },
+                            { label: '검사조회/등록', icon: 'pi pi-fw pi-bookmark', to: '/test/prdTestRegist' },
                             { label: '검사결과', icon: 'pi pi-fw pi-bookmark', to: '/test/prdTestResult' }
                         ]
                     }
