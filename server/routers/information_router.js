@@ -25,4 +25,15 @@ router.post("/employee", async (req, res) => {
   }
 });
 
+router.get("/bom", async (req, res) => {
+  try {
+    let list = await informationService.findAllBOM();
+    let list2 = await informationService.findDetailBOM();
+    res.json({ list, list2 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
 module.exports = router;
