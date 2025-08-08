@@ -31,6 +31,8 @@ const query = async (alias, values) => {
     return result;
   } catch (e) {
     console.log(e);
+  } finally {
+    conn.release();
   }
 };
 
