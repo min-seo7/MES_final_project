@@ -26,18 +26,18 @@ const order = ref({
 // 전체 주문내역
 const allOrders = [
     {
-        returbnum: 'RETURN001',
+        ordernum: 'ORD001',
         prodCode: 'P1001',
+        partCode: 'SUP002',
         partName: '농협',
         productName: '분말형',
-        partCode: 'SUP002',
-        manager: '홍oo',
-        qty: 1000,
+        qty: 100,
         addr: '서울 강남구',
+        createDate: today,
         deliveryDate: nextWeek,
-        createDate: nextWeek,
-        modifyDate: today,
-        modifyReason: '자연재해발생.'
+        shipState: '출하대기',
+        manager: '홍oo',
+        name: '김미국'
     }
 ];
 
@@ -47,9 +47,11 @@ const customers2 = ref([...allOrders]);
 // 주문상태에 따른 색상
 const getSeverity = (status) => {
     switch (status) {
-        case '반품등록':
+        case '출하대기':
             return 'contrast';
-        case '반품완료':
+        case '출하중':
+            return 'danger';
+        case '출하완료':
             return 'success';
         default:
             return null;
@@ -135,7 +137,7 @@ const resetFilters = () => {
     <br />
     <div class="font-semibold text-xl mb-4">
         주문내역
-        <DataTable :value="customers2" scrollable scrollHeight="200px" class="mt-8">
+        <DataTable :value="customers2" scrollable scrollHeight="200px" class="mt-6">
             <Column field="ordernum" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
             <Column field="prodCode" header="제품코드" style="min-width: 100px" />
             <Column field="productName" header="제품명" style="min-width: 120px" />
@@ -144,18 +146,18 @@ const resetFilters = () => {
             <Column field="addr" header="배송지" style="min-width: 100px" />
             <Column field="createDate" header="납기일자" style="min-width: 80px" />
             <Column field="deliveryDate" header="출하일자" style="min-width: 120px" />
-            <Column field="manager" header="담당자" style="min-width: 80px" />
+            <Column field="manager" header="거래담당자" style="min-width: 80px" />
+
             <template #body="slotProps">
-                <Tag :value="slotProps.data.returnState" :severity="getSeverity(slotProps.data.returnState)" :rounded="true" class="px-3 py-1 text-sm" />
+                <Tag :value="slotProps.data.shipState" :severity="getSeverity(slotProps.data.shipState)" :rounded="true" class="px-3 py-1 text-sm" />
             </template>
             <!-- 주문상태에 Tag 적용 -->
-            <Column field="returnState" header="출하상태" style="min-width: 120px">
+            <Column field="shipState" header="출하상태" style="min-width: 120px">
                 <template #body="slotProps">
-                    <Tag :value="slotProps.data.returnState" :severity="getSeverity(slotProps.data.returnState)" :rounded="true" class="px-3 py-1 text-sm" />
+                    <Tag :value="slotProps.data.shipState" :severity="getSeverity(slotProps.data.shipState)" :rounded="true" class="px-3 py-1 text-sm" />
                 </template>
             </Column>
-            <Column field="modifyReason" header="수정사유" style="min-width: 200px" />
-            <Column field="manager" header="담당자" style="min-width: 100px" />
+            <Column field="name" header="담당자" style="min-width: 80px" />
         </DataTable>
         <Paginator :rows="10" :totalRecords="customers2.length" :rowsPerPageOptions="[10, 20, 30]" />
     </div>
