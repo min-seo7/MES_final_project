@@ -7,7 +7,7 @@ const items = ref([]);
 // API 호출 함수
 const fetchEmployees = async () => {
     try {
-        const response = await axios.get('/api/information/employee');
+        const response = await axios.get('/api/information/partner');
         items.value = response.data.map((item, index) => ({
             num: index + 1,
             ecode: item.employee_id,
@@ -39,16 +39,13 @@ onMounted(() => {
 
     <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
         <Column field="num" header="" />
-        <Column field="ecode" header="사원번호" />
-        <Column field="name" header="이름" />
-        <Column field="department" header="부서" />
-        <Column field="phone" header="연락처" />
-        <Column field="email" header="이메일" />
-        <Column field="hiredate" header="입사일자" />
-        <Column field="enddate" header="퇴사일자" />
-        <Column field="pw" header="비밀번호" />
-        <Column field="pwstatus" header="비밀번호변경유무" />
+        <Column field="mId" header="자재코드" />
+        <Column field="mName" header="자재명" />
+        <Column field="mType" header="자재유형" />
+        <Column field="specification" header="규격" />
+        <Column field="storageCond" header="보관조건" />
+        <Column field="safetyStock" header="안전재고" />
+        <Column field="safetyStockUnit" header="안전재고단위" />
         <Column field="status" header="상태" />
-        <Column field="role" header="권한" />
     </DataTable>
 </template>
