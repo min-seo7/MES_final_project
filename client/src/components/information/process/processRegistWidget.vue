@@ -15,7 +15,7 @@ const form = ref({
 
 const registEmployee = async () => {
     try {
-        const res = await axios.post('/api/information/employee', form.value);
+        const res = await axios.post('/api/information/partner', form.value);
         alert(res.data.message);
     } catch (err) {
         console.log('사원등록실패');

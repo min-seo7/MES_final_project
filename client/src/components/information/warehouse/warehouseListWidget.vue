@@ -7,7 +7,7 @@ const items = ref([]);
 // API 호출 함수
 const fetchEmployees = async () => {
     try {
-        const response = await axios.get('/api/information/employee');
+        const response = await axios.get('/api/information/partner');
         items.value = response.data.map((item, index) => ({
             num: index + 1,
             ecode: item.employee_id,
