@@ -25,14 +25,13 @@ const productionRouter = require("./routers/production_router.js");
 const equipmentRouter = require("./routers/equipment_router.js");
 const testRouter = require("./routers/test_router.js");
 
-
 //기본라우팅
 app.get("/", (req, res) => {
   res.send("Welcome!!");
 });
 
-app.use("/api/information",informationRouter);
-app.use("/api/sales",salesRouter);
+app.use("/api/information", informationRouter);
+app.use("/api/sales", salesRouter);
 app.use("/api/stock", stockRouter);
 app.use("/api/production", productionRouter);
 app.use("/api/equipment", equipmentRouter);
