@@ -6,8 +6,6 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputNumber from 'primevue/inputnumber';
 import Paginator from 'primevue/paginator';
-import Splitter from 'primevue/splitter';
-import SplitterPanel from 'primevue/splitterpanel';
 
 const customers2 = ref([]);
 const selectedItem = ref(null); // 선택된 항목
@@ -39,9 +37,7 @@ onBeforeMount(() => {
             자재명: '부엽토',
             수량: 100,
             등록날짜: '2025-08-07',
-            상태: '대기',
-            검사결과: '-',
-            검사완료날짜: '-'
+            상태: '대기'
         },
         {
             name: 'MI002',
@@ -51,9 +47,7 @@ onBeforeMount(() => {
             자재명: 'EM 발효액',
             수량: 200,
             등록날짜: '2025-08-05',
-            상태: '대기',
-            검사결과: '-',
-            검사완료날짜: '-'
+            상태: '대기'
         },
         {
             name: 'MI003',
@@ -63,9 +57,7 @@ onBeforeMount(() => {
             자재명: '막걸리',
             수량: 300,
             등록날짜: '2025-08-05',
-            상태: '대기',
-            검사결과: '-',
-            검사완료날짜: '-'
+            상태: '대기'
         },
         {
             name: 'MI004',
@@ -75,9 +67,7 @@ onBeforeMount(() => {
             자재명: '톱밥',
             수량: 240,
             등록날짜: '2025-08-05',
-            상태: '대기',
-            검사결과: '-',
-            검사완료날짜: '-'
+            상태: '대기'
         },
         {
             name: 'MI005',
@@ -87,9 +77,7 @@ onBeforeMount(() => {
             자재명: '깻묵',
             수량: 250,
             등록날짜: '2025-08-05',
-            상태: '대기',
-            검사결과: '-',
-            검사완료날짜: '-'
+            상태: '대기'
         },
         {
             name: 'MI006',
@@ -99,9 +87,7 @@ onBeforeMount(() => {
             자재명: '포대',
             수량: 600,
             등록날짜: '2025-08-05',
-            상태: '대기',
-            검사결과: '-',
-            검사완료날짜: '-'
+            상태: '대기'
         }
     ];
 });
@@ -131,7 +117,7 @@ const handleRowSelect = (e) => {
 
 <template>
     <div>
-        <div class="font-semibold text-2xl mb-4">검사등록</div>
+        <div class="font-semibold text-2xl mb-4">입고 검사 등록</div>
     </div>
     <div>
         <div class="flex justify-end mb-4 space-x-2">
@@ -161,8 +147,6 @@ const handleRowSelect = (e) => {
                     <Column field="수량" header="수량(EA)" />
                     <Column field="등록날짜" header="등록날짜" />
                     <Column field="상태" header="상태" />
-                    <Column field="검사결과" header="검사결과" />
-                    <Column field="검사완료날짜" header="검사완료날짜" />
                 </DataTable>
                 <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator>
             </div>
