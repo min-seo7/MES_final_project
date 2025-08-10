@@ -16,25 +16,30 @@ const search = ref({
   status: '사용'
 });
 
-function onSubmit()   { emit('submit', { ...search.value }); }
-function onClear()    { search.value = { eq_id:'', eq_type:'', eq_name:'', loc:'', status:'사용' }; emit('clear'); }
+function onSubmit() { emit('submit', { ...search.value }); }
+function onClear()  {
+  search.value = { eq_id:'', eq_type:'', eq_name:'', loc:'', status:'사용' };
+  emit('clear');
+}
 
-/* --- 돋보기 모달 --- */
+/* -------- 돋보기 모달 제어(위젯 내부 처리) -------- */
 const showPicker = ref(false);
-const pickerList = ref([]);      // string[]
-let currentField = '';           // 'eq_id' | 'eq_type' | 'eq_name' | 'loc'
+const pickerList = ref([]); // string[]
+let currentField = '';      // 'eq_id' | 'eq_type' | 'eq_name' | 'loc'
 
-const unique = arr => [...new Set(arr)];
+const unique = (arr) => [...new Set(arr)];
 
 function openPicker(field) {
   currentField = field;
-  if (!props.pickerData?.length) return;
+  if (!props.pickerData.length) return;
+  // 해당 필드 값만 뽑아서 중복 제거
   pickerList.value = unique(props.pickerData.map(i => i[field]));
   showPicker.value = true;
 }
 function selectPicker(val) {
   if (!currentField) return;
-  search.value[currentField] = val; // 선택 값 → 해당 입력칸만 채움
+  // 선택된 값 → 해당 입력칸만 채움
+  search.value[currentField] = val;
   showPicker.value = false;
 }
 </script>
@@ -52,6 +57,7 @@ function selectPicker(val) {
 
     <!-- 검색 라인 -->
     <div class="flex items-center gap-6 border rounded-md p-4 bg-white mt-2 flex-wrap">
+      <!-- 설비코드 -->
       <div class="flex items-center gap-2">
         <label class="whitespace-nowrap">설비코드</label>
         <IconField iconPosition="left">
@@ -60,6 +66,7 @@ function selectPicker(val) {
         </IconField>
       </div>
 
+      <!-- 설비유형 -->
       <div class="flex items-center gap-2">
         <label class="whitespace-nowrap">설비유형</label>
         <IconField iconPosition="left">
@@ -68,6 +75,7 @@ function selectPicker(val) {
         </IconField>
       </div>
 
+      <!-- 설비명 -->
       <div class="flex items-center gap-2">
         <label class="whitespace-nowrap">설비명</label>
         <IconField iconPosition="left">
@@ -76,6 +84,7 @@ function selectPicker(val) {
         </IconField>
       </div>
 
+      <!-- 설비위치 -->
       <div class="flex items-center gap-2">
         <label class="whitespace-nowrap">설비위치</label>
         <IconField iconPosition="left">
@@ -84,6 +93,7 @@ function selectPicker(val) {
         </IconField>
       </div>
 
+      <!-- 설비상태 -->
       <div class="flex items-center gap-2">
         <label class="whitespace-nowrap">설비상태</label>
         <div class="flex items-center gap-4">
