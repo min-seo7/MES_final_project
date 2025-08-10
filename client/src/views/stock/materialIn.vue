@@ -1,72 +1,106 @@
 <script>
 import stockCommButton from '@/components/stock/stockCommBtn.vue';
+import stockCommRowBtn from '@/components/stock/stockCommRowBtn.vue';
+import CommModal from '@/components/stock/stockCommModal.vue';
 import stockCommTable from '@/components/stock/stockCommTable.vue';
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
+import 'primeicons/primeicons.css'
 
 export default {
-    components: {
-        stockCommButton,
-        stockCommTable
-    },
-    data() {
-        return {
-            tableColumns: [
-                { field: 'dueDate', header: '입고예정일' },
-                { field: 'purNo', header: '발주번호' },
-                { field: 'matCode', header: '자재코드' },
-                { field: 'matName', header: '자재명' },
-                { field: 'succeQty', header: '검수완료수량' },
-                { field: 'inQty', header: '입고수량' },
-                { field: 'unit', header: '단위' },
-                { field: 'supPatner', header: '공급처' },
-                { field: 'location ', header: '보관위치' },
-                { field: 'comm', header: '비고' }
-            ],
-            tableData: [
-                {
-                    id: 1,
-                    reDate: '2025-08-08',
-                    purNo: 'PO12345',
-                    matCode: 'M001',
-                    matName: '철판',
-                    purQty: 100,
-                    unit: 'kg',
-                    supPatner: 'ABC 상사',
-                    eName: '김담당',
-                    dueDate: '2025-08-15',
-                    status: '진행중'
-                }
-            ]
+  components: { stockCommButton, CommModal, stockCommRowBtn, Tabs, TabList, Tab, TabPanels, TabPanel, stockCommTable },
+  data() {
+    return {
+        //검색input
+        dueDate: '',
+        orderNumber: '',
+        materialCode: '',
+        materialName: '',
+        MatInDate: '',
+        MatLotNo: '',
+
+        //모달
+        materialModal: false,
+        //(모달)선택된 자재
+        selectMat: null,
+
+        //입고대기 테이블 컬럼
+        pandingCol: [
+            {field: 'dueDate', header: '입고예정일', headerStyle: 'width: 20rem'}, 
+            {field: 'purNo', header: '발주번호', headerStyle: 'width: 18rem'},
+            {field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem'},
+            {field: 'matName', header: '자재명', headerStyle: 'width: 13rem'},
+            {field: 'testResult', header: '검사결과', headerStyle: 'width: 13rem'},
+            {field: 'testPassQty', header: '검수수량', headerStyle: 'width: 15rem'},
+            {field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem'},
+            {field: 'unit', header: '단위', headerStyle: 'width: 13rem'},
+            {field: 'partnerName', header: '공급처', headerStyle: 'width: 15rem'},
+            {field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem'},
+            {field: 'memo', header: '비고', headerStyle: 'width: 50rem'},
+           ],
+        //입고등록 테이블 컬럼
+        ReceiptCol: [
+            {field: 'inDate', header: '입 고 일', headerStyle: 'width: 20rem'}, 
+            {field: 'matLotNo', header: '자재 Lot번호', headerStyle: 'width: 25rem'},
+            {field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem'},
+            {field: 'matName', header: '자재명', headerStyle: 'width: 20rem'},
+            {field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem'},
+            {field: 'unit', header: '단위', headerStyle: 'width: 13rem'},
+            {field: 'partnerName', header: '공급처', headerStyle: 'width: 15rem'},
+            {field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem'},
+            {field: 'empName', header: '담당자', headerStyle: 'width: 20rem'},
+            {field: 'memo', header: '비고', headerStyle: 'width: 50rem'},
+           ],
         };
-    }
+        
+    },
+  methods: {
+    //초기화버튼
+    onReset(){
+        this.dueDate = '';
+        this.orderNumber= '';
+        this.materialCode= '';
+        this.materialName= '';
+        this.MatInDate= '';
+        this.MatLotNo= '';
+       },
+    //(모달)자재선택
+    onSelectMat(){
+
+    },  
+   },
 };
 </script>
 
 <template>
     <div>
-        <div class="font-semibold text-2xl mb-4">자재입고페이지</div>
+     <div class="font-semibold text-2xl mb-4">자재입고페이지</div>
 
-        <stockCommButton />
+        <stockCommButton  @search="onSearch()" @reset="onReset()" />
 
         <div class="card w-full">
             <!--검색1열-->
             <div class="flex flex-wrap justify-center gap-6 my-6">
                 <!-- 등록일 -->
                 <div class="flex items-center gap-2">
-                    <label for="registerDate" class="whitespace-nowrap">입고예정일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue" dateFormat="yy-mm-dd"></DatePicker>
+                    <label for="dueDate" class="whitespace-nowrap">입고예정일</label>
+                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="dueDate" dateFormat="yy-mm-dd"></DatePicker>
                 </div>
 
                 <!-- 발주번호 -->
                 <div class="flex items-center gap-2">
                     <label for="orderNumber" class="whitespace-nowrap">발주번호</label>
-                    <InputText id="orderNumber" type="text" class="w-60" />
+                    <InputText id="orderNumber" type="text" class="w-60" v-model="orderNumber"/>
                 </div>
 
                 <!-- 자재코드 -->
                 <div class="flex items-center gap-2">
                     <label for="materialCode" class="whitespace-nowrap">자재코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="name2" type="text" class="w-60" />
+                        <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" @click="materialModal = true"/>
                         <InputIcon class="pi pi-search" />
                     </IconField>
                 </div>
@@ -74,7 +108,7 @@ export default {
                 <!-- 자재명 -->
                 <div class="flex items-center gap-2">
                     <label for="materialName" class="whitespace-nowrap">자재명</label>
-                    <InputText id="materialName" type="text" class="w-60" />
+                    <InputText id="materialName" type="text" class="w-60" v-model="materialName"/>
                 </div>
             </div>
             <!--end 검색1열-->
@@ -83,41 +117,82 @@ export default {
             <div class="flex flex-wrap justify-center gap-6 my-6">
                 <!-- 등록일 -->
                 <div class="flex items-center gap-2">
-                    <label for="registerDate" class="whitespace-nowrap">입고일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue" dateFormat="yy-mm-dd"></DatePicker>
+                    <label for="MatInDate" class="whitespace-nowrap">입 고 일</label>
+                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="MatInDate" dateFormat="yy-mm-dd"></DatePicker>
                 </div>
 
                 <!-- 발주번호 -->
                 <div class="flex items-center gap-2">
-                    <label for="orderNumber" class="whitespace-nowrap">LOT번호</label>
-                    <InputText id="orderNumber" type="text" class="w-60" />
+                    <label for="MatLotNo" class="whitespace-nowrap">LOT번호</label>
+                    <InputText id="MatLotNo" type="text" class="w-60" v-model="MatLotNo"/>
                 </div>
 
-                <!-- 자재코드 -->
+                <!-- 간격맞춤 -->
                 <div class="flex items-center gap-2 invisible">
-                    <label for="materialCode" class="whitespace-nowrap">자재코드</label>
+                    <label for="materialCode" class="whitespace-nowrap">====</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="name2" type="text" class="w-60" />
+                        <InputText id="materialCode" type="text" class="w-60" v-model="materialCode"/>
                         <InputIcon class="pi pi-search" />
                     </IconField>
                 </div>
-
-                <!-- 자재명 -->
+                <!-- 간격맞춤 -->
                 <div class="flex items-center gap-2 invisible">
-                    <label for="materialName" class="whitespace-nowrap">자재명</label>
-                    <InputText id="materialName" type="text" class="w-60" />
+                    <label for="materialName" class="whitespace-nowrap">====</label>
+                    <InputText id="materialName" type="text" class="w-60" v-model="materialName"/>
                 </div>
             </div>
         </div>
+        <!--중간버튼-->
+        <stockCommRowBtn :buttons="[
+            { label: '입고등록', icon: 'pi pi-check', onClick: editHandler },
+            { label: '신규', icon: 'pi pi-plus', onClick: deleteHandler },
+            { label: '반품', icon: 'pi pi-box', onClick: deleteHandler },
+            { label: '수정', icon: 'pi pi-pencil', onClick: deleteHandler },
+            { label: '입고취소', icon: 'pi pi-trash', onClick: deleteHandler },
+            ]"/> 
 
-        <div class="flex justify-end mb-4 space-x-2">
-            <ButtonGroup>
-                <Button label="Save" icon="pi pi-check" />
-                <Button label="Delete" icon="pi pi-trash" />
-                <Button label="Cancel" icon="pi pi-times" />
-            </ButtonGroup>
-        </div>
-
-        <stockCommTable :columns="tableColumns" :rows="tableData" />
+        <!--텝 테이블-->
+    <div class="card w-full">
+        <Tabs value="0">
+            <TabList>
+                <Tab value="0">자재입고대기</Tab>
+                <Tab value="1">자재입고확정</Tab>
+            </TabList>
+            <TabPanels>
+                <TabPanel value="0">
+                   <!--0번탭 컨텐츠영역-->
+                   <stockCommTable v-model="MatReceiptPanding" :columns="pandingCol"/>
+                </TabPanel>
+                <TabPanel value="1">
+                    <!--1번탭 컨텐츠영역-->
+                    <stockCommTable v-model="MatReceipt" :columns="ReceiptCol"/>
+                </TabPanel>
+            </TabPanels>
+        </Tabs>
     </div>
+</div>
+
+
+
+    <!--자재모달-->
+  <commModal v-model="materialModal" header="자재목록" >
+  <div class="">
+      <label for="partnerId">자재코드</label>
+      <InputText id="partnerId" type="text" />
+      <label for="partnerName">자재명</label>
+      <InputText id="partnerName" type="text" />
+      <Button label="검색" />
+    </div>
+    <DataTable v-model:selection="selectMat" :value="materials" dataKey="id" tableStyle="min-width: 50rem"> 
+      <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+      <Column field="matCode" header="자재코드"></Column>
+      <Column field="matName" header="자재명"></Column>
+    </DataTable>
+
+    <!-- footer 슬롯 -->
+    <template #footer>
+      <Button label="선택 완료" @click="onSelectMat()" />
+    </template>
+  </commModal>
+
 </template>
