@@ -1,3 +1,13 @@
+<script setup>
+import orderShipRegist from '@/components/sales/orderShip/orderShipRegist.vue';
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+    console.log('order.vue');
+});
+</script>
+
 <template>
-    <h3>출하요청등록</h3>
+    <section>
+        <orderShipRegist />
+    </section>
 </template>

@@ -1,3 +1,13 @@
+<script setup>
+import orderReturnRegist from '@/components/sales/orderReturn/orderReturnRegist.vue';
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+    console.log('order.vue');
+});
+</script>
+
 <template>
-    <h3>반품등록</h3>
+    <section>
+        <orderReturnRegist />
+    </section>
 </template>

@@ -44,7 +44,10 @@ const query = async (alias, values) => {
     conn.release();
   }
 };
-
+const getConnection = async () => {
+  return await connectionPool.getConnection();
+};
 module.exports = {
   query,
+  getConnection,
 };
