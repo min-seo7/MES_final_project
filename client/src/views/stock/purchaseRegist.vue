@@ -16,6 +16,7 @@ export default {
             dueDate: '',
             partnerId: '',
             partnerName: '',
+            empName: '',
 
             //모달
             partnerModal: false,
@@ -118,6 +119,7 @@ export default {
             //발주목록 행추가시 목록번호 증가.
             return ++this.count;
         },
+        //모달용
         async getMatList() {
             try {
                 const res = await axios.get('/api/stock/modalMatList');
@@ -131,7 +133,44 @@ export default {
             } catch (error) {
                 console.error('자재목록 불러오기 실패:', error);
             }
-        }
+        },
+        //발주목록 DB insert[마스터 먼저 넣고, 발주번호 받은뒤 서브 넣기.]
+        async insertPurse(){
+            try{
+                //마스터T 정보
+                let masterInfo = {
+                    re_date: this.reDate,
+                    due_date: this.dateFormat(this.dueDate),
+                    partner_id: this.partnerId,
+                    manager: this.empName
+                };
+                //마스터 DB 저장
+                let insertMaster = await axios.post('/api/stock/purchase', masterInfo);
+
+                //발주번호받기
+                let purchaseNo = insertMaster.data.purchase_no;
+
+                //서브T 정보
+                let subInfo = this.purshaseList.map(row => ({
+                     material_id: row.mat_id,
+                     pur_qty: row.purch_qty,
+                     comm: row.comm,
+                     purchase_no: purchaseNo
+                }));
+
+                //서브 DB저장
+                await axios.post('/api/stock/purDetail', subInfo);
+                //초기화
+                this.reset();
+
+            } catch (error) {
+                console.error('등록 실패', error);
+            }
+        }, 
+        dateFormat(date){
+            let newDateFormat = new Date(date);
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
+        },
     },
     mounted() {
         console.log('발주등록페이지');
