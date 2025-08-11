@@ -1,149 +1,74 @@
-<template>
-    <div class="card">
-        <div class="font-semibold text-2xl mb-4">점검이력</div>
-        <div class="font-semibold text-xl mb-4">Get Started</div>
-        <p class="text-lg mb-4">
-            Sakai is an application template for Vue based on the <a href="https://github.com/vuejs/create-vue" class="font-medium text-primary hover:underline">create-vue</a>, the recommended way to start a <strong>Vite-powered</strong> Vue
-            projects. To get started, clone the <a href="https://github.com/primefaces/sakai-vue" class="font-medium text-primary hover:underline">repository</a> from GitHub and install the dependencies with npm or yarn.
-        </p>
-        <pre class="app-code">
-<code>git clone https://github.com/primefaces/sakai-vue
-npm install
-npm run dev</code></pre>
+<script setup>
+import { ref } from 'vue';
+import InspectionSearch2Widget from '@/components/equipment/inspection/inspectionSearch2Widget.vue';
 
-        <p class="text-lg mb-4">Navigate to <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">http://localhost:5173/</i> to view the application in your local environment.</p>
+/* 더미 5건 */
+const all = ref([
+    { eq_id: 'EQ-001', insp_type: '정기점검', insp_date: '2025-07-29', insp_code: 'N-001', insp_item: '벨트', insp_result: '합격', note: '소음 약간', manager: '김OO' },
+    { eq_id: 'EQ-002', insp_type: '상시점검', insp_date: '2025-07-29', insp_code: 'N-002', insp_item: '모터', insp_result: '보통', note: '-', manager: '이OO' },
+    { eq_id: 'EQ-003', insp_type: '자체점검', insp_date: '2025-07-28', insp_code: 'N-003', insp_item: '축', insp_result: '합격', note: '장력 조정', manager: '박OO' },
+    { eq_id: 'EQ-004', insp_type: '요청점검', insp_date: '2025-07-27', insp_code: 'N-004', insp_item: '베어링', insp_result: '주의', note: '교체 예정', manager: '최OO' },
+    { eq_id: 'EQ-005', insp_type: '정기점검', insp_date: '2025-07-26', insp_code: 'N-005', insp_item: '체인', insp_result: '양호', note: '이상 없음', manager: '정OO' }
+]);
 
-        <pre class="app-code"><code>npm run dev</code></pre>
+const rows = ref([...all.value]); // 현재 목록
+const pickerData = all.value; // 위젯 돋보기 원천
 
-        <div class="font-semibold text-xl mb-4">Structure</div>
-        <p class="text-lg mb-4">Templates consists of a couple folders, demos and layout have been separated so that you can easily remove what is not necessary for your application.</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">src/layout</span>: Main layout files, needs to be present.</li>
-            <li><span class="text-primary font-medium">src/views</span>: Demo pages like Dashboard.</li>
-            <li><span class="text-primary font-medium">public/demo</span>: Assets used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/demo</span>: Styles used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/layout</span>: SCSS files of the main layout</li>
-        </ul>
-
-        <div class="font-semibold text-xl mb-4">Menu</div>
-        <p class="text-lg mb-4">
-            Main menu is defined at <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/AppMenu.vue</span> file. Update the <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">model</i> property to
-            define your own menu items.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Layout Composable</div>
-        <p class="text-lg mb-4">
-            The <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span> is a composable that manages the layout state changes including dark mode, PrimeVue theme, menu modes and states. If you
-            change the initial values like the preset or colors, make sure to apply them at PrimeVue config at main.js as well.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Tailwind CSS</div>
-        <p class="text-lg mb-4">The demo pages are developed with Tailwind CSS however the core application shell mainly uses custom CSS.</p>
-
-        <div class="font-semibold text-xl mb-4">Variables</div>
-        <p class="text-lg mb-4">
-            CSS variables used in the template derive their values from the PrimeVue styled mode presets, use the files under <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets/layout/_variables.scss</span> to customize
-            according to your requirements.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Add Sakai-Vue to a Nuxt Project</div>
-        <p class="text-lg mb-4">To get started, create a Nuxt project.</p>
-        <pre class="app-code">
-<code>npx nuxi@latest init sakai-nuxt</code></pre>
-
-        <p class="text-lg mb-4">Add Prime related libraries to the project.</p>
-        <pre class="app-code">
-<code>npm install primevue @primevue/themes tailwindcss-primeui primeicons
-npm install --save-dev @primevue/nuxt-module</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue-Nuxt module to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>modules: [
-    '@primevue/nuxt-module',
-]</code></pre>
-
-        <p class="text-lg mb-4">Install <a href="https://tailwindcss.com/docs/guides/nuxtjs" class="font-medium text-primary hover:underline">Tailwind CSS</a> with Nuxt using official documentation.</p>
-
-        <p class="text-lg mb-4">
-            Add <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwindcss-primeui</span> package as a plugin to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwind.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>plugins: [require('tailwindcss-primeui')]</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue to in <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>import Aura from '@primevue/themes/aura';
-
-primevue: {
-    options: {
-        theme: {
-            preset: Aura,
-            options: {
-                darkModeSelector: '.app-dark'
-            }
-        }
-    }
-}</code></pre>
-
-        <p class="text-lg mb-4">
-            Copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/assets</span> folder and paste them to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets</span> folder to your Nuxt project.
-            And add to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>css: ['~/assets/tailwind.css', '~/assets/styles.scss']</code></pre>
-
-        <p class="text-lg mb-4">Change <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">app.vue</span></p>
-        <pre class="app-code">
-<code>&lt;template&gt;
-    &lt;NuxtLayout&gt;
-        &lt;NuxtPage /&gt;
-    &lt;/NuxtLayout&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts/default.vue</span> and paste this code:</p>
-        <pre class="app-code">
-<code>&lt;script setup&gt;
-import AppLayout from './AppLayout.vue';
-&lt;/script&gt;
-
-&lt;template&gt;
-    &lt;AppLayout /&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">
-            Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts</span> folder and copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout</span> folder and paste them. And then
-            create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">composables/use-layout.vue</span> and replace it with
-            <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span>. Then remove this line:
-        </p>
-        <pre class="app-code">
-<code>import { useLayout } from '@/layout/composables/layout';</code></pre>
-
-        <p class="text-lg mb-4">As a final step, copy the following folders:</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">public/demo</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">public</span></li>
-            <li><span class="text-primary font-medium">src/components</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">components</span></li>
-            <li><span class="text-primary font-medium">src/service</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">service</span></li>
-            <li><span class="text-primary font-medium">src/views/uikit</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages/uikit</span></li>
-            <li><span class="text-primary font-medium">src/views/pages</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages</span></li>
-        </ul>
-    </div>
-</template>
-
-<style lang="scss" scoped>
-@media screen and (max-width: 991px) {
-    .video-container {
-        position: relative;
-        width: 100%;
-        height: 0;
-        padding-bottom: 56.25%;
-
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    }
+function toYmd(d) {
+    if (!d) return '';
+    return typeof d === 'string' ? d : new Date(d).toISOString().slice(0, 10);
 }
-</style>
+
+function handleSubmit(q) {
+    const qDate = q.insp_date ? toYmd(q.insp_date) : '';
+    rows.value = all.value.filter((r) => (!q.insp_code || r.insp_code.includes(q.insp_code)) && (!q.eq_id || r.eq_id.includes(q.eq_id)) && (!q.insp_type || r.insp_type.includes(q.insp_type)) && (!qDate || r.insp_date === qDate));
+}
+function handleClear() {
+    rows.value = [...all.value];
+}
+</script>
+
+<template>
+    <section class="p-4 space-y-4">
+        <!-- 조회 폼 -->
+        <InspectionSearch2Widget :pickerData="pickerData" @submit="handleSubmit" @clear="handleClear" />
+
+        <!--  목록 라벨을 바깥으로 분리 -->
+        <div class="font-bold text-[18.5px] mt-6">이력</div>
+
+        <!-- 테이블 박스 -->
+        <div class="border rounded-md bg-white overflow-hidden">
+            <table class="w-full text-[14.5px]">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left w-16">No</th>
+                        <th class="px-4 py-3 text-left">점검일</th>
+                        <th class="px-4 py-3 text-left">점검유형</th>
+                        <th class="px-4 py-3 text-left">점검항목</th>
+                        <th class="px-4 py-3 text-left">점검결과</th>
+                        <th class="px-4 py-3 text-left">비고</th>
+                        <th class="px-4 py-3 text-left">점검코드</th>
+                        <th class="px-4 py-3 text-left">점검책임자</th>
+                        <th class="px-4 py-3 text-left">설비코드</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(r, i) in rows" :key="r.insp_code + i" class="border-t">
+                        <td class="px-4 py-2">{{ i + 1 }}</td>
+                        <td class="px-4 py-2">{{ r.insp_date }}</td>
+                        <td class="px-4 py-2">{{ r.insp_type }}</td>
+                        <td class="px-4 py-2">{{ r.insp_item }}</td>
+                        <td class="px-4 py-2">{{ r.insp_result }}</td>
+                        <td class="px-4 py-2">{{ r.note }}</td>
+                        <td class="px-4 py-2">{{ r.insp_code }}</td>
+                        <td class="px-4 py-2">{{ r.manager }}</td>
+                        <td class="px-4 py-2">{{ r.eq_id }}</td>
+                    </tr>
+                    <tr v-if="rows.length === 0" class="border-t">
+                        <td colspan="9" class="px-4 py-8 text-center text-gray-500">데이터 없음</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</template>

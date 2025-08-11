@@ -34,19 +34,19 @@ const registBom = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">BOM코드</label>
-                    <InputText v-model="form.name" class="w-full" />
+                    <InputText v-model="form.bomId" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">제품명</label>
-                    <InputText v-model="form.phone" class="w-full" />
+                    <InputText v-model="form.prodName" class="w-full" />
                 </div>
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">상태</label>
                     <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="kg" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">kg</label>
-                        <RadioButton id="status2" name="status" value="L" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">L</label>
+                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">활성</label>
+                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">비활성</label>
                     </label>
                 </div>
             </div>
@@ -56,7 +56,7 @@ const registBom = async () => {
                 <div>
                     <label class="block mb-1">제품코드</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.empId" class="w-full" />
+                        <InputText v-model="form.prodId" class="w-full" />
                         <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>

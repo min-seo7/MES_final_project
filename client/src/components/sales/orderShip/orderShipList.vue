@@ -100,33 +100,36 @@ const resetFilters = () => {
                             <label class="font-semibold text-sm mb-1">출하상태</label>
                             <div class="flex flex-wrap gap-3">
                                 <div class="flex items-center gap-2">
-                                    <RadioButton v-model="ship" inputId="ingredient1" name="ship" value="주문서등록" />
-                                    <label for="ingredient1">주문서등록</label>
+                                    <RadioButton v-model="ship" inputId="ingredient1" name="ship" value="출하대기" />
+                                    <label for="ingredient1">출하대기</label>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <RadioButton v-model="ship" inputId="ingredient2" name="ship" value="생산중" />
-                                    <label for="ingredient2">생산중</label>
+                                    <RadioButton v-model="ship" inputId="ingredient2" name="ship" value="출하중" />
+                                    <label for="ingredient2">출하중</label>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <RadioButton v-model="ship" inputId="ingredient3" name="ship" value="제품입고" />
-                                    <label for="ingredient3">제품입고</label>
+                                    <RadioButton v-model="ship" inputId="ingredient3" name="ship" value="출하완료" />
+                                    <label for="ingredient3">출하완료</label>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처코드</label>
+                        <div class="flex flex-col space-y-1">
+                            <label class="font-semibold text-sm">거래처코드</label>
                             <InputGroup>
                                 <InputText placeholder="SUP002" />
-                                <Button icon="pi pi-search" />
+                                <Button icon="pi pi-search" class="p-button-secondary" />
                             </InputGroup>
                         </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">* 납기일</label>
-                            <Calendar v-model="order.delStartDate" dateFormat="yy-mm-dd" showIcon class="w-full" />~
-                            <Calendar v-model="order.delEndDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
+                        <div class="flex flex-col space-y-1">
+                            <label class="font-semibold text-sm">* 납기일</label>
+                            <div class="flex items-center space-x-2">
+                                <Calendar v-model="order.delStartDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
+                                <span>~</span>
+                                <Calendar v-model="order.delEndDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
+                            </div>
                         </div>
                     </div>
                 </div>
