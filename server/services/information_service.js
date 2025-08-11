@@ -1,14 +1,204 @@
 const mariadb = require("../database/mapper.js");
 
+// 흐름도 Detail 조회
+const findAllDetailFlowchart = async () => {
+  let list = await mariadb.query("selectDetailFlowchart");
+  return list;
+};
+
+// 흐름도 Detail 등록
+const insertDetailFlowchart = async (flowInfo) => {
+  const insertData = convertToArray(flowInfo, [
+    "processId",
+    "useOrder",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertDetailFlowchart", insertData);
+  return result;
+};
+
+// 흐름도 detail 수정
+const updateDetailFlowchart = async (flowInfo) => {
+  const insertData = convertToArray(flowInfo, [
+    "processId",
+    "useOrder",
+    "status",
+    "flowId",
+  ]);
+
+  const result = await mariadb.query("updateDetailFlowchart", insertData);
+  return result;
+};
+
+//흐름도 목록 조회
+const findAllFlowchart = async () => {
+  let list = await mariadb.query("selectFlowchart");
+  return list;
+};
+
+// 흐름도 등록
+const insertFlowchart = async (flowInfo) => {
+  const insertData = convertToArray(flowInfo, [
+    "flowId",
+    "flowName",
+    "productId",
+    "note",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertFlowchart", insertData);
+  return result;
+};
+
+// 흐름도 수정
+const updateFlowchart = async (flowInfo) => {
+  const insertData = convertToArray(flowInfo, [
+    "flowName",
+    "productId",
+    "note",
+    "status",
+    "flowId",
+  ]);
+
+  const result = await mariadb.query("updateFlowchart", insertData);
+  return result;
+};
+
+// 라인 Detail 조회
+const findAllDetailLine = async () => {
+  let list = await mariadb.query("selectDetailLine");
+  return list;
+};
+
+// 라인 Detail 등록
+const insertDetailLine = async (lineInfo) => {
+  const insertData = convertToArray(lineInfo, [
+    "equipmentId",
+    "processId",
+    "useOrder",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertDetailLine", insertData);
+  return result;
+};
+
+// 라인 detail 수정
+const updateDetailLine = async (lineInfo) => {
+  const insertData = convertToArray(lineInfo, [
+    "equipmentId",
+    "processId",
+    "useOrder",
+    "status",
+    "lineId",
+  ]);
+
+  const result = await mariadb.query("updateDetailLine", insertData);
+  return result;
+};
+
+// 라인 목록 조회
+const findAllLine = async () => {
+  let list = await mariadb.query("selectLine");
+  return list;
+};
+
+// 라인 등록
+const insertLine = async (lineInfo) => {
+  const insertData = convertToArray(lineInfo, [
+    "lineId",
+    "lineName",
+    "flowId",
+    "productId",
+    "note",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertLine", insertData);
+  return result;
+};
+
+// 라인 수정
+const updateLine = async (lineInfo) => {
+  const insertData = convertToArray(lineInfo, [
+    "lineName",
+    "flowId",
+    "productId",
+    "note",
+    "status",
+    "lineId",
+  ]);
+
+  const result = await mariadb.query("updateLine", insertData);
+  return result;
+};
+
+// 공정 목록 조회
+const findAllProcess = async () => {
+  let list = await mariadb.query("selectProcess");
+  return list;
+};
+
+// 공정 등록
+const insertProcess = async (processInfo) => {
+  const insertData = convertToArray(processInfo, [
+    "processId",
+    "processName",
+    "isInspection",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertProcess", insertData);
+  return result;
+};
+
+// 공정 수정
+const updateProcess = async (processInfo) => {
+  const insertData = convertToArray(processInfo, [
+    "processName",
+    "isInspection",
+    "status",
+    "processId",
+  ]);
+
+  const result = await mariadb.query("updateProcess", insertData);
+  return result;
+};
+
 // 전체 BOM 목록 조회
 const findAllBOM = async () => {
   let list = await mariadb.query("selectBomList");
   return list;
 };
 
+// BOM 상세정보 조회
 const findDetailBOM = async () => {
   let list = await mariadb.query("selectBomDetail");
   return list;
+};
+
+// BOM 등록
+const insertBOM = async (bomInfo) => {
+  const insertData = convertToArray(bomInfo, ["bomId", "prodId", "status"]);
+
+  const result = await mariadb.query("insertBOM", insertData);
+  return result;
+};
+
+// BOM_detail 등록
+const insertDetailBOM = async (bomInfo) => {
+  const insertData = convertToArray(bomInfo, [
+    "materialId",
+    "unit",
+    "mixRatio",
+    "requiredQty",
+    "totalQty",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertDetailBOM", insertData);
+  return result;
 };
 
 // 전체 사원 목록 조회
@@ -79,4 +269,21 @@ module.exports = {
   insertEmployee,
   findAllBOM,
   findDetailBOM,
+  insertBOM,
+  findAllProcess,
+  insertProcess,
+  insertDetailBOM,
+  updateProcess,
+  findAllLine,
+  insertLine,
+  updateLine,
+  updateDetailLine,
+  findAllDetailLine,
+  insertDetailLine,
+  findAllFlowchart,
+  findAllDetailFlowchart,
+  insertFlowchart,
+  insertDetailFlowchart,
+  updateDetailFlowchart,
+  updateFlowchart,
 };

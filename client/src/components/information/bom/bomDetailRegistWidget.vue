@@ -3,8 +3,8 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 const form = ref({
-    mId: '',
-    mName: '',
+    materialId: '',
+    materialName: '',
     unit: '',
     mixRatio: '',
     requiredQty: '',
@@ -14,7 +14,7 @@ const form = ref({
 
 const registDetailBom = async () => {
     try {
-        const res = await axios.post('/api/information/bom', form.value);
+        const res = await axios.post('/api/information/bom/detail', form.value);
         alert(res.data.message);
     } catch (err) {
         console.log('detail BOM등록실패');
@@ -36,11 +36,11 @@ const registDetailBom = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">자재코드</label>
-                    <InputText v-model="form.mId" class="w-full" />
+                    <InputText v-model="form.materialId" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">자재명</label>
-                    <InputText v-model="form.mName" class="w-full" />
+                    <InputText v-model="form.materialName" class="w-full" />
                 </div>
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">단위</label>
@@ -53,15 +53,15 @@ const registDetailBom = async () => {
                 </div>
                 <div>
                     <label class="block mb-1">혼합율</label>
-                    <InputText v-model="form.phone" class="w-full" />%
+                    <InputText v-model="form.mixRatio" class="w-full" />%
                 </div>
                 <div>
                     <label class="block mb-1">소요량</label>
-                    <InputText v-model="form.phone" class="w-full" />
+                    <InputText v-model="form.requiredQty" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">총소요량</label>
-                    <InputText v-model="form.phone" class="w-full" />
+                    <InputText v-model="form.totalQty" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">상태</label>
