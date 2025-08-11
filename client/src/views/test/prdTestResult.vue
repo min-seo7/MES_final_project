@@ -4,7 +4,6 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import InputNumber from 'primevue/inputnumber';
 import Paginator from 'primevue/paginator';
 import Dialog from 'primevue/dialog';
 
