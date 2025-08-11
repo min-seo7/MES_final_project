@@ -158,6 +158,7 @@ declare module 'vue' {
     Tabs: typeof import('primevue/tabs')['default']
     Tag: typeof import('primevue/tag')['default']
     Test: typeof import('./src/components/sales/orderRegist/test.vue')['default']
+    TestitemListWidget: typeof import('./src/components/test/testitemListWidget.vue')['default']
     Textarea: typeof import('primevue/textarea')['default']
     TieredMenu: typeof import('primevue/tieredmenu')['default']
     Timeline: typeof import('primevue/timeline')['default']
