@@ -1,149 +1,99 @@
-<template>
-    <div class="card">
-        <div class="font-semibold text-2xl mb-4">매뉴얼조회페이지</div>
-        <div class="font-semibold text-xl mb-4">Get Started</div>
-        <p class="text-lg mb-4">
-            Sakai is an application template for Vue based on the <a href="https://github.com/vuejs/create-vue" class="font-medium text-primary hover:underline">create-vue</a>, the recommended way to start a <strong>Vite-powered</strong> Vue
-            projects. To get started, clone the <a href="https://github.com/primefaces/sakai-vue" class="font-medium text-primary hover:underline">repository</a> from GitHub and install the dependencies with npm or yarn.
-        </p>
-        <pre class="app-code">
-<code>git clone https://github.com/primefaces/sakai-vue
-npm install
-npm run dev</code></pre>
+<script setup>
+import { ref } from 'vue';
+import EquipmentMenuWidge from '@/components/equipment/information/equipmentMenuWidge.vue';
 
-        <p class="text-lg mb-4">Navigate to <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">http://localhost:5173/</i> to view the application in your local environment.</p>
+/* 예시 데이터 */
+const all = ref([
+    { eq_id: 'EQ-001', eq_type: '보일러', eq_name: '1호기 보일러', loc: '본관 1층', status: '사용', legal_file: '', manual_file: '' },
+    { eq_id: 'EQ-002', eq_type: '펌프', eq_name: '급수펌프', loc: '지하 2층', status: '미사용', legal_file: '', manual_file: '' }
+]);
 
-        <pre class="app-code"><code>npm run dev</code></pre>
+const rows = ref([...all.value]);
+const pickerData = all.value;
 
-        <div class="font-semibold text-xl mb-4">Structure</div>
-        <p class="text-lg mb-4">Templates consists of a couple folders, demos and layout have been separated so that you can easily remove what is not necessary for your application.</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">src/layout</span>: Main layout files, needs to be present.</li>
-            <li><span class="text-primary font-medium">src/views</span>: Demo pages like Dashboard.</li>
-            <li><span class="text-primary font-medium">public/demo</span>: Assets used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/demo</span>: Styles used in demos</li>
-            <li><span class="text-primary font-medium">src/assets/layout</span>: SCSS files of the main layout</li>
-        </ul>
+function handleSearch(q) {
+    rows.value = all.value.filter(
+        (r) => (!q.eq_id || r.eq_id.includes(q.eq_id)) && (!q.eq_type || r.eq_type.includes(q.eq_type)) && (!q.eq_name || r.eq_name.includes(q.eq_name)) && (!q.loc || r.loc.includes(q.loc)) && (!q.status || r.status === q.status)
+    );
+}
+function handleClear() {
+    rows.value = [...all.value];
+}
 
-        <div class="font-semibold text-xl mb-4">Menu</div>
-        <p class="text-lg mb-4">
-            Main menu is defined at <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/AppMenu.vue</span> file. Update the <i class="bg-highlight px-2 py-1 rounded-border not-italic text-base">model</i> property to
-            define your own menu items.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Layout Composable</div>
-        <p class="text-lg mb-4">
-            The <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span> is a composable that manages the layout state changes including dark mode, PrimeVue theme, menu modes and states. If you
-            change the initial values like the preset or colors, make sure to apply them at PrimeVue config at main.js as well.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Tailwind CSS</div>
-        <p class="text-lg mb-4">The demo pages are developed with Tailwind CSS however the core application shell mainly uses custom CSS.</p>
-
-        <div class="font-semibold text-xl mb-4">Variables</div>
-        <p class="text-lg mb-4">
-            CSS variables used in the template derive their values from the PrimeVue styled mode presets, use the files under <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets/layout/_variables.scss</span> to customize
-            according to your requirements.
-        </p>
-
-        <div class="font-semibold text-xl mb-4">Add Sakai-Vue to a Nuxt Project</div>
-        <p class="text-lg mb-4">To get started, create a Nuxt project.</p>
-        <pre class="app-code">
-<code>npx nuxi@latest init sakai-nuxt</code></pre>
-
-        <p class="text-lg mb-4">Add Prime related libraries to the project.</p>
-        <pre class="app-code">
-<code>npm install primevue @primevue/themes tailwindcss-primeui primeicons
-npm install --save-dev @primevue/nuxt-module</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue-Nuxt module to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>modules: [
-    '@primevue/nuxt-module',
-]</code></pre>
-
-        <p class="text-lg mb-4">Install <a href="https://tailwindcss.com/docs/guides/nuxtjs" class="font-medium text-primary hover:underline">Tailwind CSS</a> with Nuxt using official documentation.</p>
-
-        <p class="text-lg mb-4">
-            Add <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwindcss-primeui</span> package as a plugin to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">tailwind.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>plugins: [require('tailwindcss-primeui')]</code></pre>
-
-        <p class="text-lg mb-4">Add PrimeVue to in <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span></p>
-        <pre class="app-code">
-<code>import Aura from '@primevue/themes/aura';
-
-primevue: {
-    options: {
-        theme: {
-            preset: Aura,
-            options: {
-                darkModeSelector: '.app-dark'
-            }
-        }
-    }
-}</code></pre>
-
-        <p class="text-lg mb-4">
-            Copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/assets</span> folder and paste them to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">assets</span> folder to your Nuxt project.
-            And add to <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">nuxt.config.js</span>
-        </p>
-        <pre class="app-code">
-<code>css: ['~/assets/tailwind.css', '~/assets/styles.scss']</code></pre>
-
-        <p class="text-lg mb-4">Change <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">app.vue</span></p>
-        <pre class="app-code">
-<code>&lt;template&gt;
-    &lt;NuxtLayout&gt;
-        &lt;NuxtPage /&gt;
-    &lt;/NuxtLayout&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts/default.vue</span> and paste this code:</p>
-        <pre class="app-code">
-<code>&lt;script setup&gt;
-import AppLayout from './AppLayout.vue';
-&lt;/script&gt;
-
-&lt;template&gt;
-    &lt;AppLayout /&gt;
-&lt;/template&gt;</code></pre>
-
-        <p class="text-lg mb-4">
-            Create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">layouts</span> folder and copy <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout</span> folder and paste them. And then
-            create <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">composables/use-layout.vue</span> and replace it with
-            <span class="bg-highlight px-2 py-1 rounded-border not-italic text-base">src/layout/composables/layout.js</span>. Then remove this line:
-        </p>
-        <pre class="app-code">
-<code>import { useLayout } from '@/layout/composables/layout';</code></pre>
-
-        <p class="text-lg mb-4">As a final step, copy the following folders:</p>
-        <ul class="leading-normal list-disc pl-8 text-lg mb-4">
-            <li><span class="text-primary font-medium">public/demo</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">public</span></li>
-            <li><span class="text-primary font-medium">src/components</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">components</span></li>
-            <li><span class="text-primary font-medium">src/service</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">service</span></li>
-            <li><span class="text-primary font-medium">src/views/uikit</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages/uikit</span></li>
-            <li><span class="text-primary font-medium">src/views/pages</span> <i class="pi pi-arrow-right !text-sm mr-1"></i> <span class="text-primary font-medium">pages</span></li>
-        </ul>
-    </div>
-</template>
-
-<style lang="scss" scoped>
-@media screen and (max-width: 991px) {
-    .video-container {
-        position: relative;
-        width: 100%;
-        height: 0;
-        padding-bottom: 56.25%;
-
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+/* 파일 업로드 핸들러 */
+function onFileSelected(event, row, type) {
+    const file = event.target.files[0];
+    if (file) {
+        if (type === 'legal') {
+            row.legal_file = file.name;
+        } else if (type === 'manual') {
+            row.manual_file = file.name;
         }
     }
 }
-</style>
+</script>
+
+<template>
+    <section class="p-6 space-y-6">
+        <!-- 조회 타이틀 추가 -->
+        <div class="font-bold text-[18.5px]">조회</div>
+
+        <!-- 조회 폼 -->
+        <EquipmentMenuWidge :pickerData="pickerData" @submit="handleSearch" @clear="handleClear" />
+
+        <!-- 목록 제목 -->
+        <div class="font-bold text-[17px]">목록</div>
+
+        <!-- 목록 표 -->
+        <div class="border rounded-md overflow-hidden bg-white">
+            <table class="w-full text-[15px] border-collapse">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="border-r px-3 py-2 text-center">설비코드</th>
+                        <th class="border-r px-3 py-2 text-center">설비유형</th>
+                        <th class="border-r px-3 py-2 text-center">설비명</th>
+                        <th class="border-r px-3 py-2 text-center">법적안전검사기준</th>
+                        <th class="border-r px-3 py-2 text-center">작동매뉴얼</th>
+                        <th class="px-3 py-2 text-center">설비상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(row, i) in rows" :key="i" class="border-b">
+                        <td class="border-r px-3 py-2 text-center">{{ row.eq_id }}</td>
+                        <td class="border-r px-3 py-2 text-center">{{ row.eq_type }}</td>
+                        <td class="border-r px-3 py-2">{{ row.eq_name }}</td>
+
+                        <!-- 법적안전검사기준: 폴더 아이콘 -->
+                        <td class="border-r px-3 py-2 text-center">
+                            <label class="cursor-pointer flex flex-col items-center gap-1">
+                                <i class="pi pi-folder-open text-yellow-600 text-xl"></i>
+                                <span class="text-xs text-gray-600 truncate w-28">{{ row.legal_file || '파일 선택' }}</span>
+                                <input type="file" class="hidden" @change="(e) => onFileSelected(e, row, 'legal')" />
+                            </label>
+                        </td>
+
+                        <!-- 작동매뉴얼: 폴더 아이콘 -->
+                        <td class="border-r px-3 py-2 text-center">
+                            <label class="cursor-pointer flex flex-col items-center gap-1">
+                                <i class="pi pi-folder-open text-blue-600 text-xl"></i>
+                                <span class="text-xs text-gray-600 truncate w-28">{{ row.manual_file || '파일 선택' }}</span>
+                                <input type="file" class="hidden" @change="(e) => onFileSelected(e, row, 'manual')" />
+                            </label>
+                        </td>
+
+                        <!-- 설비상태 -->
+                        <td class="px-3 py-2 text-center">
+                            <span :class="row.status === '사용' ? 'text-emerald-600' : 'text-gray-500'">
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr v-if="rows.length === 0">
+                        <td colspan="6" class="px-3 py-8 text-center text-gray-500">데이터가 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</template>
