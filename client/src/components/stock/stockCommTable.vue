@@ -1,27 +1,45 @@
 <script>
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
 export default {
-    name: 'stockCommTable',
+    components: { DataTable, Column },
     props: {
         columns: {
             type: Array,
             required: true
-            // 예: [{ field: 'reDate', header: '등록일' }, ...]
         },
-        rows: {
+        dataRows: {
             type: Array,
             required: true
         }
-    }
+    },
+    emits: ['update:dataRows']
 };
 </script>
 
 <template>
     <div class="card w-full">
-        <DataTable :value="rows" dataKey="id" tableStyle="min-width: 50rem">
+        <DataTable :value="dataRows" dataKey="id" tableStyle="min-width: 50rem">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <!--채크박스영역-->
 
-            <!-- 동적 컬럼 렌더링 -->
-            <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" />
+            <!--컬럼 동적으로 사용. 호출하는 곳 data()영역에 columns 정의해줄것. 
+                columns : [{field:'matName', header: '자재명' },{field:'matCode', header: '자재코드'}]-->
+            <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :headerStyle="col.headerStyle">
+                <template #body="slotProps">
+                    <!--조건에 따라 input-->
+                    <!--  { field: 'purch_qty', header: '수량', inputNumber: true },  {field: 'comm', header: '비고', inputText: true } -->
+                    <InputText v-model="slotProps.data[col.field]" type="text" style="width: 100%" v-if="col.inputText" />
+                    <InputText v-model="slotProps.data[col.field]" type="text" style="width: 100%" @click="modal" v-else-if="col.inputTextWM" />
+                    <InputText v-model="slotProps.data[col.field]" :min="0" type="number" style="width: 80%" v-else-if="col.inputNumber" />
+                    <!-- 기본 출력 -->
+                    <span v-else>{{ slotProps.data[col.field] }}</span>
+                </template>
+            </Column>
         </DataTable>
     </div>
 </template>
+
+<!-- <InputText v-model="slotProps.data.comm" type="text" style="width: 100%" v-if="col.inputText" />
+<InputText v-model="slotProps.data.purch_qty" :min="0" type="number" style="width: 80%" v-else-if="col.inputNumber" /> -->
