@@ -36,4 +36,193 @@ router.get("/bom", async (req, res) => {
   }
 });
 
+router.post("/bom", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const bomData = req.body;
+    const result = await informationService.insertBOM(bomData);
+    res.status(201).json({ message: "BOM등록성공", result });
+  } catch (error) {
+    console.error("BOM등록 실패: information_router.js", error);
+    res.status(500).json({ message: "BOM등록 실패", error: error.message });
+  }
+});
+
+router.post("/bom/detail", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const bomData = req.body;
+    const result = await informationService.insertDetailBOM(bomData);
+    res.status(201).json({ message: "BOM_detail등록성공", result });
+  } catch (error) {
+    console.error("BOM_detail등록 실패: information_router.js", error);
+    res
+      .status(500)
+      .json({ message: "BOM_detail등록 실패", error: error.message });
+  }
+});
+
+router.get("/process", async (req, res) => {
+  try {
+    let list = await informationService.findAllProcess();
+    res.json({ list });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/process", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const processData = req.body;
+    const result = await informationService.insertProcess(processData);
+    res.status(201).json({ message: "공정등록성공", result });
+  } catch (error) {
+    console.error("공정등록 실패: information_router.js", error);
+    res.status(500).json({ message: "공정등록 실패", error: error.message });
+  }
+});
+
+router.post("/process/modify", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const processData = req.body;
+    console.log(processData);
+    const result = await informationService.updateProcess(processData);
+    res.status(201).json({ message: "공정수정성공", result });
+  } catch (error) {
+    console.error("공정수정 실패: information_router.js", error);
+    res.status(500).json({ message: "공정수정 실패", error: error.message });
+  }
+});
+
+router.get("/line", async (req, res) => {
+  try {
+    let list = await informationService.findAllLine();
+    let list2 = await informationService.findAllDetailLine();
+
+    res.json({ list, list2 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/line", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const processData = req.body;
+    const result = await informationService.insertLine(processData);
+    res.status(201).json({ message: "라인등록성공", result });
+  } catch (error) {
+    console.error("라인등록 실패: information_router.js", error);
+    res.status(500).json({ message: "라인등록 실패", error: error.message });
+  }
+});
+
+router.post("/line/modify", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const lineData = req.body;
+    console.log(lineData);
+    const result = await informationService.updateLine(processData);
+    res.status(201).json({ message: "라인수정성공", result });
+  } catch (error) {
+    console.error("라인수정 실패: information_router.js", error);
+    res.status(500).json({ message: "라인수정 실패", error: error.message });
+  }
+});
+
+router.post("/line/detail", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const lineData = req.body;
+    const result = await informationService.insertDetailLine(lineData);
+    res.status(201).json({ message: "라인등록성공", result });
+  } catch (error) {
+    console.error("라인등록 실패: information_router.js", error);
+    res.status(500).json({ message: "라인등록 실패", error: error.message });
+  }
+});
+
+router.post("/line/detail/modify", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const lineData = req.body;
+    console.log(lineData);
+    const result = await informationService.updateDetailLine(processData);
+    res.status(201).json({ message: "라인수정성공", result });
+  } catch (error) {
+    console.error("라인수정 실패: information_router.js", error);
+    res.status(500).json({ message: "라인수정 실패", error: error.message });
+  }
+});
+
+router.get("/flowchart", async (req, res) => {
+  try {
+    let list = await informationService.findAllFlowchart();
+    let list2 = await informationService.findAllDetailFlowchart();
+
+    res.json({ list, list2 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/flowchart", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const flowData = req.body;
+    const result = await informationService.insertFlowchart(flowData);
+    res.status(201).json({ message: "흐름도 등록성공", result });
+  } catch (error) {
+    console.error("흐름도 등록 실패: information_router.js", error);
+    res.status(500).json({ message: "흐름도 등록 실패", error: error.message });
+  }
+});
+
+router.post("/flowchart/modify", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const flowData = req.body;
+    console.log(flowData);
+    const result = await informationService.updateFlowchart(flowData);
+    res.status(201).json({ message: "흐름도 수정성공", result });
+  } catch (error) {
+    console.error("흐름도 수정 실패: information_router.js", error);
+    res.status(500).json({ message: "흐름도 수정 실패", error: error.message });
+  }
+});
+
+router.post("/flowchart/detail", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const flowData = req.body;
+    const result = await informationService.insertDetailFlowchart(flowData);
+    res.status(201).json({ message: "흐름도 detail 등록성공", result });
+  } catch (error) {
+    console.error("흐름도 detail 등록 실패: information_router.js", error);
+    res
+      .status(500)
+      .json({ message: "흐름도 detail 등록 실패", error: error.message });
+  }
+});
+
+router.post("/flowchart/detail/modify", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const flowData = req.body;
+    console.log(flowData);
+    const result = await informationService.updateDetailFlowchart(flowData);
+    res.status(201).json({ message: "흐름도 detail 수정성공", result });
+  } catch (error) {
+    console.error("흐름도 detail수정 실패: information_router.js", error);
+    res
+      .status(500)
+      .json({ message: "흐름도 detail 수정 실패", error: error.message });
+  }
+});
+
 module.exports = router;

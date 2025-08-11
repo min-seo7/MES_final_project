@@ -9,8 +9,8 @@ const fetchBomDetail = async () => {
         const response = await axios.get('/api/information/bom');
         items.value = response.data.list2.map((item, index) => ({
             num: index + 1,
-            mId: item.material_id,
-            mName: item.material_name,
+            materialId: item.material_id,
+            materialName: item.material_name,
             unit: item.unit,
             mixRatio: item.mix_ratio,
             requiredQty: item.required_qty,
@@ -29,20 +29,14 @@ onMounted(() => {
 </script>
 
 <template>
-    <!--
-    <div class="flex flex-col">
-        <div class="card">
-            
-    <div class="p-4">
-                    -->
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">목록</h2>
     </div>
 
     <DataTable :value="items" :rows="10" :paginator="true" showGridlines>
         <Column field="num" header="" />
-        <Column field="mId" header="자재코드" />
-        <Column field="mName" header="자재명" />
+        <Column field="materialId" header="자재코드" />
+        <Column field="materialName" header="자재명" />
         <Column field="unit" header="단위" />
         <Column field="mixRatio" header="혼합율" />
         <Column field="requiredQty" header="소요량" />

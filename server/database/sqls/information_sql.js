@@ -1,3 +1,150 @@
+// 흐름도 조회
+const selectFlowchart = `
+SELECT f.flow_id
+       , f.flow_name
+       , f.product_id
+       , p.product_name
+       , f.note
+       , DATE_FORMAT(f.create_date, '%Y-%m-%d') as create_date
+       , f.status
+FROM flowchart f INNER JOIN product p
+			ON f.product_id = p.product_id
+ `;
+
+// 흐름도 등록
+const insertFlowchart = `
+INSERT INTO flowchart (flow_id,
+                       flow_name,
+                       product_id,
+                       note,
+                       status)
+VALUES (?,?,?,?,?)`;
+
+// 흐름도 수정
+const updateFlowchart = `
+UPDATE flowchart
+SET flow_name = ?,
+    product_id = ?,
+    note = ?,
+    status = ?
+WHERE flow_id = ?`;
+
+// 흐름도 detail 조회
+const selectDetailFlowchart = `
+SELECT f.process_id
+       , p.process_name
+       , f.use_order
+       , f.status
+FROM flowchart_detail f INNER JOIN process p
+                   ON f.process_id = p.process_id`;
+
+// 흐름도 detail 등록
+const insertDetailFlowchart = `
+INSERT INTO flowchart_detail (flow_id,
+                              process_id,
+                              use_order,
+                              status)
+VALUES ('flow001',?,?,?)`;
+
+// 흐름도 detail 수정
+const updateDetailFlowchart = `
+UPDATE flowchart_detail 
+SET process_id = ?,
+    use_order = ?,
+    status = ?
+WHERE flow_id = ?`;
+
+// 라인 detail 조회
+const selectDetailLine = `
+SELECT l.process_id
+       , p.process_name
+       , l.equipment_id
+       , e.equipment_name
+       , l.use_order
+       , l.status
+FROM line_detail l INNER JOIN process p
+			ON l.process_id = p.process_id
+            INNER JOIN equipment e
+            ON l.equipment_id = e.equipment_id`;
+
+// 라인 detail 등록
+const insertDetailLine = `
+INSERT INTO line_detail (line_id, 
+                          equipment_id, 
+                          process_id, 
+                          use_order, 
+                          status)
+VALUES ('line001',?,?,?,?);`;
+
+// 라인 detail 수정
+const updateDetailLine = `
+UPDATE line_detail
+SET equipment_id = ?,
+    process_id = ?,
+    use_order = ?,
+    status = ?`;
+
+// 라인조회
+const selectLine = `
+SELECT l.line_id
+		, l.line_name
+        , l.flow_id
+        , f.flow_name
+        , l.product_id
+        , p.product_name
+        , l.note
+        , DATE_FORMAT(l.created_date, '%Y-%m-%d') as created_date
+        , l.status
+FROM line l INNER JOIN product p
+	        ON l.product_id = p.product_id
+            INNER JOIN flowchart f
+            ON l.flow_id = f.flow_id`;
+
+// 라인등록
+const insertLine = `
+INSERT INTO line (line_id,
+                  line_name,
+                  flow_id,
+                  product_id,
+                  note,
+                  status)
+VALUES (?,?,?,?,?,?)`;
+
+// 라인수정
+const updateLine = `
+UPDATE line
+SET line_name = ?,
+    flow_id = ?,
+    product_id = ?,
+    note = ?,
+    status = ?
+WHERE line_id = ?`;
+
+// 공정등록
+const insertProcess = `
+ INSERT INTO process (process_id,
+					            process_name,
+                      is_inspection,
+                      status)
+VALUES (?,?,?,?)
+`;
+
+// 공정조회
+const selectProcess = `
+SELECT process_id,
+       process_name,
+       is_inspection,
+       status
+FROM process`;
+
+// 공정수정
+const updateProcess = `
+UPDATE process
+SET process_name = ?, 
+    is_inspection = ?, 
+    status = ?
+WHERE process_id = ?`;
+
 // bom 조회
 const selectBomList = `
 SELECT b.bom_id,
@@ -22,7 +169,28 @@ SELECT m.material_id,
 FROM bom_detail b
 	 INNER JOIN material m
      ON b.material_id = m.material_id
-     where b.bom_id = 'bom001'`;
+     where b.bom_id = 'bom004'`;
+
+// bom등록
+const insertBOM = `
+INSERT INTO bom(bom_id,
+                product_id,
+                status)
+VALUES (?,?,?)
+`;
+
+// bom detail 등록
+const insertDetailBOM = `
+INSERT INTO bom_detail(bom_id,
+                       material_id,
+                       unit,
+                       mix_ratio,
+                       required_qty,
+                       total_qty,
+                       status)
+VALUES ('bom004',?,?,?,?,?,?)
+`;
+
 // 사원등록
 const insertEmployee = `
 INSERT INTO employee(employee_id,
@@ -58,4 +226,21 @@ module.exports = {
   selectEmployeeList,
   selectBomList,
   selectBomDetail,
+  insertProcess,
+  selectProcess,
+  updateProcess,
+  insertBOM,
+  insertDetailBOM,
+  selectLine,
+  insertLine,
+  updateLine,
+  selectDetailLine,
+  insertDetailLine,
+  updateDetailLine,
+  selectFlowchart,
+  selectDetailFlowchart,
+  insertFlowchart,
+  insertDetailFlowchart,
+  updateFlowchart,
+  updateDetailFlowchart,
 };
