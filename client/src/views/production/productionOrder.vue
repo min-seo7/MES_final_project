@@ -1,77 +1,190 @@
 <script setup>
+import { ref, onBeforeMount, computed, watch } from 'vue';
 import InputText from 'primevue/inputtext';
-import { ref } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputNumber from 'primevue/inputnumber';
+import Calendar from 'primevue/calendar';
+import Dialog from 'primevue/dialog';
+const search = ref({
+    productPlanCode: '',
+    planStartDate: '',
+    planEndDate: '',
+    director: ''
+});
+
+// 모달 상태 관리
+const showModal = ref(false);
+const modalType = ref('');
+
+const openModal = (type) => {
+    modalType.value = type;
+    showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+};
+
+const selectModalValue = (value) => {
+    if (modalType.value === 'productPlanCode') search.value.productPlanCode = value.code;
+    else if (modalType.value === 'planStartDate') search.value.planStartDate = value.startDate;
+    else if (modalType.value === 'planEndDate') search.value.planEndDate = value.endDate;
+    else if (modalType.value === 'director') search.value.director = value.director;
+    showModal.value = false;
+};
+const productPlanCodeList = ref([
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:10', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:20', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P003-20', startDate: '2025-08-10 09:30', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P003-40', startDate: '2025-08-10 09:40', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:00', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:10', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:20', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:30', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:40', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:50', endDate: '2025-08-10 18:00', director: '김지시' }, //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:60', endDate: '2025-08-10 18:00', director: '김지시' } //
+]);
+
+// const currentPage = ref(1);
+// const pageSize = 5;
+// eslint-disable-next-line no-undef
+// const totalPages = computed(() => Math.ceil(productPlanCodeList.value.length / pageSize));
+
+// // eslint-disable-next-line no-undef
+// const pagedProductPlanCodes = computed(() => {
+//     const start = (currentPage.value - 1) * pageSize;
+
+//     return productPlanCodeList.value.slice(start, start + pageSize);
+// });
 
 const products = ref([
-    { id: 1, name: 'Product A', price: 100 },
-    { id: 2, name: 'Product B', price: 200 },
-    { id: 3, name: 'Product C', price: 300 },
-    { id: 4, name: 'Product D', price: 400 },
-    { id: 5, name: 'Product E', price: 500 }
+    { id: 1, startDatetime: '2025-08-10 10:10', endDatetime: '2025-08-12', productname: '과립형비료 20kg', productPlanQty: 10000, productType: '과립형', undefinedQty: 9000, currentQty: 1000, line: 'B01', lastname: '김지시' },
+    { id: 2, startDatetime: '2025-08-10 10:20', endDatetime: '2025-08-12', productname: '과립형비료 20kg', productPlanQty: 10000, productType: '과립형', undefinedQty: 9000, currentQty: 1000, line: 'B01', lastname: '김지시' },
+    { id: 3, startDatetime: '2025-08-10 10:30', endDatetime: '2025-08-12', productname: '과립형비료 20kg', productPlanQty: 10000, productType: '과립형', undefinedQty: 9000, currentQty: 1000, line: 'B01', lastname: '김지시' }
 ]);
+const selectedProducts = ref([]);
+const hiddenProductIds = ref(new Set());
+
+// 체크박스가 찍힌 제품들을 넣을 배열
+const filteredProducts = computed(() => {
+    // 선택된 상품이 없으면 원본 데이터 전체를 반환
+    return products.value.filter((p) => !hiddenProductIds.value.has(p.id));
+    // const selectedIds = new Set(selectedProducts.value.map((prow) => prow.id));
+    // 선택된 행의 id를 set컬렉션으로 map을 이용해서 배열을 반환하고 수집된다
+    // return products.value.filter((prow) => !selectedIds.has(prow.id));
+    // 제품배열에 필터를 걸어서 선택되지 않은 id를 가진 데이터들을 리턴
+});
+const hideSelected = () => {
+    // 선택된 상품들의 ID를 hiddenProductIds Set에 추가
+    selectedProducts.value.forEach((p) => hiddenProductIds.value.add(p.id));
+
+    // 숨기기 후 선택 상태 초기화
+    selectedProducts.value = [];
+};
+
+const columns = ref([
+    { field: 'startDatetime', header: '생산시작일시' },
+    { field: 'endDatetime', header: '생산종료일시' },
+    { field: 'productname', header: '제품명' },
+    { field: 'productPlanQty', header: '생산계획수량' },
+    { field: 'productType', header: '제품형태' },
+    { field: 'undefinedQty', header: '미지시수량' },
+    { field: 'currentQty', header: '현지시수량' },
+    { field: 'line', header: '라인' },
+    { field: 'lastname', header: '생산지시자' }
+]);
+
+// const formatCurrency = (value) => {
+//     return value.toLocaleString('ko-KR', { style: 'currency', currency: 'KRW' });
+// };
+const formatDate = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    return date.toLocaleString('ko-KR'); // 또는 원하는 형식으로 포맷
+};
 
 const onCellEditComplete = (event) => {
     // event 객체에서 편집된 정보를 가져옵니다.
     let { data, newValue, field } = event;
-
-    // 예시: 가격이 0보다 작으면 업데이트하지 않음
+    console.log(data);
+    //예시: 가격이 0보다 작으면 업데이트하지 않음
     if (field === 'price' && newValue < 0) {
         console.error('가격은 0보다 작을 수 없습니다.');
         return;
     }
+    if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
+        if (isNaN(newValue) || newValue < 0) {
+            console.warn('음수는 허용되지 않습니다.');
 
-    // 데이터 업데이트
-    data[field] = newValue;
-    // 여기에서 API 호출 등의 로직을 추가할 수 있습니다.
+            return;
+        }
+    }
+
+    // // 데이터 업데이트
+    // data[field] = newValue;
+    // // 여기에서 API 호출 등의 로직을 추가할 수 있습니다.
+};
+const addNewRow = () => {
+    // Create a new data object for the row
+    const newProduct = {
+        id: products.value.length + 1, // Generate a unique ID
+        startDatetime: '',
+        endDatetime: '',
+        productname: '',
+        productPlanQty: 0,
+        productType: '',
+        undefinedQty: 0,
+        currentQty: 0,
+        line: '',
+        lastname: '김지시'
+    };
+    // Add the new object to the data array
+    products.value.push(newProduct);
+};
+
+const dropContent = () => {
+    Object.assign(search.value, {
+        productPlanCode: ''
+    });
 };
 </script>
 <template>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" 조회 " rounded />
-        <Button label=" 초기화 " severity="info" rounded />
+        <Button label=" 지시등록 " rounded @click="insertWork" />
+        <Button label=" 초기화 " severity="info" rounded @click="dropContent" />
     </div>
-    <!-- <div class="flex mt-8">
-        <div class="card flex">
-            <InputGroup>
-                <label for="lastname">생산계획코드</label>
-                <InputText placeholder="Keyword" />
-                <InputGroupAddon>
-                    <Button icon="pi pi-search" severity="secondary" variant="text" @click="toggle" />
-                </InputGroupAddon>
-            </InputGroup>
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="flex flex-wrap gap-2 w-full">
-                    <label for="lastname">지시자</label>
-                    <InputText id="lastname" type="text" readonly />
-                </div>
+
+    <div class="card flex justify-center gap-6 py-4">
+        <!-- 생산계획코드 영역 -->
+        <div class="flex flex-col">
+            <label for="planCode" class="mb-1">생산계획코드</label>
+            <div class="flex items-center gap-2">
+                <!-- <InputText class="w-64" v-model="search.productPlanCode" readonly />
+                <Button icon="pi pi-search" severity="secondary" variant="text" @click="openModal('productPlanCode')" /> -->
+                <IconField iconPosition="left">
+                    <InputText class="w-64" ref="inputValue" v-model="search.productPlanCode" id="planCodeInput" readonly />
+                    <InputIcon class="pi pi-search" @click="openModal('productPlanCode')" />
+                </IconField>
             </div>
-        </div>
-    </div> -->
-    <div class="card flex flex-col md:flex-row gap-4 w-full">
-        <div class="flex flex-col gap-2 w-full">
-            <!-- <label for="planCode">생산계획코드</label>
-            <InputText id="planCode" type="text" /> -->
-            <InputGroup>
-                <label for="lastname">생산계획코드</label>
-                <InputText placeholder="Keyword" />
-                <InputGroupAddon>
-                    <Button icon="pi pi-search" severity="secondary" variant="text" @click="toggle" />
-                </InputGroupAddon>
-            </InputGroup>
         </div>
 
-        <div class="flex flex-col gap-2 w-full">
-            <!-- <label for="assigner">지시자</label>
-            <InputText id="assigner" type="text" readonly /> -->
-            <div class="flex flex-wrap gap-2 w-full">
-                <label for="lastname">지시자</label>
-                <InputText id="lastname" type="text" readonly />
-            </div>
+        <!-- 지시자 영역 -->
+        <div class="flex flex-col">
+            <label for="lastname" class="mb-1">지시자</label>
+            <InputText id="lastnameTxt" type="text" readonly />
         </div>
     </div>
-    <div class="flex mt-8">
+    <div class="flex justify-end mb-4 space-x-2">
+        <Button label=" 행추가 " rounded @click="addNewRow" />
+        <Button label=" 선택삭제 " severity="danger" rounded @click="hideSelected" />
+    </div>
+    <div class="flex-auto card">
         <DataTable
-            :value="products"
+            v-model:selection="selectedProducts"
+            :value="filteredProducts"
             scrollable
             scrollHeight="400px"
             editMode="cell"
@@ -84,43 +197,62 @@ const onCellEditComplete = (event) => {
                     })
                 }
             }"
+            dataKey="id"
         >
-            <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header" style="width: 25%">
+            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
                 <template #body="{ data, field }">
-                    {{ field === 'price' ? formatCurrency(data[field]) : data[field] }}
+                    <!-- {{ field === ['startDate', 'endDate'] ? formatCurrency(data[field]) : data[field] }} -->
+                    <span v-if="['startDatetime', 'endDatetime'].includes(field)">
+                        {{ formatDate(data[field]) }}
+                    </span>
+                    <span v-else>{{ data[field] }}</span>
                 </template>
                 <template #editor="{ data, field }">
-                    <template v-if="field !== 'price'">
-                        <InputText v-model="data[field]" autofocus fluid />
+                    <template v-if="['startDatetime', 'endDatetime'].includes(field)">
+                        <Calendar v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" fluid />
+                    </template>
+                    <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
+                        <InputNumber v-model="data[field]" autofocus fluid />
                     </template>
                     <template v-else>
-                        <InputNumber v-model="data[field]" mode="currency" currency="USD" locale="en-US" autofocus fluid />
+                        <InputText v-model="data[field]" autofocus fluid />
                     </template>
                 </template>
             </Column>
         </DataTable>
     </div>
-    <!-- <div class="card">
-        <div class="font-semibold text-xl mb-4">Frozen Columns</div>
-        <ToggleButton v-model="balanceFrozen" onIcon="pi pi-lock" offIcon="pi pi-lock-open" onLabel="Balance" offLabel="Balance" />
 
-        <DataTable :value="customers2" class="mt-6">
-            <Column field="name" header="Name" style="min-width: 200px" frozen class="font-bold"></Column>
-            <Column field="id" header="Id" style="min-width: 100px" value="a">1</Column>
-            <Column field="name" header="Name" style="min-width: 200px">2</Column>
-            <Column field="country.name" header="Country" style="min-width: 200px">3</Column>
-            <Column field="date" header="Date" style="min-width: 200px">4</Column>
-            <Column field="company" header="Company" style="min-width: 200px">5</Column>
-            <Column field="status" header="Status" style="min-width: 200px">6</Column>
-            <Column field="activity" header="Activity" style="min-width: 200px">7</Column>
-            <Column field="representative.name" header="Representative" style="min-width: 200px">8</Column>
-            <Column field="balance" header="Balance" style="min-width: 200px" alignFrozen="right" :frozen="balanceFrozen">
-                <template #body="{ data }">
-                    <span class="font-bold">{{ formatCurrency(data.balance) }}</span>
-                </template>
-            </Column>
-        </DataTable>
-    </div> -->
+    <Dialog v-model:visible="showModal" modal header="생산계획코드 리스트" :style="{ width: '40vw' }" @hide="closeModal">
+        <p class="font-bold mb-4 text-lg">
+            🔍
+            {{
+                {
+                    productPlanCode: '생산계획코드',
+                    productStartDate: '생산시작예정일',
+                    productEndDate: '생산종료예정일',
+                    productName: '제품명'
+                }[modalType]
+            }}
+        </p>
+
+        <div v-if="modalType === 'productPlanCode'">
+            <!-- <ul class="mb-3"> -->
+
+            <DataTable :value="productPlanCodeList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 20rem" class="mb-3">
+                <Column field="code" header="생산계획코드">
+                    <template #body="{ data }">
+                        <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
+                            {{ data.code }}
+                        </span>
+                    </template>
+                </Column>
+                <Column field="startDate" header="생산시작일시"></Column>
+                <Column field="endDate" header="생산종료일시"></Column>
+                <Column field="director" header="지시자"></Column>
+            </DataTable>
+        </div>
+    </Dialog>
 </template>
 
 <style lang="scss" scoped>

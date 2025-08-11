@@ -4,15 +4,17 @@ import axios from 'axios';
 
 const items = ref([]);
 
-// API 호출 함수
-const fetchProcess = async () => {
+const fetchFlowchart = async () => {
     try {
-        const response = await axios.get('/api/information/process');
+        const response = await axios.get('/api/information/flowchart');
         items.value = response.data.list.map((item, index) => ({
             num: index + 1,
-            processId: item.process_id,
-            processName: item.process_name,
-            isInspection: item.is_inspection,
+            flowId: item.flow_id,
+            flowName: item.flow_name,
+            productId: item.product_id,
+            productName: item.product_name,
+            note: item.note,
+            createDate: item.create_date,
             status: item.status
         }));
     } catch (error) {
@@ -22,7 +24,7 @@ const fetchProcess = async () => {
 };
 
 onMounted(() => {
-    fetchProcess();
+    fetchFlowchart();
 });
 </script>
 
@@ -33,9 +35,12 @@ onMounted(() => {
 
     <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
         <Column field="num" header="" />
-        <Column field="processId" header="공정코드" />
-        <Column field="processName" header="공정명" />
-        <Column field="isInspection" header="검사유무" />
+        <Column field="flowId" header="흐름도코드" />
+        <Column field="flowName" header="흐름도명" />
+        <Column field="productId" header="제품코드" />
+        <Column field="productName" header="제품명" />
+        <Column field="note" header="비고" />
+        <Column field="createDate" header="등록일자" />
         <Column field="status" header="상태" />
     </DataTable>
 </template>

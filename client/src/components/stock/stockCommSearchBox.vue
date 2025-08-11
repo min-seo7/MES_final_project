@@ -1,4 +1,4 @@
-<script setup></script>
+<script></script>
 <template>
     <div class="card w-full">
         <!--검색1열-->
