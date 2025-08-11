@@ -3,19 +3,20 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 const form = ref({
-    bomId: '',
-    prodId: '',
-    prodName: '',
-    prodType: '',
+    lineId: '',
+    lineName: '',
+    flowId: '',
+    productId: '',
+    note: '',
     status: ''
 });
 
-const registBom = async () => {
+const registLine = async () => {
     try {
-        const res = await axios.post('/api/information/bom', form.value);
+        const res = await axios.post('/api/information/line', form.value);
         alert(res.data.message);
     } catch (err) {
-        console.log('BOM등록실패');
+        console.log('line 등록실패');
     }
 };
 </script>
@@ -24,7 +25,7 @@ const registBom = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registBom()" />
+            <Button label=" 등록 " rounded @click="registLine()" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
@@ -33,12 +34,16 @@ const registBom = async () => {
             <!-- 왼쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
-                    <label class="block mb-1">BOM코드</label>
-                    <InputText v-model="form.bomId" class="w-full" />
+                    <label class="block mb-1">라인코드</label>
+                    <InputText v-model="form.lineId" class="w-full" />
                 </div>
                 <div>
-                    <label class="block mb-1">제품명</label>
-                    <InputText v-model="form.prodName" class="w-full" />
+                    <label class="block mb-1">제품코드</label>
+                    <InputText v-model="form.productId" class="w-full" />
+                </div>
+                <div>
+                    <label class="block mb-1">흐름도코드</label>
+                    <InputText v-model="form.flowId" class="w-full" />
                 </div>
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">상태</label>
@@ -54,20 +59,25 @@ const registBom = async () => {
             <!-- 오른쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
-                    <label class="block mb-1">제품코드</label>
+                    <label class="block mb-1">라인명</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.prodId" class="w-full" />
+                        <InputText v-model="form.lineName" class="w-full" />
                         <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
-                <div style="display: flex; gap: 20px">
-                    <label class="block mb-1" style="text-align: center">제품유형</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="prodType1" name="prodType" value="반제품" v-model="form.prodType" />
-                        <label for="prodType1" class="ml-2 mr-4">반제품</label>
-                        <RadioButton id="prodType2" name="prodType" value="완제품" v-model="form.prodType" />
-                        <label for="prodType2" class="ml-2">완제품</label>
-                    </label>
+                <div>
+                    <label class="block mb-1">제품명</label>
+                    <div class="flex gap-2 items-center">
+                        <InputText v-model="form.productName" class="w-full" />
+                        <!--<Button label="생성" size="small" />-->
+                    </div>
+                </div>
+                <div>
+                    <label class="block mb-1">비고</label>
+                    <div class="flex gap-2 items-center">
+                        <InputText v-model="form.note" class="w-full" />
+                        <!--<Button label="생성" size="small" />-->
+                    </div>
                 </div>
             </div>
         </div>
