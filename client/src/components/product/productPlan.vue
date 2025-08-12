@@ -254,7 +254,7 @@ const dropContent = () => {
                         </span>
                     </template>
                 </Column>
-                <Column field="name" header="생산시작일시"></Column>
+                <Column field="startDate" header="생산시작일시"></Column>
                 <Column field="endDate" header="생산종료일시"></Column>
                 <Column field="director" header="지시자"></Column>
             </DataTable>
