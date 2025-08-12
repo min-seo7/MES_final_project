@@ -38,7 +38,7 @@ export default {
                 console.log('자재 응답:', res.data);
                 // 받은 데이터를 프론트에 맞게 가공
                 this.purchaseList = res.data.map((item) => ({
-                    id: `${item.purchase_no}-${item.material_id}`, // 행식별 위한 인덱스용,
+                    id: `${item.pur_no}-${item.material_id}`, // 행식별 위한 인덱스용,
                     reDate: item.re_date,
                     purNo: item.pur_no,
                     matCode: item.material_id,
@@ -152,7 +152,7 @@ export default {
         <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
-            <Column field="id" header="-" style="display: none"></Column>
+            <Column field="id" header="-" style="display: none" ></Column>
             <Column field="reDate" header="등록일"></Column>
             <Column field="purNo" header="발주번호"></Column>
             <Column field="matCode" header="자재코드"></Column>

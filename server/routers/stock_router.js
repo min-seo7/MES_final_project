@@ -35,6 +35,16 @@ router.get("/modalPartnerList", async (req, res) => {
     res.status(500).json({ message: "서버 오류" });
   }
 });
+//(모달)보관창고
+router.get("/modalWareList", async (req, res) => {
+  try {
+    let warehouseList = await stockService.warehouseList();
+    res.json(warehouseList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
 
 //발주등록=====================================================================
 //마스터T 등록 라우터

@@ -24,8 +24,17 @@ export default {
             MatLotNo: '',
             //모달
             materialModal: false,
+            WarehouseModal: false,
+            //모달data
+            materials: [],
+            warehouses: [],
+
             //(모달)선택된 자재
             selectMat: null,
+            selectWare: null,
+
+            //창고선택rowIdex
+            selectRow: null,
 
             //입고대기 테이블 컬럼
             pandingCol: [
@@ -38,7 +47,7 @@ export default {
                 { field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
                 { field: 'partnerName', header: '공급처', headerStyle: 'width: 15rem' },
-                { field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true }, //창고위치모달.
+                { field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal }, //창고위치모달.
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],
             //입고대기 데이터
@@ -80,7 +89,7 @@ export default {
                 { field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem' },
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
                 { field: 'partnerName', header: '공급처', headerStyle: 'width: 15rem' },
-                { field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem' },
+                { field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem'},
                 { field: 'empName', header: '담당자', headerStyle: 'width: 20rem' },
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem' }
             ]
@@ -96,10 +105,10 @@ export default {
             this.MatInDate = '';
             this.MatLotNo = '';
         },
+        //모달==============================================================================
         //(모달)자재
         openMatModal() {
             this.materialModal = true;
-
             this.getMatList();
         },
         onSelectMat() {
@@ -113,8 +122,6 @@ export default {
         async getMatList() {
             try {
                 const res = await axios.get('/api/stock/modalMatList');
-                console.log('자재 응답:', res.data);
-                // 받은 데이터를 프론트에 맞게 가공
                 this.materials = res.data.map((item) => ({
                     matCode: item.material_id,
                     matName: item.material_name,
@@ -123,7 +130,30 @@ export default {
             } catch (error) {
                 console.error('자재목록 불러오기 실패:', error);
             }
-        }
+        },
+        //보관창고(모달) ===========
+        openWarehouseeModal(rowIndex){
+            console.log(rowIndex);
+            this.selectRow = rowIndex;
+            this.WarehouseModal = true;
+            this.getWareList();
+        },
+        async getWareList(){
+            try {
+                const res = await axios.get('/api/stock/modalWareList');
+                this.warehouses = res.data.map((item) =>({
+                    wareCode: item.warehouse_id,
+                    warerName: item.warehouse,
+                    warerType: item.warehouse_type,  
+                }));
+            } catch(error) {
+                console.error('창고목록 불러오기 실패:', error);
+            }
+        },
+        onSelectWare(){
+            this.MatReceiptPanding[this.selectRow].warehouse = this.selectWare.warerName;
+            this.WarehouseModal = false;
+        },
     },
     mounted() {
         console.log('자재입고');
@@ -249,6 +279,30 @@ export default {
         <template #footer>
             <div class="mt-5 flex justify-center">
                 <Button label="선택 완료" @click="onSelectMat()" />
+            </div>
+        </template>
+    </commModal>
+
+    <!--보관장소 모달-->
+     <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+        <div class="mt-5 mb-4 space-x-2">
+            <label for="wareCode">창고코드</label>
+            <InputText id="wareCode" type="text" />
+            <label for="wareName">창고명</label>
+            <InputText id="warerName" type="text" />
+            <Button label="검색" />
+        </div>
+        <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
+            <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
+        </DataTable>
+
+        <!-- footer 슬롯 -->
+        <template #footer>
+            <div class="mt-5 flex justify-center">
+                <Button label="선택 완료" @click="onSelectWare()" />
             </div>
         </template>
     </commModal>

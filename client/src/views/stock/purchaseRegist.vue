@@ -20,6 +20,11 @@ export default {
             partnerModal: false,
             materialModal: false,
 
+            //거래처 모달
+            partners: [],
+            //원자재모달 data
+            materials: [],
+
             //(모달)선택할 거래처, 자재
             selectPartner: null,
             selectMat: null,
@@ -43,10 +48,6 @@ export default {
             ],
             //안전재고수량 미달
             lowMat: [{ id: '1', matCode: 'm001', matName: '왕겨', safeStock: '50', nowStock: '30', shortage: '20', unit: 'KG' }],
-            //거래처 모달
-            partners: [],
-            //원자재모달 data
-            materials: []
         };
     },
     methods: {

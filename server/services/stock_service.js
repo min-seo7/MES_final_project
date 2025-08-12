@@ -17,6 +17,11 @@ let partnerList = async () => {
   let partnerList = await mariadb.query("partnerListQuery");
   return partnerList;
 };
+//(모달)보관창고 출력
+let warehouseList = async () => {
+  let warehouseList = await mariadb.query("warehouseListQuery");
+  return warehouseList;
+};
 
 //발주등록========================================================================
 //마스터T 기본정보 등록
@@ -65,4 +70,5 @@ module.exports = {
   partnerList,
   purchaseList,
   purCancel,
+  warehouseList,
 };

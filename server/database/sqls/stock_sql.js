@@ -21,6 +21,13 @@ let productListQuery = `SELECT product_id,
                         FROM product
                         WHERE status = '활성'`;
 
+//보관창고 (모달)
+let warehouseListQuery =`SELECT warehouse_id,
+	                              warehouse,
+                                warehouse_type
+                         FROM warehouse
+                         WHERE status = '활성'`;
+                         
 //발주등록=====================================================
 //마스터T 기본정보
 let masterInfoPro = `CALL insert_purchase_master(?, ?, ?, ?)`;
@@ -61,4 +68,5 @@ module.exports = {
   partnerListQuery,
   purchaseListVwQuery,
   purchaseCancelQuery,
+  warehouseListQuery,
 };
