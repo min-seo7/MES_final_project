@@ -1,5 +1,179 @@
 const mariadb = require("../database/mapper.js");
 
+// 창고 조회
+const findAllWarehouse = async () => {
+  let list = await mariadb.query("selectWarehouse");
+  return list;
+};
+
+// 창고 등록
+const insertWarehouse = async (warehouseInfo) => {
+  const insertData = convertToArray(warehouseInfo, [
+    "warehouseId",
+    "warehouse",
+    "zone",
+    "subZone",
+    "floor",
+    "location",
+    "warehouseType",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertWarehouse", insertData);
+  return result;
+};
+
+// 창고 수정
+const updateWarehouse = async (warehouseInfo) => {
+  const insertData = convertToArray(warehouseInfo, [
+    "warehouseName",
+    "zone",
+    "subZone",
+    "floor",
+    "location",
+    "warehouseType",
+    "status",
+    "warehouseId",
+  ]);
+
+  const result = await mariadb.query("updateWarehouse", insertData);
+  return result;
+};
+
+// 제품 조회
+const findAllProduct = async () => {
+  let list = await mariadb.query("selectProduct");
+  return list;
+};
+
+// 제품 등록
+const insertProduct = async (productInfo) => {
+  const insertData = convertToArray(productInfo, [
+    "productId",
+    "productType",
+    "productForm",
+    "productName",
+    "specification",
+    "unit",
+    "expiration",
+    "expirationUnit",
+    "storageCondition",
+    "safetyStock",
+    "safetyStockUnit",
+    "manual",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertProduct", insertData);
+  return result;
+};
+
+// 제품 수정
+const updateProduct = async (productInfo) => {
+  const insertData = convertToArray(productInfo, [
+    "productType",
+    "productForm",
+    "productName",
+    "specification",
+    "unit",
+    "expirationDate",
+    "expirationDateUnit",
+    "storageCondition",
+    "safetyStock",
+    "safetyStockUnit",
+    "productManual",
+    "status",
+    "productId",
+  ]);
+
+  const result = await mariadb.query("updateProduct", insertData);
+  return result;
+};
+
+// 자재 조회
+const findAllMaterial = async () => {
+  let list = await mariadb.query("selectMaterial");
+  return list;
+};
+
+// 자재 등록
+const insertMaterial = async (materialInfo) => {
+  const insertData = convertToArray(materialInfo, [
+    "materialId",
+    "materialName",
+    "materialType",
+    "specification",
+    "unit",
+    "storageCondition",
+    "safetyStock",
+    "safetyStockUnit",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertMaterial", insertData);
+
+  return result;
+};
+
+// 자재 수정
+const updateMaterial = async (materialInfo) => {
+  const insertData = convertToArray(materialInfo, [
+    "materialName",
+    "materialType",
+    "specification",
+    "unit",
+    "storageCondition",
+    "safetyStock",
+    "safetyStockUnit",
+    "status",
+    "materialId",
+  ]);
+
+  const result = await mariadb.query("updateMaterial", insertData);
+  return result;
+};
+
+// 거래처 조회
+const findAllPartner = async () => {
+  let list = await mariadb.query("selectPartner");
+  return list;
+};
+
+// 거래처 등록
+const insertPartner = async (partnerInfo) => {
+  const insertData = convertToArray(partnerInfo, [
+    "partnerId",
+    "partnerType",
+    "partnerName",
+    "manager",
+    "mainTel",
+    "email",
+    "address",
+    "businessNo",
+    "status",
+  ]);
+
+  const result = await mariadb.query("insertPartner", insertData);
+  return result;
+};
+
+// 거래처 수정
+const updatePartner = async (partnerInfo) => {
+  const insertData = convertToArray(partnerInfo, [
+    "partnerType",
+    "partnerName",
+    "manager",
+    "mainTel",
+    "email",
+    "address",
+    "businessNo",
+    "status",
+  ]);
+
+  const result = await mariadb.query("updatePartner", insertData);
+  return result;
+};
+
 // 흐름도 Detail 조회
 const findAllDetailFlowchart = async () => {
   let list = await mariadb.query("selectDetailFlowchart");
@@ -286,4 +460,16 @@ module.exports = {
   insertDetailFlowchart,
   updateDetailFlowchart,
   updateFlowchart,
+  findAllPartner,
+  insertPartner,
+  updatePartner,
+  findAllMaterial,
+  insertMaterial,
+  updateMaterial,
+  findAllProduct,
+  insertProduct,
+  updateProduct,
+  findAllWarehouse,
+  insertWarehouse,
+  updateWarehouse,
 };

@@ -225,4 +225,121 @@ router.post("/flowchart/detail/modify", async (req, res) => {
   }
 });
 
+router.get("/partner", async (req, res) => {
+  try {
+    let list = await informationService.findAllPartner();
+    res.json({ list });
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/partner", async (req, res) => {
+  try {
+    const partnerData = req.body;
+    const result = await informationService.insertPartner(partnerData);
+    res.status(201).json({ message: "거래처 등록성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "거래처 등록 실패", error: error.message });
+  }
+});
+
+router.post("/partner/modify", async (req, res) => {
+  try {
+    const partnerData = req.body;
+    const result = await informationService.updatePartner(partnerData);
+    res.status(201).json({ message: "거래처 수정성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "거래처 수정 실패", error: error.message });
+  }
+});
+
+router.get("/material", async (req, res) => {
+  try {
+    let list = await informationService.findAllMaterial();
+    res.json(list);
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/material", async (req, res) => {
+  try {
+    const materialData = req.body;
+    const result = await informationService.insertMaterial(materialData);
+    res.status(201).json({ message: "자재 등록성공", result });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "자재 등록 실패", error: error.message });
+  }
+});
+
+router.post("/material/modify", async (req, res) => {
+  try {
+    const materialData = req.body;
+    const result = await informationService.updateMaterial(materialData);
+    res.status(201).json({ message: "자재 수정성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "자재 수정실패", error: error.message });
+  }
+});
+
+router.get("/product", async (req, res) => {
+  try {
+    let list = await informationService.findAllProduct();
+    res.json(list);
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/product", async (req, res) => {
+  try {
+    const productData = req.body;
+    const result = await informationService.insertProduct(productData);
+    res.status(201).json({ message: "제품 등록성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "제품 등록 실패", error: error.message });
+  }
+});
+
+router.post("/product/modify", async (req, res) => {
+  try {
+    const productData = req.body;
+    const result = await informationService.updateProduct(productData);
+    res.status(201).json({ message: "제품 수정성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "제품 수정실패", error: error.message });
+  }
+});
+
+router.get("/warehouse", async (req, res) => {
+  try {
+    let list = await informationService.findAllWarehouse();
+    res.json(list);
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/warehouse", async (req, res) => {
+  try {
+    const warehouseData = req.body;
+    const result = await informationService.insertWarehouse(warehouseData);
+    res.status(201).json({ message: "창고 등록성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "창고 등록 실패", error: error.message });
+  }
+});
+
+router.post("/warehouse/modify", async (req, res) => {
+  try {
+    const warehouseData = req.body;
+    const result = await informationService.updateWarehouse(warehouseData);
+    res.status(201).json({ message: "창고 수정성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "창고 수정실패", error: error.message });
+  }
+});
+
 module.exports = router;
