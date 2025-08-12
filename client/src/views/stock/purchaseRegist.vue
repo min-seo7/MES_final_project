@@ -6,8 +6,6 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import axios from 'axios';
 
-//발주수량 0이상 입력될 수 있도록 제어. 납기요청일 설정시 과거지정 불가능하게.
-
 export default {
     components: { commModal, DataTable, Column, InputText, Button },
     data() {
@@ -46,15 +44,31 @@ export default {
             //안전재고수량 미달
             lowMat: [{ id: '1', matCode: 'm001', matName: '왕겨', safeStock: '50', nowStock: '30', shortage: '20', unit: 'KG' }],
             //거래처 모달
-            partners: [
-                { id: 1, partnerType: '공급처', partnerId: 'P001', partnerName: '왕겨가게', memo: '계약일 24-08-01' },
-                { id: 2, partnerType: '공급처', partnerId: 'P002', partnerName: '쌀겨상회', memo: '계약일 24-08-01' }
-            ],
+            partners: [],
             //원자재모달 data
             materials: []
         };
     },
     methods: {
+        //모달 ==========================================================================
+        //거래처
+        async getPartnerList() {
+            try {
+                const res = await axios.get('/api/stock/modalPartnerList');
+                console.log('거래처 응답:', res.data);
+                this.partners = res.data.map((item) => ({
+                    partnerType: item.partner_type,
+                    partnerId: item.partner_id,
+                    partnerName: item.partner_name
+                }));
+            } catch (error) {
+                console.error('거래처목록 불러오기 실패:', error);
+            }
+        },
+        openPatenrModal() {
+            this.partnerModal = true;
+            this.getPartnerList();
+        },
         onSelectPartner() {
             //(모달)거래처선택시 반영.
             this.partnerId = this.selectPartner.partnerId;
@@ -66,6 +80,21 @@ export default {
             });
 
             this.partnerModal = false;
+        },
+        //자재용 모달
+        async getMatList() {
+            try {
+                const res = await axios.get('/api/stock/modalMatList');
+                console.log('자재 응답:', res.data);
+                this.materials = res.data.map((item) => ({
+                    //DB데이터, 모달용 테이블 컬럼 일치시킴.
+                    matCode: item.material_id,
+                    matName: item.material_name,
+                    unit: item.unit
+                }));
+            } catch (error) {
+                console.error('자재목록 불러오기 실패:', error);
+            }
         },
         openMatModal(rowIndex) {
             this.getMatList();
@@ -81,9 +110,9 @@ export default {
 
             this.materialModal = false;
         },
-
+        //=============================================================================================
         addEmptyRow() {
-            //행추가
+            //행추가버튼
             this.purshaseList.push({
                 id: this.inceaseCount(),
                 mat_id: '',
@@ -119,24 +148,10 @@ export default {
             //발주목록 행추가시 목록번호 증가.
             return ++this.count;
         },
-        //모달용
-        async getMatList() {
-            try {
-                const res = await axios.get('/api/stock/modalMatList');
-                console.log('자재 응답:', res.data);
-                // 받은 데이터를 프론트에 맞게 가공
-                this.materials = res.data.map((item) => ({
-                    matCode: item.material_id,
-                    matName: item.material_name,
-                    unit: item.unit
-                }));
-            } catch (error) {
-                console.error('자재목록 불러오기 실패:', error);
-            }
-        },
+        //등록버튼
         //발주목록 DB insert[마스터 먼저 넣고, 발주번호 받은뒤 서브 넣기.]
-        async insertPurse(){
-            try{
+        async insertPurse() {
+            try {
                 //마스터T 정보
                 let masterInfo = {
                     re_date: this.reDate,
@@ -147,30 +162,34 @@ export default {
                 //마스터 DB 저장
                 let insertMaster = await axios.post('/api/stock/purchase', masterInfo);
 
-                //발주번호받기
-                let purchaseNo = insertMaster.data.purchase_no;
+                //발주시퀀스 받기.
+                let purchaseNo = insertMaster.data.pur_no;
+
+                console.log(purchaseNo);
 
                 //서브T 정보
-                let subInfo = this.purshaseList.map(row => ({
-                     material_id: row.mat_id,
-                     pur_qty: row.purch_qty,
-                     comm: row.comm,
-                     purchase_no: purchaseNo
+                let subInfo = this.purshaseList.map((row) => ({
+                    material_id: row.mat_id,
+                    pur_qty: row.purch_qty,
+                    comm: row.comm,
+                    pur_no: purchaseNo
                 }));
+
+                console.log(subInfo);
 
                 //서브 DB저장
                 await axios.post('/api/stock/purDetail', subInfo);
                 //초기화
                 this.reset();
-
             } catch (error) {
                 console.error('등록 실패', error);
             }
-        }, 
-        dateFormat(date){
+        },
+        //DB에 맞게 날짜포멧 변환.
+        dateFormat(date) {
             let newDateFormat = new Date(date);
             return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
-        },
+        }
     },
     mounted() {
         console.log('발주등록페이지');
@@ -227,7 +246,7 @@ export default {
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerId">공급처코드</label>
                             <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" @click="partnerModal = true" />
+                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" @click="openPatenrModal()" />
                                 <InputIcon class="pi pi-search" />
                             </IconField>
                         </div>
@@ -243,7 +262,7 @@ export default {
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="empName">담당자</label>
-                            <InputText id="empName" type="text" />
+                            <InputText id="empName" type="text" v-model="empName" />
                         </div>
                     </div>
                 </div>
@@ -286,7 +305,7 @@ export default {
             <Button label="검색" />
         </div>
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
-        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="id" tableStyle="min-width: 40rem">
+        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="partnerType" header="거래처유형"></Column>
             <Column field="partnerId" header="거래처코드"></Column>

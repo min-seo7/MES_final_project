@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const stockService = require("../services/stock_service.js");
+
+//모달
 //(모달)자재리스트
 router.get("/modalMatList", async (req, res) => {
   try {
@@ -23,29 +25,59 @@ router.get("/modalPrdList", async (req, res) => {
     res.status(500).json({ message: "서버 오류" });
   }
 });
-
-//발주
-//마스터T 등록 라우터
-router.post("/purchase", async(req, res) => {
+//(모달)거래처
+router.get("/modalPartnerList", async (req, res) => {
   try {
-    const purchaseNo = await stockService.masterInfo(req.body);
-    res.json({ purchase_no: purchaseNo });
+    let partnerList = await stockService.partnerList();
+    res.json(partnerList);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: '마스터 저장 실패' });
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+//발주등록=====================================================================
+//마스터T 등록 라우터
+router.post("/purchase", async (req, res) => {
+  try {
+    const purchaseNo = await stockService.masterInfo(req.body);
+    res.json({ pur_no: purchaseNo });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "마스터 저장 실패" });
   }
 });
 //서브T등록 라우터
-router.post('/purDetail', async (req, res) => {
+router.post("/purDetail", async (req, res) => {
+  console.log("Received details:", req.body);
   try {
-    const details = req.body; // 배열
-    for (const row of details) {
-      await stockService.subInfo(row);
-    }
-      res.json({ message: 'success' });
+    await stockService.subInfo(req.body); // 배열 통째로 전달
+    res.json({ message: "success" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: '디테일 저장 실패' });
+    res.status(500).json({ message: "디테일 저장 실패" });
+  }
+});
+
+//발주목록=======================================================
+//리스트
+router.get("/purchaseList", async (req, res) => {
+  try {
+    let purchaseList = await stockService.purchaseList();
+    res.json(purchaseList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+//발주취소
+router.post("/purCancle", async (req, res) => {
+  try {
+    await stockService.purCancel(req.body); // 배열 통째로 전달
+    res.json({ message: "success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "디테일 저장 실패" });
   }
 });
 
