@@ -1,5 +1,4 @@
-// services/orderService.js
-const { getConnection, sqlList } = require("../database/mapper.js");
+const { query, getConnection, sqlList } = require("../database/mapper.js");
 
 // 객체를 배열로 변환
 function convertToArray(obj, columns) {
@@ -16,14 +15,41 @@ function formatDateToYMD(isoDate) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+//주문목록조회
+const selectRegisList = () => {
+  let list = query("SelectOrders");
+  return list;
+};
 
+// 주문 1: 주문상세 N
 const InsertOrder = async (orderInfo, orderItems) => {
   const conn = await getConnection();
 
   try {
     await conn.beginTransaction();
+    //데이터베이스에서 마지막 주문번호 조회
+    const [lastOrderRow] = await conn.query(sqlList.SelectMaxOrderId);
+    let newOrderId;
+    if (lastOrderRow && lastOrderRow.max_order_id) {
+      // 'ORD005' -> '005' -> 5 -> 6 -> '006' -> 'ORD006'
+      const lastNum = parseInt(
+        lastOrderRow.max_order_id.replace("ORD", ""),
+        10
+      );
+      const newNum = lastNum + 1;
+      const formattedNum = String(newNum).padStart(3, "0");
+      newOrderId = `ORD${formattedNum}`;
+    } else {
+      // 주문이 없을 경우 'ORD001'로 시작
+      newOrderId = "ORD001";
+    }
+    //프론트엔드에서 받은 orderInfo객체에 새로운 주문번호 할당
+    orderInfo.orderId = newOrderId;
 
-    // 주문 등록
+    // 주문 날짜 형식 맞추기
+    orderInfo.orderDate = formatDateToYMD(orderInfo.orderDate);
+
+    // orders 테이블에 insert
     const insertOrderData = convertToArray(orderInfo, [
       "orderId",
       "partnerId",
@@ -32,31 +58,34 @@ const InsertOrder = async (orderInfo, orderItems) => {
       "deliveryAddr",
       "supplyPrice",
     ]);
-    await conn.query(sqlList["InsertOrder"], insertOrderData);
+    //
+    await conn.query(sqlList["InsertOrders"], insertOrderData);
 
-    // 주문 상세 등록
+    // order_items 테이블에 insert
     for (const item of orderItems) {
-      const orderDetailId = `${orderInfo.orderId}-${item.itemSeq}`;
-      item.orderDetailId = orderDetailId;
       item.delDate = formatDateToYMD(item.delDate);
+      //주문상세내역에도 새로운 주문번호 할당
+      item.orderId = newOrderId;
+      // item.orderId = orderInfo.orderId;
 
       const insertItemData = convertToArray(item, [
-        "orderDetailId",
         "itemSeq",
         "quantity",
         "delDate",
         "ordStatus",
+        "productId", // productId가 없으면 null로 설정 필요
         "productName",
         "productPrice",
         "supplyPrice",
         "orderId",
       ]);
-
-      await conn.query(sqlList["InsertOrderItem"], insertItemData);
+      await conn.query(sqlList["InsertOrderItems"], insertItemData);
     }
 
     await conn.commit();
-    return { success: true };
+    //프론트엔드에 성공 응답 함께 새로 생성된 주문번호 반환
+    return { success: true, newOrderId: newOrderId };
+    // return { success: true };
   } catch (err) {
     await conn.rollback();
     console.error("InsertOrder Error:", err);
@@ -68,4 +97,5 @@ const InsertOrder = async (orderInfo, orderItems) => {
 
 module.exports = {
   InsertOrder,
+  selectRegisList,
 };

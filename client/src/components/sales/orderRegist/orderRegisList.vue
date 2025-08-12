@@ -1,61 +1,58 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import RadioButton from 'primevue/radiobutton';
 import Tag from 'primevue/tag';
+import Button from 'primevue/button';
+import Toolbar from 'primevue/toolbar';
+import InputText from 'primevue/inputtext';
+import InputGroup from 'primevue/inputgroup';
+import DatePicker from 'primevue/datepicker';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Paginator from 'primevue/paginator';
+import IconField from 'primevue/iconfield'; // 없으면 삭제 가능
+import axios from 'axios';
 
-// 날짜 관련 예시
-const today = new Date().toISOString().slice(0, 10);
-const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+// 상태코드(int) → 상태명 매핑
+const orderStateMap = {
+    1: '주문서등록',
+    2: '생산대기',
+    3: '생산중',
+    4: '품질검수완료',
+    5: '제품입고'
+};
 
-// 라디오버튼 선택 변수 2.주문상태,3.규격 4.제품명
+// 상태코드 숫자 → 문자열 변환 함수
+const getStatusText = (code) => orderStateMap[code] ?? '알수없음';
+
+// 검색 필터 및 데이터
 const calendarValue = ref(null);
 const orderState = ref('');
 const spec = ref('');
 const productType = ref('');
-// 주문내역 데이터
-const customers2 = ref([
-    {
-        ordernum: 'ORD001',
-        pid: 'P1001',
-        pcode: 'SUP002',
-        대표자: '김철수',
-        spac: '40kg',
-        qty: 100,
-        addr: '서울 강남구',
-        createDate: today,
-        deliveryDate: nextWeek,
-        orderstate: '주문서등록',
-        manager: '이영희'
-    },
-    {
-        ordernum: 'ORD002',
-        pid: 'P1002',
-        pcode: 'SUP003',
-        대표자: '박민수',
-        spac: '20kg',
-        qty: 50,
-        addr: '부산 해운대구',
-        createDate: today,
-        deliveryDate: nextWeek,
-        orderstate: '생산중',
-        manager: '최지훈'
-    },
-    {
-        ordernum: 'ORD003',
-        pid: 'P1003',
-        pcode: 'SUP004',
-        대표자: '이정은',
-        spac: '40kg',
-        qty: 200,
-        addr: '대구 수성구',
-        createDate: today,
-        deliveryDate: nextWeek,
-        orderstate: '제품입고',
-        manager: '홍길동'
-    }
-]);
+const items = ref([]);
 
-// 주문상태에 따른 색상 설정
+// 주문내역 데이터 로드
+const orders = async () => {
+    try {
+        const response = await axios.get('/api/sales/orderSearch');
+        console.log(response.data);
+        items.value = response.data.list.map((item) => ({
+            orderId: item.order_id,
+            partnerId: item.partner_id,
+            quantity: item.quantity,
+            deliveryAddr: item.delivery_addr,
+            orderDate: item.order_date,
+            delDate: item.del_date,
+            ordState: getStatusText(item.ord_status), // 숫자 -> 문자열 변환
+            orderManager: item.order_manager
+        }));
+    } catch (error) {
+        console.error('데이터 로드 실패:', error);
+    }
+};
+
+// 주문상태별 태그 색상
 const getSeverity = (status) => {
     switch (status) {
         case '주문서등록':
@@ -72,13 +69,34 @@ const getSeverity = (status) => {
             return null;
     }
 };
+console.log('조회 조건:', {
+    orderState: orderState.value,
+    spec: spec.value,
+    productType: productType.value,
+    calendarValue: calendarValue.value
+});
+
+onMounted(() => {
+    orders();
+});
 </script>
 
 <template>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label="조회" rounded />
-        <Button label="초기화" severity="info" rounded />
+        <Button label="조회" rounded @click="orders" />
+        <Button
+            label="초기화"
+            severity="info"
+            rounded
+            @click="
+                orderState = '';
+                spec = '';
+                productType = '';
+                calendarValue = null;
+            "
+        />
     </div>
+
     <div class="font-semibold text-xl mb-4">검색</div>
     <Toolbar>
         <template #center>
@@ -93,41 +111,23 @@ const getSeverity = (status) => {
                                 <Button icon="pi pi-search" />
                             </InputGroup>
                         </div>
+
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">주문상태</label>
                             <div class="flex flex-wrap gap-3">
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="orderState" inputId="ingredient1" name="orderState" value="주문서등록" />
-                                    <label for="ingredient1">주문서등록</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="orderState" inputId="ingredient2" name="orderState" value="생산대기" />
-                                    <label for="ingredient2">생산대기</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="orderState" inputId="ingredient3" name="orderState" value="생산중" />
-                                    <label for="ingredient3">생산중</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="orderState" inputId="ingredient4" name="orderState" value="품질검수완료" />
-                                    <label for="ingredient4">품질검수완료</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="orderState" inputId="ingredient5" name="orderState" value="제품입고" />
-                                    <label for="ingredient">제품입고</label>
+                                <div class="flex items-center gap-2" v-for="(state, idx) in ['주문서등록', '생산대기', '생산중', '품질검수완료', '제품입고']" :key="idx">
+                                    <RadioButton v-model="orderState" :inputId="`orderState${idx + 1}`" name="orderState" :value="state" />
+                                    <label :for="`orderState${idx + 1}`">{{ state }}</label>
                                 </div>
                             </div>
                         </div>
+
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">규격</label>
                             <div class="flex flex-wrap gap-3">
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="spec" inputId="ingredient1" name="spec" value="40" />
-                                    <label for="ingredient1">40</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="spec" inputId="ingredient2" name="spec" value="20" />
-                                    <label for="ingredient2">20</label>
+                                <div class="flex items-center gap-2" v-for="(size, idx) in ['40', '20']" :key="idx">
+                                    <RadioButton v-model="spec" :inputId="`spec${idx + 1}`" name="spec" :value="size" />
+                                    <label :for="`spec${idx + 1}`">{{ size }}</label>
                                 </div>
                             </div>
                         </div>
@@ -141,29 +141,23 @@ const getSeverity = (status) => {
                                 <Button icon="pi pi-search" />
                             </InputGroup>
                         </div>
+
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">제품명</label>
                             <div class="flex flex-wrap gap-3">
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="productType" inputId="ingredient1" name="product" value="분쇄형" />
-                                    <label for="ingredient1">분쇄형</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="productType" inputId="ingredient2" name="product" value="과립형" />
-                                    <label for="ingredient2">과립형</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="productType" inputId="ingredient3" name="product" value="액상형" />
-                                    <label for="ingredient3">액상형</label>
+                                <div class="flex items-center gap-2" v-for="(type, idx) in ['분쇄형', '과립형', '액상형']" :key="idx">
+                                    <RadioButton v-model="productType" :inputId="`product${idx + 1}`" name="product" :value="type" />
+                                    <label :for="`product${idx + 1}`">{{ type }}</label>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">납기일자</label>
-                            <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue"></DatePicker>
+                            <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue" />
                         </div>
                     </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">거래처명</label>
@@ -174,29 +168,25 @@ const getSeverity = (status) => {
             </IconField>
         </template>
     </Toolbar>
+
     <br />
 
     <div class="font-semibold text-xl mb-4">
         주문내역
-        <DataTable :value="customers2" scrollable scrollHeight="200px" class="mt-6">
-            <Column field="ordernum" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
-            <Column field="pid" header="제품코드" style="min-width: 100px" />
-            <Column field="pcode" header="거래처코드" style="min-width: 120px" />
-            <Column field="대표자" header="대표자" style="min-width: 100px" />
-            <Column field="spac" header="규격" style="min-width: 80px" />
-            <Column field="qty" header="수량" style="min-width: 80px" />
-            <Column field="addr" header="배송지" style="min-width: 100px" />
-            <Column field="createDate" header="등록일자" style="min-width: 100px" />
-            <Column field="deliveryDate" header="납기일자" style="min-width: 100px" />
-
-            <!-- 주문상태에 Tag 적용 -->
-            <Column field="orderstate" header="주문상태" style="min-width: 120px">
+        <DataTable :value="items" scrollable scrollHeight="200px" class="mt-6">
+            <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
+            <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
+            <Column field="quantity" header="수량" style="min-width: 80px" />
+            <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
+            <Column field="orderDate" header="등록일자" style="min-width: 100px" />
+            <Column field="delDate" header="납기일자" style="min-width: 100px" />
+            <Column field="orderState" header="주문상태" style="min-width: 120px">
                 <template #body="slotProps">
-                    <Tag :value="slotProps.data.orderstate" :severity="getSeverity(slotProps.data.orderstate)" :rounded="true" class="px-3 py-1 text-sm" />
+                    <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
                 </template>
             </Column>
-            <Column field="manager" header="담당자" style="min-width: 100px" />
+            <Column field="orderManager" header="담당자" style="min-width: 100px" />
         </DataTable>
-        <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator>
+        <Paginator :rows="10" :totalRecords="items.length" :rowsPerPageOptions="[10, 20, 30]" />
     </div>
 </template>
