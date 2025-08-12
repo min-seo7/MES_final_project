@@ -3,14 +3,15 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 const form = ref({
-    name: '',
-    phone: '',
-    email: '',
-    hireDate: '',
-    leaveDate: '',
-    empId: '',
-    auth: '',
-    dept: ''
+    materialType: '',
+    materialId: '',
+    materialName: '',
+    storageCondition: '',
+    specification: '',
+    unit: '',
+    safetyStock: '',
+    safetyStockUnit: '',
+    status: ''
 });
 
 const registMaterial = async () => {
@@ -37,15 +38,15 @@ const registMaterial = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">자재유형</label>
-                    <InputText v-model="form.name" class="w-full" />
+                    <InputText v-model="form.materialType" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">자재명</label>
-                    <InputText v-model="form.phone" class="w-full" />
+                    <InputText v-model="form.materialName" class="w-full" />
                 </div>
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">규격</label>
-                    <InputText v-model="form.phone" class="w-half" />
+                    <InputText v-model="form.specification" class="w-half" />
                     <label class="block mb-1" style="text-align: center">단위</label>
                     <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
                         <RadioButton id="unit1" name="unit" value="kg" v-model="form.unit" />
@@ -62,7 +63,7 @@ const registMaterial = async () => {
                         <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
                         <label for="status1" class="ml-2 mr-4">활성</label>
                         <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2 mr-4">비활성</label>
+                        <label for="status2" class="ml-2">비활성</label>
                     </label>
                 </div>
             </div>
@@ -72,25 +73,25 @@ const registMaterial = async () => {
                 <div>
                     <label class="block mb-1">자재코드</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.empId" class="w-full" />
+                        <InputText v-model="form.materialId" class="w-full" />
                         <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
                 <div>
                     <label class="block mb-1">보관조건</label>
-                    <InputText v-model="form.email" class="w-full" />
+                    <InputText v-model="form.storageCondition" class="w-full" />
                 </div>
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">안전재고</label>
-                    <InputText v-model="form.phone" class="w-half" />
+                    <InputText v-model="form.safetyStock" class="w-half" />
                     <label class="block mb-1" style="text-align: center">안전재고단위</label>
                     <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="safeunit1" name="safeunit" value="kg" v-model="form.safeunit" />
-                        <label for="safeunit1" class="ml-2 mr-4">kg</label>
-                        <RadioButton id="safeunit2" name="safeunit" value="L" v-model="form.safeunit" />
-                        <label for="safeunit2" class="ml-2 mr-4">L</label>
-                        <RadioButton id="safeunit3" name="safeunit" value="EA" v-model="form.safeunit" />
-                        <label for="safeunit3" class="ml-2">EA</label>
+                        <RadioButton id="safetyStockUnit1" name="safetyStockUnit" value="kg" v-model="form.safetyStockUnit" />
+                        <label for="safetyStockUnit1" class="ml-2 mr-4">kg</label>
+                        <RadioButton id="safetyStockUnit2" name="safetyStockUnit" value="L" v-model="form.safetyStockUnit" />
+                        <label for="safetyStockUnit2" class="ml-2 mr-4">L</label>
+                        <RadioButton id="safetyStockUnit3" name="safetyStockUnit" value="EA" v-model="form.safetyStockUnit" />
+                        <label for="safetyStockUnit3" class="ml-2">EA</label>
                     </label>
                 </div>
             </div>

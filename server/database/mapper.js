@@ -31,17 +31,27 @@ console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
 console.log("DB_NAME:", process.env.DB_NAME);
 console.log("DB_LIMIT:", process.env.DB_LIMIT);
 //단건실행이라 오토커밋이라 롤백이랑 커밋등이 필요x 콜백x 프로미스 방식
-const query = async (alias, values) => {
+const query = async (alias, values = []) => {
   let conn = null;
   try {
     conn = await connectionPool.getConnection();
-    let exeuteSql = sqlList[alias];
-    let result = await conn.query(exeuteSql, values);
-    return result;
+    const executeSql = sqlList[alias];
+
+    const [rows] = await conn.query(executeSql, values);
+
+    // ⭐ 이 위치에 추가해야 합니다.
+    console.log("Mapper - 쿼리 결과:", rows);
+
+    if (rows && !Array.isArray(rows)) {
+      return [rows];
+    }
+
+    return rows;
   } catch (e) {
-    console.log(e);
+    console.error(e);
+    throw e;
   } finally {
-    conn.release();
+    if (conn) conn.release();
   }
 };
 const getConnection = async () => {
@@ -50,4 +60,5 @@ const getConnection = async () => {
 module.exports = {
   query,
   getConnection,
+  sqlList,
 };
