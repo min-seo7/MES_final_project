@@ -8,17 +8,17 @@ const items = ref([]);
 const fetchPartners = async () => {
     try {
         const response = await axios.get('/api/information/partner');
-        items.value = response.data.map((item, index) => ({
+        items.value = response.data.list.map((item, index) => ({
             num: index + 1,
-            pId: item.employee_id,
-            pType: item.name,
-            pName: item.department,
-            manager: item.phone,
-            mainTel: item.email,
-            email: item.hire_date,
-            address: item.leave_date || '',
-            businessNo: item.login_pw || '',
-            status: item.pw_change || ''
+            partnerId: item.partner_id,
+            partnerType: item.partner_type,
+            partnerName: item.partner_name,
+            manager: item.manager,
+            mainTel: item.main_tel,
+            email: item.email,
+            address: item.address || '',
+            businessNo: item.business_no || '',
+            status: item.status || ''
         }));
     } catch (error) {
         console.error('실패:', error);
@@ -37,9 +37,9 @@ onMounted(() => {
 
     <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
         <Column field="num" header="" />
-        <Column field="pId" header="거래처코드" />
-        <Column field="pType" header="거래처유형" />
-        <Column field="pName" header="거래처명" />
+        <Column field="partnerId" header="거래처코드" />
+        <Column field="partnerType" header="거래처유형" />
+        <Column field="partnerName" header="거래처명" />
         <Column field="manager" header="담당자" />
         <Column field="mainTel" header="대표번호" />
         <Column field="email" header="E-Mail" />
