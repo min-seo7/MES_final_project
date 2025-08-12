@@ -10,6 +10,7 @@ import RadioButton from 'primevue/radiobutton';
 import Toolbar from 'primevue/toolbar';
 import IconField from 'primevue/iconfield';
 import Dialog from 'primevue/dialog';
+// import { OrderList } from 'primevue';
 
 // 거래처 모달창 관련
 const showModal = ref(false);
@@ -43,28 +44,18 @@ const form = ref({
     supplyPrice: ''
 });
 
-// item_seq,
-//                            quantity,
-//                            del_date,
-//                            ord_status,
-//                            product_id,
-//                            product_name,
-//                            product_price,
-//                            supply_price,
-//                            order_id
 const orders = ref([
     {
         itemSeq: 1,
         quantity: 0,
         delDate: '',
-        ord_status: 1,
+        ordStatus: 1,
         spec: '',
         productName: '',
         productPrice: 0,
         supplyPrice: 0
     }
 ]);
-
 const selectedOrder = ref(null);
 
 const selectOrder = (order) => {
@@ -78,6 +69,7 @@ const addOrder = () => {
         productName: '',
         quantity: 0,
         delDate: '',
+        ordStatus: 1, // 새로 추가되는 모든 주문 내역에 ordStatus: 1을 할당
         spec: '',
         productPrice: 0,
         supplyPrice: 0
@@ -179,7 +171,11 @@ const pagedSupplierList = computed(() => {
     return supplierList.value.slice(start, start + pageSize.value);
 });
 
+const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+form.value.orderDate = today;
+
 // 주문 등록 함수 (날짜 변환 및 form과 orders 합쳐서 전송)
+//유효성 검사
 const registEmployee = async () => {
     if (!selectedSupplierCode.value) {
         alert('거래처를 선택해주세요.');
@@ -189,17 +185,16 @@ const registEmployee = async () => {
         alert('배송지를 입력해주세요.');
         return;
     }
-    //현재 날짜 YYYY-mm-dd형식
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    // 현재 날짜를 YYYY-MM-DD 형식으로 설정 (replace 제거)
+    const today = new Date().toISOString().slice(0, 10);
     form.value.orderDate = today;
-    // //고유주문아이디s
-    const randomNum = String(Math.floor(1000 + Math.random() * 9000));
-    form.value.orderId = `ORD${randomNum}`;
 
-    // 날짜를 문자열로 변환
+    // 순차적으로 증가하는 주문번호 생성
+
+    // 주문 상세 납기일 날짜도 YYYY-MM-DD 형식으로 변환
     const ordersForServer = orders.value.map((o) => ({
         ...o,
-        delDate: o.delDate ? new Date(o.delDate).toISOString().slice(0, 10) : ''
+        delDate: o.delDate ? new Date(o.delDate).toISOString().slice(0, 10) : null
     }));
 
     try {
@@ -271,7 +266,7 @@ const registEmployee = async () => {
     <div class="font-semibold text-xl mb-4">주문등록</div>
     <div class="p-4 border rounded-md shadow-md mt-6">
         <div
-            v-for="(order, index) in orders"
+            v-for="order in orders"
             :key="order.itemSeq"
             class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-4 items-start cursor-pointer p-2 rounded-md transition-colors"
             :class="{ 'bg-blue-100': selectedOrder && selectedOrder.itemSeq === order.itemSeq }"

@@ -4,11 +4,11 @@ import InspectionSearch2Widget from '@/components/equipment/inspection/inspectio
 
 /* 더미 5건 */
 const all = ref([
-    { eq_id: 'EQ-001', insp_type: '정기점검', insp_date: '2025-07-29', insp_code: 'N-001', insp_item: '벨트', insp_result: '합격', note: '소음 약간', manager: '김OO' },
-    { eq_id: 'EQ-002', insp_type: '상시점검', insp_date: '2025-07-29', insp_code: 'N-002', insp_item: '모터', insp_result: '보통', note: '-', manager: '이OO' },
-    { eq_id: 'EQ-003', insp_type: '자체점검', insp_date: '2025-07-28', insp_code: 'N-003', insp_item: '축', insp_result: '합격', note: '장력 조정', manager: '박OO' },
-    { eq_id: 'EQ-004', insp_type: '요청점검', insp_date: '2025-07-27', insp_code: 'N-004', insp_item: '베어링', insp_result: '주의', note: '교체 예정', manager: '최OO' },
-    { eq_id: 'EQ-005', insp_type: '정기점검', insp_date: '2025-07-26', insp_code: 'N-005', insp_item: '체인', insp_result: '양호', note: '이상 없음', manager: '정OO' }
+    { eq_id: 'EQ001', insp_type: '정기점검', insp_date: '2025-07-29', insp_code: 'N-001', insp_item: '벨트', insp_result: '합격', note: '소음 약간', manager: '김OO' },
+    { eq_id: 'EQ002', insp_type: '상시점검', insp_date: '2025-07-29', insp_code: 'N-002', insp_item: '모터', insp_result: '보통', note: '-', manager: '이OO' },
+    { eq_id: 'EQ003', insp_type: '자체점검', insp_date: '2025-07-28', insp_code: 'N-003', insp_item: '축', insp_result: '합격', note: '장력 조정', manager: '박OO' },
+    { eq_id: 'EQ004', insp_type: '요청점검', insp_date: '2025-07-27', insp_code: 'N-004', insp_item: '베어링', insp_result: '주의', note: '교체 예정', manager: '최OO' },
+    { eq_id: 'EQ005', insp_type: '정기점검', insp_date: '2025-07-26', insp_code: 'N-005', insp_item: '체인', insp_result: '양호', note: '이상 없음', manager: '정OO' }
 ]);
 
 const rows = ref([...all.value]); // 현재 목록
