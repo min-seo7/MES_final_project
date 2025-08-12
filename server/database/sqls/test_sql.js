@@ -1,18 +1,6 @@
 // 검사항목조회
 const selectItem = `
-SELECT *
-FROM   testitem`;
-// 검사항목 단건조회
-const selectItemdetail = `
-SELECT *
-FROM testitem
-WHERE 1=1
-  AND (:productType IS NULL OR :productType = '' OR product_type = :productType)
-  AND (:inspPurpose IS NULL OR :inspPurpose = '' OR purpose_name = :inspPurpose)
-  AND (:inspItem IS NULL OR :inspItem = '' OR item_name = :inspItem);`;
-// 검사항목등록
-const insertItem = `
-INSERT INTO testitem(testitem_code, 
+SELECT testitem_code, 
                      product_type, 
                      item_name, 
                      unit, 
@@ -20,8 +8,25 @@ INSERT INTO testitem(testitem_code,
                      createdBy, 
                      createdAt,
                      purpose_name, 
-                     purpose_id)
-VALUES(?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?)
+                     purpose_id
+FROM   testitem
+ORDER BY testitem_code DESC`;
+// 검사항목 필터링조회
+const selectItemdetail = `
+SELECT *
+FROM testitem
+WHERE (? IS NULL OR ? = '' OR product_type LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR ? = '' OR purpose_name LIKE CONCAT('%', ?, '%'));`;
+
+// 검사항목등록
+const insertItem = `
+INSERT INTO testitem(testitem_code, 
+                     product_type, 
+                     item_name, 
+                     unit, 
+                     createdBy,
+                     purpose_name)
+VALUES(?,?,?,?,?,?)
 `;
 
 module.exports = {

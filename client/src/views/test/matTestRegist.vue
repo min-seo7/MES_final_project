@@ -6,7 +6,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Paginator from 'primevue/paginator';
 
-const customers2 = ref([]);
+const material1 = ref([]);
 const selectedItem = ref(null); // 선택된 항목
 
 // 오른쪽 폼 바인딩용
@@ -27,68 +27,7 @@ const form = ref({
 });
 
 onBeforeMount(() => {
-    customers2.value = [
-        {
-            name: 'MI001',
-            id: '부엽토',
-            발주번호: 'PO001',
-            자재코드: 'M001',
-            자재명: '부엽토',
-            수량: 100,
-            등록날짜: '2025-08-07',
-            상태: '대기'
-        },
-        {
-            name: 'MI002',
-            id: 'EM 발효액',
-            발주번호: 'PO002',
-            자재코드: 'M002',
-            자재명: 'EM 발효액',
-            수량: 200,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            name: 'MI003',
-            id: '막걸리',
-            발주번호: 'PO003',
-            자재코드: 'M003',
-            자재명: '막걸리',
-            수량: 300,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            name: 'MI004',
-            id: '톱밥',
-            발주번호: 'PO004',
-            자재코드: 'M004',
-            자재명: '톱밥',
-            수량: 240,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            name: 'MI005',
-            id: '깻묵',
-            발주번호: 'PO005',
-            자재코드: 'M005',
-            자재명: '깻묵',
-            수량: 250,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            name: 'MI006',
-            id: '포대',
-            발주번호: 'PO006',
-            자재코드: 'M006',
-            자재명: '포대',
-            수량: 600,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        }
-    ];
+    material1.value = [];
 });
 
 // 항목 선택 시 폼에 바인딩
@@ -138,7 +77,7 @@ const handleRowSelect = (e) => {
         <div class="md:w-2/3">
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">검사 대기 목록</div>
-                <DataTable :value="customers2" selectionMode="single" dataKey="name" @rowSelect="handleRowSelect" :selection="selectedItem" @update:selection="(val) => (selectedItem = val)">
+                <DataTable :value="material1" selectionMode="single" dataKey="name" @rowSelect="handleRowSelect" :selection="selectedItem" @update:selection="(val) => (selectedItem = val)">
                     <Column field="name" header="자재검수번호" style="min-width: 80px" frozen class="font-bold" />
                     <Column field="발주번호" header="발주번호" />
                     <Column field="자재코드" header="자재코드" />
