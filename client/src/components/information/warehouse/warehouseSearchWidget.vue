@@ -1,7 +1,5 @@
 <script setup>
 import { ref } from 'vue';
-
-const authValue = ref('');
 const statusValue = ref('');
 </script>
 
@@ -21,38 +19,49 @@ const statusValue = ref('');
     <Toolbar>
         <template #center>
             <div class="flex items-center gap-6">
-                <!-- 사원번호 -->
+                <!-- 창고번호 -->
                 <div class="flex items-center gap-2">
-                    <label for="materialCode" class="whitespace-nowrap">사원번호</label>
+                    <label for="materialCode" class="whitespace-nowrap">창고코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="name2" type="text" class="w-60" />
+                        <InputText id="warehouseId" type="text" class="w-60" />
                         <InputIcon class="pi pi-search" />
                     </IconField>
                 </div>
 
-                <!-- 부서 -->
+                <!-- 창고 -->
                 <div class="flex items-center gap-2">
-                    <label for="materialCode" class="whitespace-nowrap">부서</label>
+                    <label for="warehouse" class="whitespace-nowrap">창고</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="name2" type="text" class="w-60" />
+                        <InputText id="warehouse" type="text" class="w-60" />
                         <InputIcon class="pi pi-search" />
                     </IconField>
                 </div>
 
-                <!-- 권한 라디오 그룹 -->
-
+                <!-- 구역 -->
                 <div class="flex items-center gap-2">
-                    <label for="materialCode" class="whitespace-nowrap">권한</label>
-                    <div class="flex items-center">
-                        <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                            <RadioButton id="auth1" name="auth" value="일반사원" v-model="authValue" />
-                            <label for="auth1" class="ml-2 mr-4">일반사원</label>
-                            <RadioButton id="auth2" name="auth" value="관리자" v-model="authValue" />
-                            <label for="auth2" class="ml-2 mr-4">관리자</label>
-                            <RadioButton id="auth3" name="auth" value="최고관리자" v-model="authValue" />
-                            <label for="auth3" class="ml-2">최고관리자</label>
-                        </label>
-                    </div>
+                    <label for="zone" class="whitespace-nowrap">구역</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="zone" type="text" class="w-60" />
+                        <InputIcon class="pi pi-search" />
+                    </IconField>
+                </div>
+
+                <!-- 세부구역 -->
+                <div class="flex items-center gap-2">
+                    <label for="subZone" class="whitespace-nowrap">세부구역</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="subZone" type="text" class="w-60" />
+                        <InputIcon class="pi pi-search" />
+                    </IconField>
+                </div>
+
+                <!-- 층 -->
+                <div class="flex items-center gap-2">
+                    <label for="floor" class="whitespace-nowrap">층</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="floor" type="text" class="w-60" />
+                        <InputIcon class="pi pi-search" />
+                    </IconField>
                 </div>
 
                 <!-- 상태 라디오 그룹 -->
@@ -60,12 +69,10 @@ const statusValue = ref('');
                     <label for="materialCode" class="whitespace-nowrap">상태</label>
                     <div class="flex items-center">
                         <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                            <RadioButton id="status1" name="status" value="재직" v-model="statusValue" />
-                            <label for="status1" class="ml-2 mr-4">재직</label>
-                            <RadioButton id="status2" name="status" value="휴직" v-model="statusValue" />
-                            <label for="status2" class="ml-2 mr-4">휴직</label>
-                            <RadioButton id="status3" name="status" value="퇴직" v-model="statusValue" />
-                            <label for="status3" class="ml-2">퇴직</label>
+                            <RadioButton id="status1" name="status" value="활성" v-model="statusValue" />
+                            <label for="status1" class="ml-2 mr-4">활성</label>
+                            <RadioButton id="status2" name="status" value="비활성" v-model="statusValue" />
+                            <label for="status2" class="ml-2">비활성</label>
                         </label>
                     </div>
                 </div>

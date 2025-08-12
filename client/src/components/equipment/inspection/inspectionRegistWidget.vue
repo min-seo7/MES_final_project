@@ -22,7 +22,6 @@ const props = defineProps({
         })
     }
 });
-// ...기존 코드 위/아래 유지
 
 const emit = defineEmits([
     'update:modelValue', // v-model
@@ -55,7 +54,7 @@ function onSave() {
 }
 
 function onReset() {
-    form.value = {
+    const cleared = {
         equipmentCode: '',
         inspectionCode: '',
         inspectionType: '정기점검',
@@ -66,13 +65,21 @@ function onReset() {
         note: '',
         details: Array.from({ length: 10 }, () => ({ item: '', result: '', action: '' }))
     };
+    emit('update:modelValue', cleared);
     emit('reset');
 }
 
 function genCode() {
-    const ymd = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const ymd = `${y}${m}${day}`;
     const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-    form.value.inspectionCode = `INSP-${ymd}-${rand}`;
+    const code = `INSP-${ymd}-${rand}`;
+
+    // props 직접변경 금지 → v-model 업데이트로 반영
+    emit('update:modelValue', { ...form.value, inspectionCode: code });
 }
 </script>
 

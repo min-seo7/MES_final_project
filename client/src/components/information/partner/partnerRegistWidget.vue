@@ -3,9 +3,9 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 const form = ref({
-    pType: '',
-    pId: '',
-    pName: '',
+    partnerType: '',
+    partnerId: '',
+    partnerName: '',
     businessNo: '',
     manager: '',
     address: '',
@@ -19,7 +19,7 @@ const registPartner = async () => {
         const res = await axios.post('/api/information/partner', form.value);
         alert(res.data.message);
     } catch (err) {
-        console.log('사원등록실패');
+        console.log('거래처 등록실패');
     }
 };
 </script>
@@ -38,11 +38,11 @@ const registPartner = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">거래처유형</label>
-                    <InputText v-model="form.pType" class="w-full" />
+                    <InputText v-model="form.partnerType" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">거래처명</label>
-                    <InputText v-model="form.pName" class="w-full" />
+                    <InputText v-model="form.partnerName" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">담당자</label>
@@ -68,7 +68,7 @@ const registPartner = async () => {
                 <div>
                     <label class="block mb-1">거래처코드</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.pId" class="w-full" />
+                        <InputText v-model="form.partnerId" class="w-full" />
                         <Button label="생성" size="small"></Button>
                     </div>
                 </div>

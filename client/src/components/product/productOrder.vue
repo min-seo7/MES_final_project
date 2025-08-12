@@ -3,9 +3,11 @@ import { ref, computed } from 'vue';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import DatePicker from 'primevue/datepicker';
 import InputNumber from 'primevue/inputnumber';
 import Dialog from 'primevue/dialog';
-import DatePicker from 'primevue/datepicker';
+
+const dateValue = ref({});
 const search = ref({
     productPlanCode: '',
     planStartDate: '',
@@ -13,7 +15,6 @@ const search = ref({
     director: ''
 });
 
-// 모달 상태 관리
 const showModal = ref(false);
 const modalType = ref('');
 
@@ -33,88 +34,51 @@ const selectModalValue = (value) => {
     else if (modalType.value === 'director') search.value.director = value.director;
     showModal.value = false;
 };
+
 const productPlanCodeList = ref([
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:10', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:20', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P003-20', startDate: '2025-08-10 09:30', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P003-40', startDate: '2025-08-10 09:40', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:00', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:10', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:20', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:30', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:40', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:50', endDate: '2025-08-10 18:00', director: '김지시' }, //
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 10:55', endDate: '2025-08-10 18:00', director: '김지시' } //
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:10', endDate: '2025-08-10 18:00', director: '김관리' },
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:20', endDate: '2025-08-10 18:00', director: '김관리' },
+    { code: 'PL20250808P003-20', startDate: '2025-08-10 09:30', endDate: '2025-08-10 18:00', director: '김관리' },
+    { code: 'PL20250808P003-40', startDate: '2025-08-10 09:40', endDate: '2025-08-10 18:00', director: '김관리' },
+    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김관리' }
 ]);
-
-// const currentPage = ref(1);
-// const pageSize = 5;
-// eslint-disable-next-line no-undef
-// const totalPages = computed(() => Math.ceil(productPlanCodeList.value.length / pageSize));
-
-// // eslint-disable-next-line no-undef
-// const pagedProductPlanCodes = computed(() => {
-//     const start = (currentPage.value - 1) * pageSize;
-
-//     return productPlanCodeList.value.slice(start, start + pageSize);
-// });
 
 const products = ref([
     {
         id: 1,
-        startDatetime: new Date('2025-08-10T10:10:00'),
-        endDatetime: new Date('2025-08-12T10:10:00'),
+        startDatetime: new Date('2025-08-10 10:00'),
+        endDatetime: new Date('2025-08-12 10:10'),
         productname: '과립형비료 20kg',
         productPlanQty: 10000,
         productType: '과립형',
         undefinedQty: 9000,
         currentQty: 1000,
         line: 'B01',
-        lastname: '김지시'
+        lastname: '김관리'
     },
     {
         id: 2,
-        startDatetime: new Date('2025-08-10T10:20:00'),
-        endDatetime: new Date('2025-08-12T10:20:00'),
+        startDatetime: new Date('2025-08-10 10:20'),
+        endDatetime: new Date('2025-08-12 10:20'),
         productname: '과립형비료 20kg',
         productPlanQty: 10000,
         productType: '과립형',
         undefinedQty: 9000,
         currentQty: 1000,
         line: 'B01',
-        lastname: '김지시'
-    },
-    {
-        id: 3,
-        startDatetime: new Date('2025-08-10T10:30:00'),
-        endDatetime: new Date('2025-08-12T10:30:00'),
-        productname: '과립형비료 20kg',
-        productPlanQty: 10000,
-        productType: '과립형',
-        undefinedQty: 9000,
-        currentQty: 1000,
-        line: 'B01',
-        lastname: '김지시'
+        lastname: '김관리'
     }
 ]);
+
 const selectedProducts = ref([]);
 const hiddenProductIds = ref(new Set());
 
-// 체크박스가 찍힌 제품들을 넣을 배열
 const filteredProducts = computed(() => {
-    // 선택된 상품이 없으면 원본 데이터 전체를 반환
     return products.value.filter((p) => !hiddenProductIds.value.has(p.id));
-    // const selectedIds = new Set(selectedProducts.value.map((prow) => prow.id));
-    // 선택된 행의 id를 set컬렉션으로 map을 이용해서 배열을 반환하고 수집된다
-    // return products.value.filter((prow) => !selectedIds.has(prow.id));
-    // 제품배열에 필터를 걸어서 선택되지 않은 id를 가진 데이터들을 리턴
 });
-const hideSelected = () => {
-    // 선택된 상품들의 ID를 hiddenProductIds Set에 추가
-    selectedProducts.value.forEach((p) => hiddenProductIds.value.add(p.id));
 
-    // 숨기기 후 선택 상태 초기화
+const hideSelected = () => {
+    selectedProducts.value.forEach((p) => hiddenProductIds.value.add(p.id));
     selectedProducts.value = [];
 };
 
@@ -130,52 +94,56 @@ const columns = ref([
     { field: 'lastname', header: '생산지시자' }
 ]);
 
-// const formatCurrency = (value) => {
-//     return value.toLocaleString('ko-KR', { style: 'currency', currency: 'KRW' });
-// };
 const formatDate = (value) => {
-    // if (!value) return '';
-    // const date = new Date(value);
-    // return date.toLocaleString('ko-KR'); // 또는 원하는 형식으로 포맷
-    const date = typeof value === 'string' ? new Date(value) : value;
-    if (!date) return '';
+    if (!value) return '';
+    return new Date(value).toLocaleString('ko-KR');
+};
 
-    // 원하는 형식으로 포맷팅
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-};
-const onDateTimeUpdate = (data, field, value) => {
-    data[field] = value;
-};
+// const onDateTimeUpdate = (data, field, value) => {
+//     data[field] = value;
+// };
+
 const onCellEditComplete = (event) => {
-    // event 객체에서 편집된 정보를 가져옵니다.
     let { data, newValue, field } = event;
-    console.log(data);
-    // newValue가 Date 객체인지 확인하고 할당
     if (['startDatetime', 'endDatetime'].includes(field)) {
-        if (newValue instanceof Date) {
-            // newValue가 Date 객체인 경우에만 할당
+        // console.log(newValue, newValue instanceof Date);
+        if (newValue instanceof Date || newValue === null) {
             data[field] = newValue;
+            // console.log(data, field, data[field]);
         } else {
-            // 날짜 선택을 취소하거나 다른 유효하지 않은 값이 들어온 경우
             data[field] = null;
         }
-    }
-    // 그 외 필드 처리 로직은 그대로 유지
-    else if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
+    } else if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
         if (isNaN(newValue) || newValue < 0) {
             console.warn('음수는 허용되지 않습니다.');
             return;
         }
         data[field] = newValue;
+        if (field == 'productPlanQty' || field == 'currentQty') {
+            data.undefinedQty = (data.productPlanQty || 0) - (data.currentQty || 0);
+        }
     } else {
         data[field] = newValue;
     }
+    if (['productname', 'productType', 'line'].includes(field)) {
+        if (field == 'productname') {
+            data.productType = data.productname.slice(0, 3);
+            if (data.productname.slice(0, 3) == '분말형') {
+                data.line = 'A01';
+            } else if (data.productname.slice(0, 3) == '과립형') {
+                data.line = 'B01';
+            } else {
+                data.line = 'C01';
+            }
+        }
+    }
+    event.preventDefault();
+
+    // event 핸들러 발생시 데이트피커가 날짜를 선택하는것이 첫번째 이벤트 ,
+    //  찍고 나서 찍은 날짜를 가져오는것이 두번째 이벤트 인데
+    // 둘이 순차적으로 처리되는게 아니라 기존에 있던 이벤트가 진행중인데 가져오라고 해버리니까 처리를 할수가 없다 이런건가
 };
+
 const addNewRow = () => {
     const newProduct = {
         id: products.value.length ? Math.max(...products.value.map((p) => p.id)) + 1 : 1,
@@ -189,7 +157,6 @@ const addNewRow = () => {
         line: '',
         lastname: '김지시'
     };
-    // Add the new object to the data array
     products.value.push(newProduct);
 };
 
@@ -199,54 +166,37 @@ const dropContent = () => {
     });
 };
 </script>
+
 <template>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" 지시등록 " rounded @click="insertWork" />
+        <Button label=" 지시등록 " rounded />
         <Button label=" 초기화 " severity="info" rounded @click="dropContent" />
     </div>
+
     <div class="font-semibold text-xl mb-4">작업지시</div>
+
     <div class="card flex justify-center gap-6 py-4">
-        <!-- 생산계획코드 영역 -->
         <div class="flex flex-col">
             <label for="planCode" class="mb-1">생산계획코드</label>
-            <div class="flex items-center gap-2">
-                <!-- <InputText class="w-64" v-model="search.productPlanCode" readonly />
-                <Button icon="pi pi-search" severity="secondary" variant="text" @click="openModal('productPlanCode')" /> -->
-                <IconField iconPosition="left">
-                    <InputText class="w-64" ref="inputValue" v-model="search.productPlanCode" id="planCodeInput" readonly />
-                    <InputIcon class="pi pi-search" @click="openModal('productPlanCode')" />
-                </IconField>
-            </div>
+            <IconField iconPosition="left">
+                <InputText class="w-64" v-model="search.productPlanCode" readonly />
+                <InputIcon class="pi pi-search" @click="openModal('productPlanCode')" />
+            </IconField>
         </div>
 
-        <!-- 지시자 영역 -->
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>
-            <InputText id="lastnameTxt" type="text" readonly />
+            <InputText id="lastnameTxt" value="김지시" type="text" readonly />
         </div>
     </div>
+
     <div class="flex justify-end mb-4 space-x-2">
         <Button label=" 행추가 " rounded @click="addNewRow" />
         <Button label=" 선택삭제 " severity="danger" rounded @click="hideSelected" />
     </div>
+
     <div class="flex-auto card">
-        <DataTable
-            v-model:selection="selectedProducts"
-            :value="filteredProducts"
-            scrollable
-            scrollHeight="400px"
-            editMode="cell"
-            @cell-edit-complete="onCellEditComplete"
-            :pt="{
-                table: { style: 'min-width: 50rem' },
-                column: {
-                    bodycell: ({ state }) => ({
-                        class: [{ '!py-0': state['d_editing'] }]
-                    })
-                }
-            }"
-            dataKey="id"
-        >
+        <DataTable v-model:selection="selectedProducts" :value="filteredProducts" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" dataKey="id">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
                 <template #body="{ data, field }">
@@ -255,13 +205,17 @@ const dropContent = () => {
                     </span>
                     <span v-else>{{ data[field] }}</span>
                 </template>
+
                 <template #editor="{ data, field }">
                     <template v-if="['startDatetime', 'endDatetime'].includes(field)">
-                        <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" fluid @update:modelValue="onDateTimeUpdate(data, field, $event)" />
+                        <input type="datetime-local" />
+                        <!-- <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" /> -->
                     </template>
+                    <!--  -->
                     <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
                         <InputNumber v-model="data[field]" autofocus fluid />
                     </template>
+                    <!--  -->
                     <template v-else>
                         <InputText v-model="data[field]" autofocus fluid />
                     </template>
@@ -284,9 +238,7 @@ const dropContent = () => {
         </p>
 
         <div v-if="modalType === 'productPlanCode'">
-            <!-- <ul class="mb-3"> -->
-
-            <DataTable :value="productPlanCodeList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 20rem" class="mb-3">
+            <DataTable :value="productPlanCodeList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]">
                 <Column field="code" header="생산계획코드">
                     <template #body="{ data }">
                         <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">

@@ -1,30 +1,19 @@
-<!-- src/components/inspection/inspectionSearchWidget.vue -->
 <script setup>
 import { ref } from 'vue';
 
-/**
- * pickerData 예시 형태:
- * [
- *   { insp_code:'INSP-001', eq_id:'EQ-001', insp_type:'정기점검', insp_date:'2025-07-01', next_date:'2025-08-01' },
- *   ...
- * ]
- */
 const props = defineProps({
     pickerData: { type: Array, default: () => [] }
 });
-
 const emit = defineEmits(['submit', 'clear']);
 
-/* 검색 상태 */
 const search = ref({
-    insp_code: '', // 점검코드
-    eq_id: '', // 설비코드
-    insp_type: '', // 점검유형
-    insp_date: null, // 점검일    (Calendar)
-    next_date: null // 점검예정일(Calendar)
+    insp_code: '',
+    eq_id: '',
+    insp_type: '',
+    insp_date: null,
+    next_date: null
 });
 
-/* 버튼 */
 function onSubmit() {
     emit('submit', { ...search.value });
 }
@@ -33,10 +22,9 @@ function onClear() {
     emit('clear');
 }
 
-/* ====== 돋보기 목록 ====== */
+/* 돋보기 목록 */
 const showPicker = ref(false);
-const pickerList = ref([]); // string[]
-/** @type { 'insp_code' | 'eq_id' | 'insp_type' | '' } */
+const pickerList = ref([]);
 let currentField = '';
 
 const unique = (arr) => [...new Set(arr.filter(Boolean))];
@@ -44,7 +32,6 @@ const unique = (arr) => [...new Set(arr.filter(Boolean))];
 function openPicker(field) {
     currentField = field;
     if (!props.pickerData?.length) return;
-
     pickerList.value = unique(props.pickerData.map((i) => i[field]));
     showPicker.value = true;
 }
