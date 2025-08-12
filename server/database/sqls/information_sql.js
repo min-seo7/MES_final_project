@@ -1,3 +1,168 @@
+// 창고조회
+const selectWarehouse = `
+ SELECT warehouse_id,
+        warehouse,
+        zone,
+        sub_zone,
+        floor,
+        location,
+        warehouse_type,
+        status
+FROM warehouse`;
+
+// 창고등록
+const insertWarehouse = `
+INSERT INTO warehouse (warehouse_id,
+			warehouse,
+			zone,
+			sub_zone,
+			floor,
+			location,
+			warehouse_type,
+			status)
+VALUES (?,?,?,?,?,?,?,?)`;
+
+// 창고수정
+const updateWarehouse = `
+UPDATE warehouse
+SET warehouse = ?,
+    zone = ?,
+    sub_zone = ?,
+    floor = ?,
+    location = ?,
+    warehouse_type = ?,
+    status = ?
+WHERE warehouse_id = ?`;
+
+// 제품조회
+const selectProduct = `
+SELECT product_id,
+       product_type,
+       product_form,
+       product_name,
+       specification,
+       unit,
+       expiration_date,
+       expiration_date_unit,
+       storage_condition,
+       safety_stock,
+       safety_stock_unit,
+       product_manual,
+       status
+FROM product`;
+
+// 제품등록
+const insertProduct = `
+INSERT INTO product (product_id,
+			product_type,
+			product_form,
+			product_name,
+			specification,
+			unit,
+			expiration_date,
+			expiration_date_unit,
+			storage_condition,
+			safety_stock,
+			safety_stock_unit,
+			product_manual,
+			status)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+
+// 제품수정
+const updateProduct = `
+UPDATE product
+SET product_type = ?,
+    product_form = ?,
+    product_name = ?,
+    specification = ?,
+    unit = ?,
+    expiration_date = ?,
+    expiration_date_unit = ?,
+    storage_condition = ?,
+    safety_stock = ?,
+    safety_stock_unit = ?,
+    product_manual = ?,
+    status = ?
+WHERE  product_id = ?`;
+
+// 자재 조회
+const selectMaterial = `
+SELECT material_id,
+       material_name,
+       material_type,
+       specification,
+       unit,
+       storage_condition,
+       safety_stock,
+       safety_stock_unit,
+       status
+FROM material`;
+
+// 자재 등록
+const insertMaterial = `
+INSERT INTO material (material_id
+                      , material_name
+                      , material_type
+                      , specification
+                      , unit
+                      , storage_condition
+                      , safety_stock
+                      , safety_stock_unit
+                      , status)
+VALUES (?,?,?,?,?,?,?,?,?)`;
+
+// 자재 수정
+const updateMaterial = `
+UPDATE material
+SET  material_name = ?
+     , material_type = ?
+     , specification = ?
+     , unit = ?
+     , storage_condition = ?
+     , safety_stock = ?
+     , safety_stock_unit = ?
+     , status = ?
+WHERE material_id = ?`;
+
+// 거래처 조회
+const selectPartner = `
+SELECT partner_id
+       , partner_type
+       , partner_name
+       , manager
+       , main_tel
+       , email
+       , address
+       , business_no
+       , status
+FROM partner`;
+
+// 거래처 등록
+const insertPartner = `
+INSERT INTO partner (partner_id,
+                      partner_type,
+                      partner_name,
+                      manager,
+                      main_tel,
+                      email,
+                      address,
+                      business_no,
+                      status)
+VALUES (?,?,?,?,?,?,?,?,?)`;
+
+// 거래처 수정
+const updatePartner = `
+UPDATE partner
+SET  partner_type = ?,
+     partner_name = ?,
+     manager = ?,
+     main_tel = ?,
+     email = ?,
+     address = ?,
+     business_no = ?,
+     status = ?
+WHERE partner_id = 'SUP001'`;
+
 // 흐름도 조회
 const selectFlowchart = `
 SELECT f.flow_id
@@ -243,4 +408,16 @@ module.exports = {
   insertDetailFlowchart,
   updateFlowchart,
   updateDetailFlowchart,
+  selectPartner,
+  insertPartner,
+  updatePartner,
+  selectMaterial,
+  insertMaterial,
+  updateMaterial,
+  selectProduct,
+  insertProduct,
+  updateProduct,
+  selectWarehouse,
+  insertWarehouse,
+  updateWarehouse,
 };
