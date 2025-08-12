@@ -17,6 +17,8 @@ declare module 'vue' {
     BomSearchWidget: typeof import('./src/components/information/bom/bomSearchWidget.vue')['default']
     Button: typeof import('primevue/button')['default']
     ButtonGroup: typeof import('primevue/buttongroup')['default']
+    Calendar: typeof import('primevue/calendar')['default']
+    Chart: typeof import('primevue/chart')['default']
     Chart: typeof import('primevue/chart')['default']
     Calendar: typeof import('primevue/calendar')['default']
     Carousel: typeof import('primevue/carousel')['default']
