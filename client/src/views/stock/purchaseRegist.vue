@@ -47,7 +47,7 @@ export default {
                 }
             ],
             //안전재고수량 미달
-            lowMat: [{ id: '1', matCode: 'm001', matName: '왕겨', safeStock: '50', nowStock: '30', shortage: '20', unit: 'KG' }],
+            lowMat: [{ id: '1', matCode: 'm001', matName: '왕겨', safeStock: '50', nowStock: '30', shortage: '20', unit: 'KG' }]
         };
     },
     methods: {

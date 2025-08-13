@@ -83,7 +83,7 @@ router.get("/purchaseList", async (req, res) => {
 //발주취소
 router.post("/purCancle", async (req, res) => {
   try {
-    await stockService.purCancel(req.body); // 배열 통째로 전달
+    await stockService.purCancle(req.body); // 배열 통째로 전달
     res.json({ message: "success" });
   } catch (err) {
     console.error(err);
@@ -91,4 +91,27 @@ router.post("/purCancle", async (req, res) => {
   }
 });
 
+//자재관리===================================================================
+//자재입고
+//자재입고대기
+router.get("/matPandingList", async (req, res) => {
+  try {
+    let matPandingList = await stockService.matPandingList();
+    res.json(matPandingList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+//자재lot등록
+router.post("/reMatLot", async (req, res) => {
+  console.log("Received details:", req.body);
+  try {
+    await stockService.matLotInsert(req.body);
+    res.json({ message: "success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "디테일 저장 실패" });
+  }
+});
 module.exports = router;

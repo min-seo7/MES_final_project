@@ -49,15 +49,36 @@ let subInfo = async (subDataList) => {
 //발주목록 =========================================================================
 //리스트
 let purchaseList = async () => {
-  let purchaseList = await mariadb.query("purchaseListVwQuery");
+  let purchaseList = await mariadb.query("purchaseListQuery");
   return purchaseList;
 };
 //발주취소
-let purCancel = async (cancelList) => {
+let purCancle = async (cancelList) => {
   for (let cancle of cancelList) {
-    await mariadb.query("purchaseCancelQuery", [
+    await mariadb.query("purchaseCancleQuery", [
       cancle.pur_no,
       cancle.material_id,
+    ]);
+  }
+};
+
+//자재관리===================================================================
+//자재입고
+//자재입고대기목록
+let matPandingList = async () => {
+  let matPandingList = await mariadb.query("MatPandigListQuery");
+  return matPandingList;
+};
+//자재lot등록
+let matLotInsert = async (matInfoList) => {
+  for (let matInfo of matInfoList) {
+    await mariadb.query("matInsertQuery", [
+      matInfo.material_id,
+      matInfo.init_qty,
+      matInfo.warehouse,
+      matInfo.comm,
+      matInfo.materialOrder_num,
+      matInfo.purch_id,
     ]);
   }
 };
@@ -69,6 +90,8 @@ module.exports = {
   subInfo,
   partnerList,
   purchaseList,
-  purCancel,
+  purCancle,
   warehouseList,
+  matPandingList,
+  matLotInsert,
 };

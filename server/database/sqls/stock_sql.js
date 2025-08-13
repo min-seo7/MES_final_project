@@ -22,12 +22,12 @@ let productListQuery = `SELECT product_id,
                         WHERE status = '활성'`;
 
 //보관창고 (모달)
-let warehouseListQuery =`SELECT warehouse_id,
+let warehouseListQuery = `SELECT warehouse_id,
 	                              warehouse,
                                 warehouse_type
                          FROM warehouse
                          WHERE status = '활성'`;
-                         
+
 //발주등록=====================================================
 //마스터T 기본정보
 let masterInfoPro = `CALL insert_purchase_master(?, ?, ?, ?)`;
@@ -36,7 +36,7 @@ let subInfoQuery = `INSERT INTO tbl_purchase_detail (material_id, pur_qty, comm,
                     VALUES (?, ?, ?, ?)`;
 //발주목록=================================================
 //리스트
-let purchaseListVwQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
+let purchaseListQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
                                   m.pur_no,
                                   s.material_id,
                                   b.material_name,
@@ -54,11 +54,39 @@ let purchaseListVwQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
                           JOIN partner p
                               ON m.partner_id = p.partner_id
                           WHERE s.pro_status NOT IN ('취소')`;
+
 //발주취소[발주번호 기준, 해당자재코드]
-let purchaseCancelQuery = `UPDATE  tbl_purchase_detail
+let purchaseCancleQuery = `UPDATE  tbl_purchase_detail
                               SET pro_status = '취소'
                            WHERE pur_no = ?
                              AND material_id = ?`;
+
+//자재관리===================================================================
+//자재입고
+//자재입고대기
+let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_date,
+                                  d.pur_no,
+                                  t.material_code,
+                                  m.material_name,
+                                  t.result, 
+                                  t.qty,
+                                  m.unit,
+                                  pa.partner_name,
+                                  t.materialOrder_num,
+                                  d.purch_id
+                          FROM material_Inspection t
+                          JOIN tbl_purchase_detail d
+                          ON t.purch_id = d.purch_id
+                          JOIN tbl_purchase p
+                          ON p.pur_no = d.pur_no
+                          JOIN material m
+                          ON t.material_code = m.material_id
+                          JOIN partner pa
+                          ON p.partner_id = pa.partner_id
+                          WHERE d.pro_status NOT IN ('취소', '입고완료')`;
+
+//자재입고처리
+let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?)`;
 
 module.exports = {
   matListQuery,
@@ -66,7 +94,9 @@ module.exports = {
   masterInfoPro,
   subInfoQuery,
   partnerListQuery,
-  purchaseListVwQuery,
-  purchaseCancelQuery,
+  purchaseListQuery,
+  purchaseCancleQuery,
   warehouseListQuery,
+  MatPandigListQuery,
+  matInsertQuery,
 };

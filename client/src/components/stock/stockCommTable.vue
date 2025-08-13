@@ -12,15 +12,19 @@ export default {
         dataRows: {
             type: Array,
             required: true
+        },
+        selection: {
+            type: [Object, Array], // 단일 선택 or 다중 선택
+            default: null
         }
     },
-    emits: ['update:dataRows']
+    emits: ['update:dataRows', 'update:selection']
 };
 </script>
 
 <template>
     <div class="card w-full">
-        <DataTable :value="dataRows" dataKey="id" tableStyle="min-width: 50rem">
+        <DataTable :value="dataRows" dataKey="id" tableStyle="min-width: 50rem" :selection="selection" @update:selection="$emit('update:selection', $event)">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--채크박스영역-->
 

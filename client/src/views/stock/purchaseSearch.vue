@@ -20,7 +20,7 @@ export default {
             //목록
             purchaseList: [],
             //선택된 발주리스트들.
-            cancelList: []
+            cancleList: []
         };
     },
     methods: {
@@ -57,7 +57,7 @@ export default {
         //발주취소버튼
         async cancelPur() {
             try {
-                let cancelRow = this.cancelList.map((row) => ({
+                let cancelRow = this.cancleList.map((row) => ({
                     pur_no: row.purNo,
                     material_id: row.matCode
                 }));
@@ -66,6 +66,7 @@ export default {
             } catch (error) {
                 console.error('발주취소 실패:', error);
             }
+            console.log('테스트');
             this.getPurchaseList();
         },
 
@@ -145,14 +146,14 @@ export default {
         </div>
     </div>
     <!--중간 삭제버튼-->
-    <stockCommRowBtn :buttons="[{ label: '발주취소', icon: 'pi pi-trash', onClick: this.cancelPur }]" />
+    <stockCommRowBtn :buttons="[{ label: '발주취소', icon: 'pi pi-trash', onClick: cancelPur }]" />
 
     <!--목록 테이블 -->
     <div class="card w-full">
-        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem">
+        <DataTable v-model:selection="cancleList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
-            <Column field="id" header="-" style="display: none" ></Column>
+            <Column field="id" header="-" style="display: none"></Column>
             <Column field="reDate" header="등록일"></Column>
             <Column field="purNo" header="발주번호"></Column>
             <Column field="matCode" header="자재코드"></Column>
