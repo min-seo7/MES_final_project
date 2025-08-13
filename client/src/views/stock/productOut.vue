@@ -25,7 +25,23 @@ export default {
             //모달
             productModal: false,
             //(모달)선택된 자재
-            selectPrd: null
+            selectPrd: null,
+            //입고대기 테이블 컬럼
+            pandingCol: [
+                { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
+                { field: 'p_purNo', header: '발주번호', headerStyle: 'width: 25rem' },
+                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 20rem' },
+                { field: 'p_matName', header: '자재명', headerStyle: 'width: 13rem' },
+                { field: 'p_testResult', header: '검사결과', headerStyle: 'width: 13rem' },
+                { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
+                { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
+                { field: 'p_unit', header: '단위', headerStyle: 'width: 13rem' },
+                { field: 'p_partnerName', header: '공급처', headerStyle: 'width: 15rem' },
+                { field: 'p_warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal }, //창고위치모달.
+                { field: 'p_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
+            ],
+            //입고대기 데이터
+            MatReceiptPanding: []
         };
     },
     methods: {
@@ -162,7 +178,7 @@ export default {
                 <TabPanels>
                     <TabPanel value="0">
                         <!--0번탭 컨텐츠영역-->
-                        <stockCommTable v-model="prdReceiptPanding" :columns="pandingCol" />
+                        <stockCommTable v-model:selection="selectPandingMats" :columns="pandingCol" :dataRows="MatReceiptPanding" />
                     </TabPanel>
                     <TabPanel value="1">
                         <!--1번탭 컨텐츠영역-->
