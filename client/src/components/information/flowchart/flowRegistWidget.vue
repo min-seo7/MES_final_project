@@ -2,6 +2,13 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
+const props = defineProps({
+    detailData: {
+        type: Array,
+        default: () => []
+    }
+});
+
 const form = ref({
     flowId: '',
     flowName: '',
@@ -13,11 +20,41 @@ const form = ref({
 });
 
 const registFlowchart = async () => {
+    if (!form.value.productId) {
+        alert('제품코드를 선택해주세요.');
+        return;
+    }
+    if (!form.value.status) {
+        alert('상태를 선택해주세요.');
+        return;
+    }
+    if (props.detailData.length === 0) {
+        alert('공정흐름도 상세 항목을 추가해주세요.');
+        return;
+    }
     try {
-        const res = await axios.post('/api/information/flowchart', form.value);
-        alert(res.data.message);
+        const payload = {
+            flowchartInfo: {
+                // 서버에서 받을 기본 정보
+                flowId: form.value.flowId,
+                flowName: form.value.flowName,
+                productId: form.value.productId,
+                productName: form.value.productName,
+                note: form.value.note,
+                status: form.value.status,
+                flowchart: form.value.flowchart
+            },
+            flowchartDetails: props.detailData // 서버에서 받을 상세 리스트
+        };
+
+        const res = await axios.post('/api/information/flowchart', payload, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        alert(res.data.message || '등록 성공');
     } catch (err) {
-        console.log('line 등록실패');
+        console.error(err);
+        alert('등록 실패');
     }
 };
 </script>

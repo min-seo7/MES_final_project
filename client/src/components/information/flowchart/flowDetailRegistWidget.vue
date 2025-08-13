@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref, defineEmits } from 'vue';
+
+const emits = defineEmits(['flowchartDetail']);
 
 const form = ref({
     processId: '',
@@ -9,13 +10,8 @@ const form = ref({
     status: ''
 });
 
-const registDetailFlowchart = async () => {
-    try {
-        const res = await axios.post('/api/information/flowchart/detail', form.value);
-        alert(res.data.message);
-    } catch (err) {
-        console.log('detail flowchart등록실패');
-    }
+const addFlowchartdetail = () => {
+    emits('flowchartDetail', form.value);
 };
 </script>
 
@@ -23,11 +19,11 @@ const registDetailFlowchart = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registDetailFlowchart()" />
+            <Button label=" 등록 " rounded @click="addFlowchartdetail()" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
-    <div class="card mt-4 p-4 border rounded">
+    <div class="card mt-4 p-4 border rounded" style="height: 550px">
         <div class="flex flex-col md:flex-row gap-6">
             <!-- 왼쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">

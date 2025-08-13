@@ -360,6 +360,54 @@ const insertBOM = async (bomInfo) => {
   return result;
 };
 
+// BOM 등록 + 상세 등록
+const insertAllBOM = async (bomInfo, bomDetails) => {
+  try {
+    // 1. 마지막 BOM ID 조회
+    // const rows = await mariadb.query("SelectMaxBOMId");
+    // let newBOMId;
+    // if (rows && rows[0].max_bom_id) {
+    //   const lastNum = parseInt(rows[0].max_bom_id.replace("BOM", ""), 10);
+    //   newBOMId = `BOM${String(lastNum + 1).padStart(3, "0")}`;
+    // } else {
+    //   newBOMId = "BOM001";
+    // }
+    const rows = await mariadb.query("SelectMaxBOMId");
+    let maxId = rows?.[0]?.max_bom_id || null; // 안전하게 읽기
+    let newBOMId;
+
+    if (maxId) {
+      const lastNum = parseInt(maxId.replace(/\D/g, ""), 10); // 숫자만 추출
+      newBOMId = `BOM${String(lastNum + 1).padStart(3, "0")}`;
+    } else {
+      newBOMId = "BOM001";
+    }
+    // 2. BOM 등록
+    await mariadb.query("insertBOM", [
+      newBOMId,
+      bomInfo.prodId,
+      bomInfo.status,
+    ]);
+
+    // 3. BOM 상세 등록
+    for (const detail of bomDetails) {
+      await mariadb.query("insertDetailBOM", [
+        newBOMId,
+        detail.materialId,
+        detail.unit,
+        detail.mixRatio,
+        detail.requiredQty,
+        detail.totalQty,
+        detail.status,
+      ]);
+    }
+
+    return { success: true, newBOMId };
+  } catch (err) {
+    console.error("insertAllBOM Error:", err);
+    return { success: false, error: err.message };
+  }
+};
 // BOM_detail 등록
 const insertDetailBOM = async (bomInfo) => {
   const insertData = convertToArray(bomInfo, [
@@ -375,11 +423,28 @@ const insertDetailBOM = async (bomInfo) => {
   return result;
 };
 
-// 전체 사원 목록 조회
-const findAllEmployees = async () => {
-  let list = await mariadb.query("selectEmployeeList");
+const findAllEmployeeId = async () => {
+  let list = await mariadb.query("selectEmployeeIdModal");
   return list;
 };
+
+const findAllEmployees = async (employeeInfo) => {
+  const insertData = convertToArray(employeeInfo, [
+    "employeeId",
+    "department",
+    "auth",
+    "status",
+  ]);
+
+  let list = await mariadb.query("selectEmployeeList", insertData);
+  return list;
+};
+
+// 전체 사원 목록 조회
+// const findAllEmployees = async () => {
+//   let list = await mariadb.query("selectEmployeeList");
+//   return list;
+// };
 
 // 사원 등록
 const insertEmployee = async (employeeInfo) => {
@@ -472,4 +537,6 @@ module.exports = {
   findAllWarehouse,
   insertWarehouse,
   updateWarehouse,
+  findAllEmployeeId,
+  insertAllBOM,
 };
