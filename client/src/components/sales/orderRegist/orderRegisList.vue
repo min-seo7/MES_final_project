@@ -131,17 +131,26 @@ onMounted(() => {
                 <div class="flex flex-wrap gap-6 p-4">
                     <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">주문번호</label>
-                        <InputText placeholder="ORD001" v-model="searchFilters.orderId" />
+                        <InputGroup>
+                            <InputText placeholder="ORD001" v-model="searchFilters.orderId" />
+                            <Button icon="pi pi-search" @click.stop="() => {}" />
+                        </InputGroup>
                     </div>
 
                     <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">거래처코드</label>
-                        <InputText placeholder="SUP002" v-model="searchFilters.partnerId" />
+                        <InputGroup>
+                            <InputText placeholder="SUP002" v-model="searchFilters.partnerId" />
+                            <Button icon="pi pi-search" @click.stop="() => {}" />
+                        </InputGroup>
                     </div>
 
                     <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">제품명</label>
-                        <InputText placeholder="제품명" v-model="searchFilters.productName" />
+                        <InputGroup>
+                            <InputText placeholder="제품명" v-model="searchFilters.productName" />
+                            <Button icon="pi pi-search" @click.stop="() => {}" />
+                        </InputGroup>
                     </div>
 
                     <div class="flex flex-col">
