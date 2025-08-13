@@ -236,7 +236,7 @@ const resetData = () => {
         </div>
 
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <DataTable :value="products" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
+            <DataTable :value="products" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
                 <Column field="process" header="공정"></Column>
                 <Column field="line" header="라인"></Column>
                 <Column field="planQuantity" header="계획수량"></Column>
