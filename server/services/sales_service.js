@@ -16,11 +16,50 @@ function formatDateToYMD(isoDate) {
   return `${year}-${month}-${day}`;
 }
 //주문목록조회
-const selectRegisList = () => {
-  let list = query("SelectOrders");
+// const selectRegisList = () => {
+//   let list = query("SelectOrders");
+//   return list;
+// };
+
+// 주문 내역 조회 (필터링 적용)
+const selectFilteredOrders = (filter) => {
+  // 쿼리 파라미터 배열을 필터 객체를 기반으로 생성
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.spec,
+    filter.spec,
+    filter.spec,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.productType,
+    filter.productType,
+    filter.productType,
+    filter.delDate,
+    filter.delDate,
+  ];
+
+  // sqlList에서 정의된 selectOrderDetail 쿼리를 실행
+  let list = query("selectOrderDetail", params);
   return list;
 };
 
+//주문등록모달창조회
+const selectOrdRegistModal = () => {
+  let list = query("selectOrdPartnerModal");
+  return list;
+};
+
+//주문등록상세_완제품제품 조회하는 모달창
+const selectOrderProductModal = () => {
+  let list = query("selectOrderProduct");
+  return list;
+};
 // 주문 1: 주문상세 N
 const InsertOrder = async (orderInfo, orderItems) => {
   const conn = await getConnection();
@@ -57,6 +96,8 @@ const InsertOrder = async (orderInfo, orderItems) => {
       "orderManager",
       "deliveryAddr",
       "supplyPrice",
+      "manager",
+      "partnerName",
     ]);
     //
     await conn.query(sqlList["InsertOrders"], insertOrderData);
@@ -73,7 +114,7 @@ const InsertOrder = async (orderInfo, orderItems) => {
         "quantity",
         "delDate",
         "ordStatus",
-        "productId", // productId가 없으면 null로 설정 필요
+        "productId",
         "productName",
         "productPrice",
         "supplyPrice",
@@ -97,5 +138,8 @@ const InsertOrder = async (orderInfo, orderItems) => {
 
 module.exports = {
   InsertOrder,
-  selectRegisList,
+  selectFilteredOrders,
+  selectOrdRegistModal,
+  selectOrderProductModal,
+  // selectRegisList,
 };
