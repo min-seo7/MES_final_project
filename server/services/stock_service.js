@@ -53,11 +53,11 @@ let purchaseList = async () => {
   return purchaseList;
 };
 //발주취소
-let purCancle = async (cancelList) => {
-  for (let cancle of cancelList) {
-    await mariadb.query("purchaseCancleQuery", [
-      cancle.pur_no,
-      cancle.material_id,
+let purCancel = async (cancelList) => {
+  for (let cancel of cancelList) {
+    await mariadb.query("purchaseCancelQuery", [
+      cancel.pur_no,
+      cancel.material_id,
     ]);
   }
 };
@@ -82,6 +82,11 @@ let matLotInsert = async (matInfoList) => {
     ]);
   }
 };
+//자재lot리스트(입고)
+let matLotList = async () => {
+  let matLotList = await mariadb.query("matLotListQury");
+  return matLotList;
+};
 
 module.exports = {
   matList,
@@ -90,8 +95,9 @@ module.exports = {
   subInfo,
   partnerList,
   purchaseList,
-  purCancle,
+  purCancel,
   warehouseList,
   matPandingList,
   matLotInsert,
+  matLotList,
 };

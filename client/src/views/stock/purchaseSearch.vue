@@ -20,7 +20,7 @@ export default {
             //목록
             purchaseList: [],
             //선택된 발주리스트들.
-            cancleList: []
+            cancelList: []
         };
     },
     methods: {
@@ -57,12 +57,12 @@ export default {
         //발주취소버튼
         async cancelPur() {
             try {
-                let cancelRow = this.cancleList.map((row) => ({
+                let cancelRow = this.cancelList.map((row) => ({
                     pur_no: row.purNo,
                     material_id: row.matCode
                 }));
                 console.log(cancelRow);
-                await axios.post('/api/stock/purCancle', cancelRow);
+                await axios.post('/api/stock/purCancel', cancelRow);
             } catch (error) {
                 console.error('발주취소 실패:', error);
             }
@@ -150,7 +150,7 @@ export default {
 
     <!--목록 테이블 -->
     <div class="card w-full">
-        <DataTable v-model:selection="cancleList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem">
+        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
             <Column field="id" header="-" style="display: none"></Column>

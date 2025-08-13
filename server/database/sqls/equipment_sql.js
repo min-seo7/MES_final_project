@@ -51,12 +51,10 @@ INSERT INTO equipment_inspection(
 ) VALUES (?,?,?,?,?,?,?,?,?)
 `;
 
-
-
 // 설비정보 등록/수정
 // 목록(조건검색/돋보기)
-   /* ===== 목록(검색/돋보기용) ===== */
-  selectEquipmentList: `
+/* ===== 목록(검색/돋보기용) ===== */
+const selectEquipmentList = `
     SELECT
       e.equipment_id AS eq_id,
       e.eq_type      AS eq_type,
@@ -72,10 +70,10 @@ INSERT INTO equipment_inspection(
       AND ( :status  IS NULL OR e.\`status\`   = :status )
     ORDER BY e.equipment_id ASC
     LIMIT :offset, :size
-  `,
+  `;
 
-  /* ===== 카운트(목록과 컬럼/조건 1:1 동일) ===== */
-  countEquipmentList: `
+/* ===== 카운트(목록과 컬럼/조건 1:1 동일) ===== */
+const countEquipmentList = `
     SELECT COUNT(*) AS total
     FROM equipment e
     WHERE 1=1
@@ -84,10 +82,10 @@ INSERT INTO equipment_inspection(
       AND ( :eq_name IS NULL OR e.eq_name      LIKE CONCAT('%', :eq_name, '%') )
       AND ( :loc     IS NULL OR e.location     LIKE CONCAT('%', :loc, '%') )
       AND ( :status  IS NULL OR e.\`status\`   = :status )
-  `,
-  
-    /* ===== 단건 조회 ===== */
-  selectEquipmentById: `
+  `;
+
+/* ===== 단건 조회 ===== */
+const selectEquipmentById = `
     SELECT
       e.equipment_id AS eq_id,
       e.eq_name      AS eq_name,
@@ -101,11 +99,10 @@ INSERT INTO equipment_inspection(
       e.note         AS note
     FROM equipment e
     WHERE e.equipment_id = :eq_id
-  `,
+  `;
 
-
-    /* ===== 코드 생성: EQ-YYYYMM-#### (월별 시퀀스) ===== */
-  generateEquipmentCode: `
+/* ===== 코드 생성: EQ-YYYYMM-#### (월별 시퀀스) ===== */
+const generateEquipmentCode = `
     SELECT CONCAT(
       'EQ-',
       DATE_FORMAT(CURDATE(), '%Y%m'),
@@ -120,16 +117,16 @@ INSERT INTO equipment_inspection(
     ) AS next_code
     FROM equipment
     WHERE equipment_id LIKE CONCAT('EQ-', DATE_FORMAT(CURDATE(), '%Y%m'), '-%')
-  `,
+  `;
 
-    /* ===== 등록 ===== */
-  insertEquipment: `
+/* ===== 등록 ===== */
+const insertEquipment = `
     INSERT INTO equipment
       (equipment_id, eq_name, manufacturer, serial_no, purchase_date, start_date, eq_type, location, status, note)
     VALUES
       (:eq_id, :eq_name, :manufacturer, :serial_no, :purchase_date, :start_date, :eq_type, :loc, :status, :note)
-  `,
-      updateEquipment: `
+  `;
+const updateEquipment = `
     UPDATE equipment
     SET eq_name       = :eq_name,
         manufacturer  = :manufacturer,
@@ -141,11 +138,7 @@ INSERT INTO equipment_inspection(
         \`status\`    = :status,
         note          = :note
     WHERE equipment_id = :eq_id
-  `
-
-  
-   
-
+  `;
 
 module.exports = {
   // inspection

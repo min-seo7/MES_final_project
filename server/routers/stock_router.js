@@ -81,9 +81,9 @@ router.get("/purchaseList", async (req, res) => {
   }
 });
 //발주취소
-router.post("/purCancle", async (req, res) => {
+router.post("/purCancel", async (req, res) => {
   try {
-    await stockService.purCancle(req.body); // 배열 통째로 전달
+    await stockService.purCancel(req.body); // 배열 통째로 전달
     res.json({ message: "success" });
   } catch (err) {
     console.error(err);
@@ -114,4 +114,17 @@ router.post("/reMatLot", async (req, res) => {
     res.status(500).json({ message: "디테일 저장 실패" });
   }
 });
+//자재lot목록(입고)
+router.get("/matLotList", async (req, res) => {
+  try {
+    let matLotList = await stockService.matLotList();
+    res.json(matLotList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+
+
 module.exports = router;

@@ -56,7 +56,7 @@ let purchaseListQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
                           WHERE s.pro_status NOT IN ('취소')`;
 
 //발주취소[발주번호 기준, 해당자재코드]
-let purchaseCancleQuery = `UPDATE  tbl_purchase_detail
+let purchaseCancelQuery = `UPDATE  tbl_purchase_detail
                               SET pro_status = '취소'
                            WHERE pur_no = ?
                              AND material_id = ?`;
@@ -88,6 +88,19 @@ let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_dat
 //자재입고처리
 let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?)`;
 
+//자재LOT목록(입고)
+let matLotListQury = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
+                             l.lot_no, 
+                             l.material_id, 
+                             m.material_name,
+                             l.init_qty,
+                             m.unit,
+                             l.warehouse, 
+                             l.comm
+                      FROM tbl_mat_lot l
+                      JOIN material m
+                      ON l.material_id = m.material_id;`
+
 module.exports = {
   matListQuery,
   productListQuery,
@@ -95,8 +108,9 @@ module.exports = {
   subInfoQuery,
   partnerListQuery,
   purchaseListQuery,
-  purchaseCancleQuery,
+  purchaseCancelQuery,
   warehouseListQuery,
   MatPandigListQuery,
   matInsertQuery,
+  matLotListQury
 };

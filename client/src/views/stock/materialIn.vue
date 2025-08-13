@@ -125,24 +125,25 @@ export default {
                 console.lof('등록실패', error);
             }
         },
-        // //입고처리목록들
-        // async getMatLotLIst() {
-        //     try {
-        //         const res = await axios.get('/api/stock/matLotList');
-        //         this.MatReceipts = res.data.map((item) => ({
-        //             inDate: item.open_date,
-        //             matLotNo: item.lot_no,
-        //             matCode: item.material_id,
-        //             matName: item.material_name,
-        //             receiptQty: item.init_qty,
-        //             unit: item.unit,
-        //             warehouse: item.warehouse,
-        //             memo: item.comm
-        //         }));
-        //     } catch (error) {
-        //         console.error('자재LOT목록 불러오기 실패:', error);
-        //     }
-        // },
+        //입고처리목록들
+        async getMatLotLIst() {
+            try {
+                const res = await axios.get('/api/stock/matLotList');
+                this.MatReceipts = res.data.map((item) => ({
+                    id: `${item.lot_no}-${item.material_id}`,
+                    inDate: item.open_date,
+                    matLotNo: item.lot_no,
+                    matCode: item.material_id,
+                    matName: item.material_name,
+                    receiptQty: item.init_qty,
+                    unit: item.unit,
+                    warehouse: item.warehouse,
+                    memo: item.comm
+                }));
+            } catch (error) {
+                console.error('자재LOT목록 불러오기 실패:', error);
+            }
+        },
 
         //모달==============================================================================
         //(모달)자재
@@ -197,7 +198,7 @@ export default {
     mounted() {
         console.log('자재입고');
         this.getMatPandigList();
-        //this.getMatLotLIst();
+        this.getMatLotLIst();
     }
 };
 </script>
