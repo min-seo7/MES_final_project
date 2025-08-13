@@ -1,3 +1,12 @@
+// 사원번호 모달 조회
+const selectEmployeeIdModal = `
+SELECT employee_id,
+       name,
+       department,
+       auth,
+       status
+FROM employee`;
+
 // 창고조회
 const selectWarehouse = `
  SELECT warehouse_id,
@@ -336,6 +345,12 @@ FROM bom_detail b
      ON b.material_id = m.material_id
      where b.bom_id = 'bom004'`;
 
+// BOM코드 조회
+const SelectMaxBOMId = `
+SELECT MAX(bom_id) AS max_bom_id
+FROM bom
+`;
+
 // bom등록
 const insertBOM = `
 INSERT INTO bom(bom_id,
@@ -353,7 +368,7 @@ INSERT INTO bom_detail(bom_id,
                        required_qty,
                        total_qty,
                        status)
-VALUES ('bom004',?,?,?,?,?,?)
+VALUES (?,?,?,?,?,?,?)
 `;
 
 // 사원등록
@@ -383,7 +398,12 @@ SELECT employee_id,
        auth,
        status,
        pw_change
-FROM employee;
+FROM employee
+WHERE 1=1
+  AND employee_id = COALESCE(?, employee_id)
+  AND department = COALESCE(?, department)
+  AND auth = COALESCE(?, auth)
+  AND status = COALESCE(?, status)
 `;
 
 module.exports = {
@@ -396,6 +416,7 @@ module.exports = {
   updateProcess,
   insertBOM,
   insertDetailBOM,
+  SelectMaxBOMId,
   selectLine,
   insertLine,
   updateLine,
@@ -420,4 +441,5 @@ module.exports = {
   selectWarehouse,
   insertWarehouse,
   updateWarehouse,
+  selectEmployeeIdModal,
 };
