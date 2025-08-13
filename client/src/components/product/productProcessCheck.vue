@@ -210,6 +210,8 @@ const dropContent = () => {
         <div class="bg-white p-4 rounded-lg shadow-md mb-2">
             <DataTable
                 :value="selectProcessList"
+                :paginator="true"
+                :rows="4"
                 scrollable
                 scrollHeight="400px"
                 :pt="{

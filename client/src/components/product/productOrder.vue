@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -7,7 +8,7 @@ import DatePicker from 'primevue/datepicker';
 import InputNumber from 'primevue/inputnumber';
 import Dialog from 'primevue/dialog';
 
-const dateValue = ref({});
+//const dateValue = ref({});
 const search = ref({
     productPlanCode: '',
     planStartDate: '',
@@ -74,6 +75,9 @@ const selectedProducts = ref([]);
 const hiddenProductIds = ref(new Set());
 
 const filteredProducts = computed(() => {
+    if (!products.value) {
+        return []; // Return an empty array if it's undefined
+    }
     return products.value.filter((p) => !hiddenProductIds.value.has(p.id));
 });
 
@@ -102,6 +106,36 @@ const formatDate = (value) => {
 // const onDateTimeUpdate = (data, field, value) => {
 //     data[field] = value;
 // };
+
+const startProduction = async () => {
+    //선택된 행을 하나하나 넣어서 들어간다
+    //console.log('현재 선택된 행들:', selectedProducts.value);
+    // console.log(formatDate(selectedProducts.value.startDatetime));
+    // console.log(formatDate(selectedProducts.value.endDatetime));
+    //selectedProducts.value = event.value;
+    const payload = {
+        director: '김지시',
+        details: selectedProducts.value
+    };
+    try {
+        await axios.post('/api/production/productionOrder', payload);
+        console.log('성공:');
+    } catch (err) {
+        console.log(err);
+    }
+};
+const onSelectionChange = (event) => {
+    //console.log('선택된 행들:', event.value);
+    selectedProducts.value = event.value;
+    selectedProducts.value.forEach((product) => {
+        if (product.endDatetime) {
+            product.endDatetime = formatDate(product.endDatetime);
+        }
+        if (product.startDatetime) {
+            product.startDatetime = formatDate(product.startDatetime);
+        }
+    });
+};
 
 const onCellEditComplete = (event) => {
     let { data, newValue, field } = event;
@@ -157,6 +191,7 @@ const addNewRow = () => {
         line: '',
         lastname: '김지시'
     };
+    newProduct.undefinedQty = (newProduct.productPlanQty || 0) - (newProduct.currentQty || 0);
     products.value.push(newProduct);
 };
 
@@ -169,7 +204,7 @@ const dropContent = () => {
 
 <template>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" 지시등록 " rounded />
+        <Button label=" 지시등록 " @click="startProduction" rounded />
         <Button label=" 초기화 " severity="info" rounded @click="dropContent" />
     </div>
 
@@ -196,7 +231,7 @@ const dropContent = () => {
     </div>
 
     <div class="flex-auto card">
-        <DataTable v-model:selection="selectedProducts" :value="filteredProducts" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" dataKey="id">
+        <DataTable v-model:selection="selectedProducts" :value="filteredProducts" :paginator="true" :rows="4" scrollable scrollHeight="400px" @selection-change="onSelectionChange" editMode="cell" @cell-edit-complete="onCellEditComplete" dataKey="id">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
                 <template #body="{ data, field }">
@@ -208,8 +243,8 @@ const dropContent = () => {
 
                 <template #editor="{ data, field }">
                     <template v-if="['startDatetime', 'endDatetime'].includes(field)">
-                        <input type="datetime-local" />
-                        <!-- <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" /> -->
+                        <!-- <input type="datetime-local" /> -->
+                        <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" />
                     </template>
                     <!--  -->
                     <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">

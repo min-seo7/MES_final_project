@@ -192,6 +192,8 @@ const dropContent = () => {
         <DataTable
             v-model:selection="selectedProducts"
             :value="filteredProducts"
+            :paginator="true"
+            :rows="4"
             scrollable
             scrollHeight="400px"
             editMode="cell"

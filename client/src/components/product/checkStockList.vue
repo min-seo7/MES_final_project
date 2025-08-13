@@ -59,6 +59,8 @@ const selectStockList = ref([
                 :value="selectStockList"
                 scrollable
                 scrollHeight="400px"
+                :paginator="true"
+                :rows="4"
                 :pt="{
                     table: { style: 'min-width: 50rem' },
                     column: {
