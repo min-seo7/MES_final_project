@@ -22,7 +22,6 @@ function onClear() {
     emit('clear');
 }
 
-/* 돋보기 목록 */
 const showPicker = ref(false);
 const pickerList = ref([]);
 let currentField = '';
@@ -31,8 +30,7 @@ const unique = (arr) => [...new Set(arr.filter(Boolean))];
 
 function openPicker(field) {
     currentField = field;
-    if (!props.pickerData?.length) return;
-    pickerList.value = unique(props.pickerData.map((i) => i[field]));
+    pickerList.value = unique((props.pickerData || []).map((i) => i?.[field]));
     showPicker.value = true;
 }
 
@@ -45,7 +43,6 @@ function selectPicker(val) {
 
 <template>
     <div class="space-y-2">
-        <!-- 제목 / 버튼 -->
         <div class="flex items-center justify-between">
             <div class="font-bold text-[18.5px]">조회</div>
             <div class="flex items-center gap-2">
@@ -54,9 +51,7 @@ function selectPicker(val) {
             </div>
         </div>
 
-        <!-- 검색 라인 -->
         <div class="flex items-center gap-6 border rounded-md p-4 bg-white mt-2 flex-wrap">
-            <!-- 점검코드 -->
             <div class="flex items-center gap-2">
                 <label class="whitespace-nowrap">점검코드</label>
                 <IconField iconPosition="left">
@@ -65,7 +60,6 @@ function selectPicker(val) {
                 </IconField>
             </div>
 
-            <!-- 설비코드 -->
             <div class="flex items-center gap-2">
                 <label class="whitespace-nowrap">설비코드</label>
                 <IconField iconPosition="left">
@@ -74,7 +68,6 @@ function selectPicker(val) {
                 </IconField>
             </div>
 
-            <!-- 점검유형 -->
             <div class="flex items-center gap-2">
                 <label class="whitespace-nowrap">점검유형</label>
                 <IconField iconPosition="left">
@@ -83,25 +76,23 @@ function selectPicker(val) {
                 </IconField>
             </div>
 
-            <!-- 점검일 -->
             <div class="flex items-center gap-2">
                 <label class="whitespace-nowrap">점검일</label>
                 <Calendar v-model="search.insp_date" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-44" />
             </div>
 
-            <!-- 점검예정일 -->
             <div class="flex items-center gap-2">
                 <label class="whitespace-nowrap">점검예정일</label>
                 <Calendar v-model="search.next_date" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-44" />
             </div>
         </div>
 
-        <!-- 돋보기 목록 모달 -->
         <Dialog v-model:visible="showPicker" header="검색 목록" :modal="true" :style="{ width: '28rem' }">
             <ul>
                 <li v-for="(v, i) in pickerList" :key="i" class="p-2 border-b hover:bg-gray-100 cursor-pointer" @click="selectPicker(v)">
                     {{ v }}
                 </li>
+                <li v-if="pickerList.length === 0" class="p-2 text-gray-500 text-center">항목 없음</li>
             </ul>
         </Dialog>
     </div>

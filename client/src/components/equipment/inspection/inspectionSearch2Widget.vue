@@ -14,8 +14,24 @@ const search = ref({
     insp_date: null // 점검일(Date | 'YYYY-MM-DD')
 });
 
+const fmt = (v) => {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    const d = new Date(v);
+    if (isNaN(d)) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
 function onSubmit() {
-    emit('submit', { ...search.value });
+    emit('submit', {
+        insp_code: (search.value.insp_code || '').trim(),
+        eq_id: (search.value.eq_id || '').trim(),
+        insp_type: (search.value.insp_type || '').trim(),
+        insp_date: fmt(search.value.insp_date)
+    });
 }
 function onClear() {
     search.value = { insp_code: '', eq_id: '', insp_type: '', insp_date: null };
@@ -40,7 +56,7 @@ function selectPicker(v) {
     showPicker.value = false;
 }
 
-// 통일된 UI 크기
+// 통일된 UI 크기 (그대로 유지)
 const ui = {
     label: 'text-[17px]',
     input: 'w-72 h-10 text-[15px]'
