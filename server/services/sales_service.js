@@ -22,6 +22,7 @@ function formatDateToYMD(isoDate) {
 // };
 
 // 주문 내역 조회 (필터링 적용)
+// 주문 내역 조회 (필터링 적용)
 const selectFilteredOrders = (filter) => {
   // 쿼리 파라미터 배열을 필터 객체를 기반으로 생성
   const params = [
@@ -31,15 +32,14 @@ const selectFilteredOrders = (filter) => {
     filter.orderStatus,
     filter.orderStatus,
     filter.orderStatus,
-    filter.spec,
-    filter.spec,
-    filter.spec,
+    // 기존 spec 대신 productName 필터를 위한 파라미터 추가
+    filter.productName,
+    filter.productName,
+    filter.productName,
     filter.partnerId,
     filter.partnerId,
     filter.partnerId,
-    filter.productType,
-    filter.productType,
-    filter.productType,
+    // productType은 현재 사용되지 않으므로 제외하거나 필요시 추가
     filter.delDate,
     filter.delDate,
   ];

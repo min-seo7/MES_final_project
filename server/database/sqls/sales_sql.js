@@ -89,7 +89,7 @@ WHERE
     AND (? IS NULL OR ? = '' OR i.ord_status = ?)
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR i.del_date = ?)
+    AND (? IS NULL OR DATE(i.del_date) = ?)
 `;
 
 module.exports = {

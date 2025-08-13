@@ -53,14 +53,15 @@ router.get("/orderSearch", async (req, res) => {
     const filter = {
       orderId: req.query.orderId || null,
       orderStatus: req.query.orderStatus || null,
-      spec: req.query.spec || null,
+      // 기존 spec, productType 대신 productName 사용
+      productName: req.query.productName || null,
       partnerId: req.query.partnerId || null,
-      productType: req.query.productType || null,
       delDate: req.query.delDate || null,
     };
     const filteredData = await salesService.selectFilteredOrders(filter);
     res.json({ list: filteredData });
   } catch (error) {
+    console.error("주문내역 조회 실패:sales_router.js", error);
     res.status(500).json({ error: "데이터를 가져오는 데 실패했습니다." });
   }
 });
