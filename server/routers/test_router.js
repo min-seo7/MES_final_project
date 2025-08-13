@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+router.use(express.json());
 
 const testService = require("../services/test_service.js");
 
@@ -7,7 +8,7 @@ router.get("/testInform", async (req, res) => {
   try {
     const { productType, inspPurpose } = req.query;
 
-    // ⭐ 파라미터가 정확히 전달되는지 확인
+    // 파라미터가 정확히 전달되는지 확인
     const list = await testService.findAllItemsWithFilter(
       productType,
       inspPurpose
@@ -29,6 +30,16 @@ router.post("/testInform", async (req, res) => {
   } catch (error) {
     console.error("항목등록 실패: test_router.js", error);
     res.status(500).json({ message: "항목등록 실패", error: error.message });
+  }
+});
+
+router.get("/matTestRegist", async (req, res) => {
+  try {
+    let list = await testService.findInspWait();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
   }
 });
 
