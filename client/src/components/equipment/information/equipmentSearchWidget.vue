@@ -2,12 +2,13 @@
 import { ref } from 'vue';
 
 const props = defineProps({
-    // [{ eq_id, eq_type, eq_name, loc }, ...]
+    // [{ eq_id, eq_type, eq_name, loc }, ...] — 돋보기 모달용 데이터(있을 때만 사용)
     pickerData: { type: Array, default: () => [] }
 });
 
-const emit = defineEmits(['submit', 'clear']);
+const emit = defineEmits(['submit', 'clear', 'pick']);
 
+/* 기존 상태 그대로 */
 const search = ref({
     eq_id: '',
     eq_type: '',
@@ -16,6 +17,7 @@ const search = ref({
     status: '사용'
 });
 
+/* 조회/초기화 — 부모로 조건만 올림 */
 function onSubmit() {
     emit('submit', { ...search.value });
 }
@@ -23,27 +25,32 @@ function onClear() {
     search.value = { eq_id: '', eq_type: '', eq_name: '', loc: '', status: '사용' };
     emit('clear');
 }
+function onEnter() {
+    onSubmit();
+}
 
-/* -------- 돋보기 모달 제어(위젯 내부 처리) -------- */
+/* ------- 돋보기 모달 제어 (네 템플릿 그대로 사용) ------- */
 const showPicker = ref(false);
 const pickerList = ref([]); // string[]
 let currentField = ''; // 'eq_id' | 'eq_type' | 'eq_name' | 'loc'
-
-const unique = (arr) => [...new Set(arr)];
+const unique = (arr) => [...new Set(arr.filter(Boolean))];
 
 function openPicker(field) {
     currentField = field;
-    if (!props.pickerData.length) return;
-    // 해당 필드 값만 뽑아서 중복 제거
-    pickerList.value = unique(props.pickerData.map((i) => i[field]));
+    // props.pickerData가 있을 때만 목록 생성 (없으면 빈 모달 혹은 부모에서 채움)
+    pickerList.value = props.pickerData.length ? unique(props.pickerData.map((i) => i?.[field])) : [];
     showPicker.value = true;
 }
+
 function selectPicker(val) {
     if (!currentField) return;
-    // 선택된 값 → 해당 입력칸만 채움
     search.value[currentField] = val;
     showPicker.value = false;
+    emit('pick', { field: currentField, value: val });
 }
+
+/* 부모(View)에서 필요시 접근 가능 */
+defineExpose({ search, onSubmit, onClear, onEnter, openPicker, selectPicker });
 </script>
 
 <template>
