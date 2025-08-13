@@ -115,6 +115,7 @@ const startProduction = async () => {
     //selectedProducts.value = event.value;
     const payload = {
         director: '김지시',
+        plan_detail_no: search.value.productPlanCode || null,
         details: selectedProducts.value
     };
     try {
