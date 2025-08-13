@@ -1,20 +1,48 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import axios from 'axios';
+
+function formatDate(val) {
+    if (!val) return '';
+    return new Date(val).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+const props = defineProps({
+    params: { type: Object, default: () => ({ page: 1, size: 20 }) }
+});
+const emit = defineEmits(['loaded']);
 
 const rows = ref([]);
 
-const loadInspectionList = async () => {
-    const { data } = await axios.get('/api/equipment/inspection', { params: { page: 1, size: 20 } });
-    rows.value = Array.isArray(data) ? data : []; // 라우터가 배열 그대로 반환
-};
+async function fetchSimple(page, size) {
+    const { data } = await axios.get('/api/equipment/inspection', { params: { page, size } });
+    rows.value = Array.isArray(data) ? data : [];
+    emit('loaded', rows.value);
+}
 
-onMounted(loadInspectionList);
+async function fetchSearch(p) {
+    const { data } = await axios.get('/api/equipment/inspection/search', { params: p });
+    rows.value = Array.isArray(data) ? data : [];
+    emit('loaded', rows.value);
+}
+
+watch(
+    () => props.params,
+    (p) => {
+        const hasFilter = ['eq_id', 'insp_type', 'date_from', 'date_to', 'next_from', 'next_to'].some((k) => p && p[k]); // ← next_from/next_to 추가
+        if (hasFilter) fetchSearch(p);
+        else fetchSimple(p.page || 1, p.size || 20);
+    },
+    { immediate: true, deep: true }
+);
 </script>
 
 <template>
     <div class="border rounded-md bg-white overflow-hidden">
-        <div class="px-4 pt-3 pb-2 text-sm font-semibold">목록</div>
         <table class="w-full table-fixed border-t border-gray-200">
             <thead class="bg-gray-50 text-[14px]">
                 <tr>
@@ -34,8 +62,8 @@ onMounted(loadInspectionList);
                     <td class="h-11 pl-4 border-b">{{ row.inspCode }}</td>
                     <td class="border-b">{{ row.eqId }}</td>
                     <td class="border-b">{{ row.inspType }}</td>
-                    <td class="border-b">{{ row.inspDate }}</td>
-                    <td class="border-b">{{ row.nextDate }}</td>
+                    <td class="border-b">{{ formatDate(row.inspDate) }}</td>
+                    <td class="border-b">{{ formatDate(row.nextDate) }}</td>
                     <td class="border-b">{{ row.cycle }}</td>
                     <td class="border-b">{{ row.lastResult }}</td>
                     <td class="border-b">{{ row.manager }}</td>
