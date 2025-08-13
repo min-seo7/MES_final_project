@@ -5,7 +5,13 @@ import BomRegistWidget from '@/components/information/bom/bomRegistWidget.vue';
 import BomDetailWidget from '@/components/information/bom/bomDetailWidget.vue';
 import BomDetailRegistWidget from '@/components/information/bom/bomDetailRegistWidget.vue';
 
-import { onUnmounted } from 'vue';
+import { ref, onUnmounted } from 'vue';
+const bomDetailData = ref([]);
+
+const handleBomDetail = (detail) => {
+    const newDetail = { ...detail };
+    bomDetailData.value = [...bomDetailData.value, newDetail];
+};
 
 onUnmounted(() => {
     console.log('employee.vue unmounted!');
@@ -14,15 +20,15 @@ onUnmounted(() => {
 
 <template>
     <section class="employee-container">
-        <BomRegistWidget />
         <BomSearchWidget />
         <BomListWidget />
+        <BomRegistWidget :detailData="bomDetailData" />
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
-                <BomDetailWidget />
+                <BomDetailWidget :detailData="bomDetailData" />
             </div>
             <div class="md:w-1/2">
-                <BomDetailRegistWidget />
+                <BomDetailRegistWidget @bomDetail="handleBomDetail" />
             </div>
         </div>
     </section>

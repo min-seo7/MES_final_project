@@ -1,109 +1,188 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineEmits } from 'vue';
+import Dialog from 'primevue/dialog';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import axios from 'axios';
 
-const props = defineProps({
-  // [{ eq_id, eq_type, eq_name, loc }, ...]
-  pickerData: { type: Array, default: () => [] }
-});
-
-const emit = defineEmits(['submit', 'clear']);
-
+const emits = defineEmits(['search']);
+const items = ref([]);
+const modalSearchName = ref('');
+const modalSearchDept = ref('');
 const search = ref({
-  eq_id: '',
-  eq_type: '',
-  eq_name: '',
-  loc: '',
-  status: '사용'
+    employeeId: '',
+    department: '',
+    auth: '',
+    status: ''
 });
 
-function onSubmit()   { emit('submit', { ...search.value }); }
-function onClear()    { search.value = { eq_id:'', eq_type:'', eq_name:'', loc:'', status:'사용' }; emit('clear'); }
+// 모달 상태 관리
+const showModal = ref(false);
+const modalType = ref('');
 
-/* --- 돋보기 모달 --- */
-const showPicker = ref(false);
-const pickerList = ref([]);      // string[]
-let currentField = '';           // 'eq_id' | 'eq_type' | 'eq_name' | 'loc'
+const openModal = (type) => {
+    modalType.value = type;
+    showModal.value = true;
 
-const unique = arr => [...new Set(arr)];
+    // 모달 초기화
+    selectedEmployee.value = null;
+    modalSearchName.value = '';
+    modalSearchDept.value = '';
 
-function openPicker(field) {
-  currentField = field;
-  if (!props.pickerData?.length) return;
-  pickerList.value = unique(props.pickerData.map(i => i[field]));
-  showPicker.value = true;
-}
-function selectPicker(val) {
-  if (!currentField) return;
-  search.value[currentField] = val; // 선택 값 → 해당 입력칸만 채움
-  showPicker.value = false;
-}
+    getEmployeeForModal();
+};
+
+const closeModal = () => {
+    showModal.value = false;
+};
+
+const resetModalFilter = () => {};
+
+const selectedEmployee = ref(null);
+const selectModalValue = () => {
+    if (!selectedEmployee.value) {
+        alert('사원을 선택하세요.');
+        return;
+    }
+
+    // 검색창에 자동 채우기
+    search.value.employeeId = selectedEmployee.value.employeeId;
+    search.value.department = selectedEmployee.value.department;
+    search.value.auth = selectedEmployee.value.auth;
+    search.value.status = selectedEmployee.value.status;
+
+    closeModal();
+    selectSearch();
+};
+
+const resetSearch = () => {
+    search.value.employeeId = '';
+    search.value.department = '';
+    search.value.auth = '';
+    search.value.status = '';
+    selectedEmployee.value = null;
+};
+
+const selectSearch = async () => {
+    emits('search', search.value);
+};
+
+const getEmployeeForModal = async () => {
+    try {
+        const response = await axios.get('/api/information/employee/getEmployeeId');
+        items.value = response.data.map((item, index) => ({
+            num: index + 1,
+            employeeId: item.employee_id,
+            name: item.name,
+            department: item.department,
+            status: item.status,
+            auth: item.auth
+        }));
+    } catch (error) {
+        console.error('실패:', error);
+    }
+};
 </script>
 
 <template>
-  <div class="space-y-2">
-    <!-- 제목/버튼 -->
-    <div class="flex items-center justify-between">
-      <div class="font-bold text-[17px]">조회</div>
-      <div class="flex items-center gap-2">
-        <Button label="조회" rounded @click="onSubmit" />
-        <Button label="초기화" severity="info" rounded @click="onClear" />
-      </div>
-    </div>
-
-    <!-- 검색 라인 -->
-    <div class="flex items-center gap-6 border rounded-md p-4 bg-white mt-2 flex-wrap">
-      <div class="flex items-center gap-2">
-        <label class="whitespace-nowrap">설비코드</label>
-        <IconField iconPosition="left">
-          <InputText v-model="search.eq_id" class="w-56" />
-          <InputIcon class="pi pi-search cursor-pointer" @click="openPicker('eq_id')" />
-        </IconField>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="whitespace-nowrap">설비유형</label>
-        <IconField iconPosition="left">
-          <InputText v-model="search.eq_type" class="w-56" />
-          <InputIcon class="pi pi-search cursor-pointer" @click="openPicker('eq_type')" />
-        </IconField>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="whitespace-nowrap">설비명</label>
-        <IconField iconPosition="left">
-          <InputText v-model="search.eq_name" class="w-56" />
-          <InputIcon class="pi pi-search cursor-pointer" @click="openPicker('eq_name')" />
-        </IconField>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="whitespace-nowrap">설비위치</label>
-        <IconField iconPosition="left">
-          <InputText v-model="search.loc" class="w-56" />
-          <InputIcon class="pi pi-search cursor-pointer" @click="openPicker('loc')" />
-        </IconField>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="whitespace-nowrap">설비상태</label>
-        <div class="flex items-center gap-4">
-          <RadioButton inputId="st1" name="eq_status" value="사용" v-model="search.status" />
-          <label for="st1">사용</label>
-          <RadioButton inputId="st2" name="eq_status" value="미사용" v-model="search.status" />
-          <label for="st2">미사용</label>
+    <div class="flex items-center justify-between font-semibold text-xl mb-4">
+        <div>검색조건</div>
+        <div class="space-x-2">
+            <Button label=" 조회 " rounded @click="selectSearch"></Button>
+            <Button label=" 초기화 " severity="info" rounded @click="resetSearch"></Button>
         </div>
-      </div>
     </div>
 
-    <!-- 돋보기 목록 모달 -->
-    <Dialog v-model:visible="showPicker" header="검색 목록" :modal="true" :style="{ width: '28rem' }">
-      <ul>
-        <li v-for="(v, i) in pickerList" :key="i"
-            class="p-2 border-b hover:bg-gray-100 cursor-pointer"
-            @click="selectPicker(v)">
-          {{ v }}
-        </li>
-      </ul>
+    <Toolbar>
+        <template #center>
+            <div class="flex items-center gap-6">
+                <!-- 사원번호 -->
+                <div class="flex items-center gap-2">
+                    <label for="employeeId" class="whitespace-nowrap">사원번호</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="employeeId" type="text" class="w-60" v-model="search.employeeId" />
+                        <InputIcon class="pi pi-search" @click="openModal('employeeId')" />
+                    </IconField>
+                </div>
+
+                <!-- 부서 -->
+                <div class="flex items-center gap-2">
+                    <label for="department" class="whitespace-nowrap">부서명</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="department" type="text" class="w-60" v-model="search.department" />
+                        <InputIcon class="pi pi-search" />
+                    </IconField>
+                </div>
+
+                <!-- 권한 라디오 그룹 -->
+
+                <div class="flex items-center gap-2">
+                    <label for="auth" class="whitespace-nowrap">권한</label>
+                    <div class="flex items-center">
+                        <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                            <RadioButton id="auth1" name="auth" value="일반사원" v-model="search.auth" />
+                            <label for="auth1" class="ml-2 mr-4">일반사원</label>
+                            <RadioButton id="auth2" name="auth" value="관리자" v-model="search.auth" />
+                            <label for="auth2" class="ml-2 mr-4">관리자</label>
+                            <RadioButton id="auth3" name="auth" value="최고관리자" v-model="search.auth" />
+                            <label for="auth3" class="ml-2 mr-4">최고관리자</label>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 상태 라디오 그룹 -->
+                <div class="flex items-center gap-2">
+                    <label for="materialCode" class="whitespace-nowrap">상태</label>
+                    <div class="flex items-center">
+                        <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                            <RadioButton id="status1" name="status" value="재직" v-model="search.status" />
+                            <label for="status1" class="ml-2 mr-4">재직</label>
+                            <RadioButton id="status2" name="status" value="휴직" v-model="search.status" />
+                            <label for="status2" class="ml-2">휴직</label>
+                            <RadioButton id="status3" name="status" value="퇴직" v-model="search.status" />
+                            <label for="status3" class="ml-2">퇴직</label>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </Toolbar>
+
+    <Dialog v-model:visible="showModal" modal header="사원번호찾기" :style="{ width: '40vw' }" @hide="closeModal">
+        <p class="font-bold mb-4 text-lg">
+            🔍
+            {{
+                {
+                    employeeId: '사원번호',
+                    employeeName: '사원명',
+                    department: '부서명',
+                    auth: '권한',
+                    status: '상태'
+                }[modalType]
+            }}
+        </p>
+        <div v-if="modalType === 'employeeId'">
+            <div class="mt-5 mb-4 space-x-2 flex justify-center">
+                <label for="employeeName">사원명</label>
+                <InputText id="employeeName" type="text" />
+                <label for="department">부서</label>
+                <InputText id="department" type="text" />
+                <Button label="검색" />
+                <Button label="초기화" @click="resetModalFilter()" />
+            </div>
+            <DataTable :value="items" tableStyle="min-width: 20rem" class="mb-3">
+                <Column header="">
+                    <template #body="slotProps"> <RadioButton :inputId="'employeeSelect' + slotProps.index" name="employeeSelect" :value="slotProps.data" v-model="selectedEmployee" /> </template>
+                </Column>
+                <Column field="employeeId" header="사원번호"> </Column>
+                <Column field="name" header="사원명"></Column>
+                <Column field="department" header="부서명"></Column>
+                <Column field="auth" header="권한"></Column>
+                <Column field="status" header="상태"></Column>
+            </DataTable>
+        </div>
+        <div class="mt-5 flex justify-center">
+            <Button label="선택 완료" @click="selectModalValue" />
+        </div>
     </Dialog>
-  </div>
 </template>
