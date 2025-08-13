@@ -11,9 +11,11 @@ import Dialog from 'primevue/dialog';
 //const dateValue = ref({});
 const search = ref({
     productPlanCode: '',
-    planStartDate: '',
+    productname: '',
+    productType: '',
     planEndDate: '',
-    director: ''
+    line: ''
+    
 });
 
 const showModal = ref(false);
@@ -30,9 +32,7 @@ const closeModal = () => {
 
 const selectModalValue = (value) => {
     if (modalType.value === 'productPlanCode') search.value.productPlanCode = value.code;
-    else if (modalType.value === 'planStartDate') search.value.planStartDate = value.startDate;
-    else if (modalType.value === 'planEndDate') search.value.planEndDate = value.endDate;
-    else if (modalType.value === 'director') search.value.director = value.director;
+    else if (modalType.value === 'productNameInputModal') {search.value.productname = value.name;}
     showModal.value = false;
 };
 
@@ -42,6 +42,17 @@ const productPlanCodeList = ref([
     { code: 'PL20250808P003-20', startDate: '2025-08-10 09:30', endDate: '2025-08-10 18:00', director: '김관리' },
     { code: 'PL20250808P003-40', startDate: '2025-08-10 09:40', endDate: '2025-08-10 18:00', director: '김관리' },
     { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김관리' }
+]);
+const productNameList = ref([
+    { name: '분말형비료 20kg', type: '분말형', line: 'A01' , form:'완제품'},
+    { name: '분말형비료 40kg', type: '분말형', line: 'A01' , form:'완제품'},
+    { name: '과립형비료 20kg', type: '과립형', line: 'B01' , form:'완제품'},
+    { name: '과립형비료 40kg', type: '과립형', line: 'B01' , form:'완제품'},
+    { name: '액체형비료 5L',   type: '액체형', line: 'C01' , form:'완제품'},
+    { name: '액체형비료 10L',  type: '액체형', line: 'C01' , form:'완제품'},
+    { name: '분말형반제품',    type: '분말형', line: 'A01' , form:'반제품'},
+    { name: '과립형반제품',    type: '과립형', line: 'B01' , form:'반제품'},
+    { name: '액체형반제품',    type: '액체형', line: 'C01' , form:'반제품'}
 ]);
 
 const products = ref([
@@ -73,7 +84,6 @@ const products = ref([
 
 const selectedProducts = ref([]);
 const hiddenProductIds = ref(new Set());
-
 const filteredProducts = computed(() => {
     if (!products.value) {
         return []; // Return an empty array if it's undefined
@@ -113,6 +123,12 @@ const startProduction = async () => {
     // console.log(formatDate(selectedProducts.value.startDatetime));
     // console.log(formatDate(selectedProducts.value.endDatetime));
     //selectedProducts.value = event.value;
+
+    // const payload = {
+    // // 로그인이 된경우 세션에 저장된 사람의 이름으로 등록될예정    
+    //     plan_detail_no: search.value.productPlanCode || null,
+    //     details: selectedProducts.value
+    // };
     const payload = {
         director: '김지시',
         plan_detail_no: search.value.productPlanCode || null,
@@ -137,6 +153,19 @@ const onSelectionChange = (event) => {
         }
     });
 };
+// const autoUpdateProductInfo = (data) => {
+//     if (data.productname && data.productname.length >= 3) {
+//         const productType = data.productname.slice(0, 3);
+//         data.productType = productType;
+//         if (productType === '분말형') {
+//             data.line = 'A01';
+//         } else if (productType === '과립형') {
+//             data.line = 'B01';
+//         } else {
+//             data.line = 'C01';
+//         }
+//     }
+// };
 
 const onCellEditComplete = (event) => {
     let { data, newValue, field } = event;
@@ -161,15 +190,43 @@ const onCellEditComplete = (event) => {
         data[field] = newValue;
     }
     if (['productname', 'productType', 'line'].includes(field)) {
-        if (field == 'productname') {
-            data.productType = data.productname.slice(0, 3);
-            if (data.productname.slice(0, 3) == '분말형') {
+        if (field == 'productname' && newValue && newValue.length >= 3) {
+            //data.productType = data.productname.slice(0, 3);
+             if ( !newValue.includes('분말형') && !newValue.includes('과립형') && !newValue.includes('액체형'))
+            {
+                alert('제품명에는 "분말형", "과립형", "액체형" 중 하나가 포함되어야 합니다.');
+                // 변경된 값을 되돌립니다.
+                data[field] = null;
+                // DataTable이 편집을 취소하도록 합니다.
+                event.preventDefault(); 
+                return;
+            }
+            else if ( !newValue.includes(' 20kg') && !newValue.includes(' 40kg') && !newValue.includes(' 5L') && !newValue.includes(' 10L') && !newValue.includes('반제품') )
+            {
+                alert('제품명에는 "20kg", "40kg", "5L", "10L", "반제품" 중 하나가 포함되어야 합니다.');
+                // 변경된 값을 되돌립니다.
+                data[field] = null;
+                // DataTable이 편집을 취소하도록 합니다.
+                event.preventDefault(); 
+                return;
+            }
+            if (newValue.slice(0, 3) === '분말형') {
+                data.productType = '분말형';
                 data.line = 'A01';
-            } else if (data.productname.slice(0, 3) == '과립형') {
+            } else if (newValue.slice(0, 3) === '과립형') {
+                data.productType = '과립형';
                 data.line = 'B01';
             } else {
+                data.productType = '액체형';
                 data.line = 'C01';
             }
+        }
+        else{
+            alert('제품명은 3글자 이상이어야 합니다.');
+            data.productType = ''; 
+            data.line = '';
+            data.productname = '';
+            return;
         }
     }
     event.preventDefault();
@@ -252,6 +309,10 @@ const dropContent = () => {
                         <InputNumber v-model="data[field]" autofocus fluid />
                     </template>
                     <!--  -->
+                     <!-- <template v-else-if="['productname'].includes(field)">
+                        <InputText v-model="search.productname" @click="openModal('productNameInputModal')" readonly/>
+                    </template> -->
+                    <!--  -->
                     <template v-else>
                         <InputText v-model="data[field]" autofocus fluid />
                     </template>
@@ -266,9 +327,7 @@ const dropContent = () => {
             {{
                 {
                     productPlanCode: '생산계획코드',
-                    productStartDate: '생산시작예정일',
-                    productEndDate: '생산종료예정일',
-                    productName: '제품명'
+                    productNameInputModal:'제품명'
                 }[modalType]
             }}
         </p>
@@ -287,5 +346,19 @@ const dropContent = () => {
                 <Column field="director" header="지시자"></Column>
             </DataTable>
         </div>
+        <!-- <div v-else-if="modalType === 'productNameInputModal'">
+            <DataTable :value="productNameList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]">
+                <Column field="name" header="제품명">
+                    <template #body="{ data }">
+                        <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
+                            {{ data.name }}
+                        </span>
+                    </template>
+                </Column>
+                <Column field="type" header="제품형태"></Column>
+                <Column field="line" header="생산라인"></Column>
+                <Column field="form" header="제품구분"></Column>
+            </DataTable>
+        </div> -->
     </Dialog>
 </template>

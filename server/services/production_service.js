@@ -1,8 +1,10 @@
-const mariadb = require("../database/mapper.js");
+//const mariadb = require("../database/mapper.js");
+const { query, getConnection, sqlList } = require("../database/mapper.js");
 
-
-
-
+// 객체를 배열로 변환하는 매서드
+function convertToArray(obj, columns) {
+  return columns.map((col) => obj[col]);
+}
 
 // yy-MM-dd HH:mm:ss 포맷으로 변환하는 함수
 const formatToDatabaseDatetime = (dateString) => {
@@ -22,12 +24,12 @@ const formatToDatabaseDatetime = (dateString) => {
 const startWork = async (director,plan_detail_no, details) => {
   let conn;
   try {
-    conn = await mariadb.getConnection();
+    conn = await getConnection();
     // 1. DB 연결을 얻고 트랜잭션 시작
     await conn.beginTransaction();
 
-     // 2. 데이터베이스에서 마지막 주문번호 조회
-    const [lastOrderRow] = await conn.query('SELECT MAX(ord_no) AS max_ord_no FROM production_order');
+     // 2. 데이터베이스에서 마지막 주문번호 조회 
+    const [lastOrderRow] = await conn.query(sqlList.SelectMaxOrdNo);
     // 3. 시퀀스를 사용하지 않고 고유코드생성
     let newOrderId;
     if (lastOrderRow && lastOrderRow.max_ord_no) {
@@ -44,10 +46,7 @@ const startWork = async (director,plan_detail_no, details) => {
     }
 
     // 4. 마스터 테이블인 production_order 테이블에 데이터 삽입
-    await conn.execute(`
-        INSERT INTO production_order(ord_no, director)
-        VALUES(?, ?);
-    `, [newOrderId,director]);
+    await conn.query(sqlList.insertPrdOrder, [newOrderId,director]);
     // 5. 1개 또는 1개이상의 배열인경우 판단하여 반환
     const detailsArray = Array.isArray(details) ? details : [details];
 
@@ -58,22 +57,15 @@ const startWork = async (director,plan_detail_no, details) => {
     // 1건 또는 여러 건의 지시를 모두 처리
       // 가져온 생산계획코드를 임시 저장
       const detailPlanNo = info.plan_detail_no || plan_detail_no  || null;
-      await conn.execute(`
-          INSERT INTO prd_order_detail(
-             wo_no, p_st_date, p_ed_date, prd_noworder_qty, line_id, product_name, ord_no, plan_detail_no
-          ) VALUES (
-              CONCAT('wo', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(NEXT VALUE FOR prd_wo_no_seq, 3, '0')),
-              ?, ?, ?, ?, ?, ?, ?
-          );
-      `, [
+      const insertedDetail = [
           formattedStartDate, 
           formattedEndDate, 
           info.currentQty, 
           info.line, 
           info.productname,
           newOrderId,
-          detailPlanNo
-      ]);
+          detailPlanNo];
+      await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
     }
     
     // 7. 모든 작업이 성공하면 커밋
@@ -90,9 +82,6 @@ const startWork = async (director,plan_detail_no, details) => {
   }
 };
 
-// 객체를 배열로 변환하는 매서드
-function convertToArray(obj, columns) {
-  return columns.map((col) => obj[col]);
-}
+
 
 module.exports = { startWork };

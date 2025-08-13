@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref , watch , onMounted , onUnmounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -7,6 +7,8 @@ import DatePicker from 'primevue/datepicker';
 import Dialog from 'primevue/dialog';
 import RadioButton from 'primevue/radiobutton';
 import IconField from 'primevue/iconfield';
+import { useLayout } from '@/layout/composables/layout';
+const { getPrimary, getSurface, isDarkTheme } = useLayout();
 const search = ref({
     processName: '',
     line: '',
@@ -42,7 +44,132 @@ const processList = ref([
 ]);
 const productType = ref(null);
 const productForm = ref(null);
+const lineData = ref(null);
+const lineOptions = ref(null);
+let intervalId = null;
+onMounted(async() => {
+    setColorOptions();
+    //intervalId = await setInterval( addRandomTemperature, 5000); // 1초마다 새로운 온도 데이터를 추가합니다.
 
+     // 컴포넌트가 언마운트될 때 메모리 누수를 방지하기 위해 인터벌을 정리합니다.
+    onUnmounted(() => {
+        clearInterval(intervalId);
+    });
+});
+// 55 ~ 60 사이의 랜덤 정수를 생성하는 함수
+function getRandomTemperature() {
+    // Math.random()은 0 이상 1 미만의 값을 반환합니다.
+    // (max - min + 1)을 곱하여 범위 조절
+    // Math.floor()로 소수점을 버리고 정수만 남김
+    return Math.floor(Math.random() * (63 - 55 + 1)) + 55;
+}
+
+function setColorOptions() {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const textColor = documentStyle.getPropertyValue('--text-color');
+    const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
+    const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
+    lineData.value = {
+        labels: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+        datasets: [
+            {
+                label: '발효기#1',
+                backgroundColor: documentStyle.getPropertyValue('--p-primary-500'),
+                borderColor: documentStyle.getPropertyValue('--p-primary-500'),
+                data: [],
+                fill: true, // 선 아래를 채웁니다.
+                tension: 0.1,   // 선의 곡률을 조정합니다. 0은 직선, 1은 완전한 곡선입니다.
+                pointHoverRadius: 7, // 마우스 오버 시 데이터 포인트의 반지름
+                pointBackgroundColor: documentStyle.getPropertyValue('--p-primary-500'), // 데이터 포인트의 배경색
+                pointBorderColor: '#fff', // 데이터 포인트의 테두리 색상   
+                
+            },
+            // {
+            //     label: 'My Second dataset',
+            //     backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
+            //     borderColor: documentStyle.getPropertyValue('--p-primary-200'),
+            //     data: [28, 48, 40, 19, 86, 27, 90]
+            // }
+        ]
+    };
+     lineOptions.value = {
+        plugins: {
+            legend: {
+                labels: {
+                    fontColor: textColor
+                },
+               
+            },
+           
+            datalabels: {
+                color: textColorSecondary,
+                display: true,
+                align: 'top',
+                formatter: (value) => {
+                    return value + '℃'; // 데이터 라벨에 온도 단위를 추가
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: textColorSecondary
+                },
+                grid: {
+                    color: surfaceBorder,
+                    drawBorder: false
+                }, 
+                title: {
+                    display: true,
+                    text: '생산량',
+                    color: textColor
+                },
+                
+            },
+            y: {
+                ticks: {
+                    color: textColorSecondary
+                },
+                grid: {
+                    color: surfaceBorder,
+                    drawBorder: false
+                },
+                title: {
+                    display: true,
+                    text: '온도 (℃)',
+                    color: textColor
+                },
+                min: 0, // y축 최소값
+                max: 120, // y축 최대값
+            }
+        },
+        responsive: true,
+        
+    };
+};
+// 새로운 랜덤 온도 데이터를 추가하는 함수
+function addRandomTemperature() {
+    // 데이터 배열의 길이가 11(레이블 수)에 도달하면 인터벌을 중지합니다.
+    if (lineData.value.datasets[0].data.length >= 11) {
+        clearInterval(intervalId);
+        console.log("생산량 1000에 도달하여 데이터 추가를 멈춥니다.");
+        return;
+    }
+    const newTemperature = getRandomTemperature();
+    // datasets 배열의 첫 번째 데이터셋에 새로운 값을 추가
+    lineData.value.datasets[0].data.push(newTemperature);
+    
+    // 이 시점에서 차트 컴포넌트는 새로운 데이터를 감지하고 갱신되어야 합니다.
+    // Vue의 경우 ref나 reactive로 감싸져 있으면 자동으로 갱신됩니다.
+    console.log("새로운 데이터가 추가되었습니다:", newTemperature);
+}
+watch(
+    [getPrimary, getSurface, isDarkTheme],
+    () => {
+        setColorOptions();
+    },
+    { immediate: true }
+);
 // const currentPage = ref(1);
 // const pageSize = 5;
 // eslint-disable-next-line no-undef
@@ -234,9 +361,13 @@ const dropContent = () => {
                 </Column>
             </DataTable>
         </div>
+        <div class="card">
+                <div class="font-semibold text-xl mt-4" :value="aaa">ddd</div>
+                <Chart type="line" :data="lineData" :options="lineOptions"></Chart>
+            </div>
     </div>
 
-    <div class="flex-auto card mt-2"></div>
+    <!-- <div class="flex-auto card mt-2"></div> -->
 
     <Dialog v-model:visible="showModal" modal header="공정리스트" :style="{ width: '40vw' }" @hide="closeModal">
         <p class="font-bold mb-4 text-lg">
