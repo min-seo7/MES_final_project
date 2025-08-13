@@ -1,34 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { defineProps } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 
-const items = ref([]);
-
-// API 호출 함수
-const fetchEmployees = async () => {
-    try {
-        const response = await axios.get('/api/information/employee');
-        items.value = response.data.map((item, index) => ({
-            num: index + 1,
-            ecode: item.employee_id,
-            name: item.name,
-            department: item.department,
-            phone: item.phone,
-            email: item.email,
-            hiredate: item.hire_date,
-            enddate: item.leave_date || '',
-            pw: item.login_pw || '',
-            pwstatus: item.pw_change || '',
-            status: item.status,
-            role: item.auth
-        }));
-    } catch (error) {
-        console.error('실패:', error);
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
     }
-};
-
-onMounted(() => {
-    fetchEmployees();
 });
 </script>
 
@@ -37,7 +16,7 @@ onMounted(() => {
         <h2 class="text-xl font-bold">목록</h2>
     </div>
 
-    <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
+    <DataTable :value="props.items" :rows="5" :paginator="true" showGridlines>
         <Column field="num" header="" />
         <Column field="ecode" header="사원번호" />
         <Column field="name" header="이름" />

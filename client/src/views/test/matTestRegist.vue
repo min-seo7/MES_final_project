@@ -5,8 +5,9 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Paginator from 'primevue/paginator';
+import axios from 'axios';
 
-const material1 = ref([]);
+const waitList = ref([]);
 const selectedItem = ref(null); // 선택된 항목
 
 // 오른쪽 폼 바인딩용
@@ -26,10 +27,19 @@ const form = ref({
     }))
 });
 
-onBeforeMount(() => {
-    material1.value = [];
-});
+const fetchInspWaitList = async () => {
+    try {
+        const response = await axios.get('/api/test/matTestRegist');
+        waitList.value = response.data;
+        console.log('대기목록로드:', waitList.value);
+    } catch (err) {
+        console.error('대기목록조회실패.', err);
+    }
+};
 
+onBeforeMount(() => {
+    fetchInspWaitList();
+});
 // 항목 선택 시 폼에 바인딩
 const handleRowSelect = (e) => {
     const item = e.data;
@@ -40,7 +50,7 @@ const handleRowSelect = (e) => {
         발주번호: item.발주번호,
         자재코드: item.자재코드,
         자재명: item.자재명,
-        수량: item.수량,
+        수량: item.수량_EA,
         담당자: '홍길동',
         비고: '',
         측정값리스트: Array.from({ length: 5 }, () => ({
@@ -77,7 +87,7 @@ const handleRowSelect = (e) => {
         <div class="md:w-2/3">
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">검사 대기 목록</div>
-                <DataTable :value="material1" selectionMode="single" dataKey="name" @rowSelect="handleRowSelect" :selection="selectedItem" @update:selection="(val) => (selectedItem = val)">
+                <DataTable :value="waitList" selectionMode="single" dataKey="name" @rowSelect="handleRowSelect" :selection="selectedItem" @update:selection="(val) => (selectedItem = val)">
                     <Column field="name" header="자재검수번호" style="min-width: 80px" frozen class="font-bold" />
                     <Column field="발주번호" header="발주번호" />
                     <Column field="자재코드" header="자재코드" />

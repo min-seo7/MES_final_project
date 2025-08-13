@@ -12,23 +12,19 @@ import RadioButton from 'primevue/radiobutton';
 
 const items = ref([]);
 
-// 조회 필터용 객체 (검사항목(inspItem) 제거)
 const search = ref({
     productType: '',
     inspPurpose: ''
 });
 
-// 데이터 테이블 및 등록용 객체
 const selectItem = ref({
-    testitem_code: null,
+    writer: '',
     productType: '',
     inspItem: '',
-    unit: '',
-    range: '',
-    writer: '',
-    writeAt: '',
     inspPurpose: '',
-    purposeid: ''
+    unit: '',
+    rangeOperator: '',
+    rangeValue: ''
 });
 
 const showModal = ref(false);
@@ -49,6 +45,10 @@ const selectModalValue = (value) => {
     if (targetObject.value) {
         if (modalType.value === 'inspItem') {
             targetObject.value.inspItem = value.Type;
+        } else if (modalType.value === 'unit') {
+            targetObject.value.unit = value.Type;
+        } else if (modalType.value === 'rangeOperator') {
+            targetObject.value.rangeOperator = value.Type;
         }
     }
     showModal.value = false;
@@ -67,6 +67,19 @@ const inspItemList = ref([
     { code: 'item-002', Type: 'pH' },
     { code: 'item-003', Type: '총질소' }
 ]);
+const operatorList = ref([
+    { code: 'operator-001', Type: '≥' },
+    { code: 'operator-002', Type: '≤' },
+    { code: 'operator-003', Type: '>' },
+    { code: 'operator-004', Type: '<' },
+    { code: 'operator-005', Type: '=' }
+]);
+const unitList = ref([
+    { code: 'unit-001', Type: '%' },
+    { code: 'unit-002', Type: 'mg/kg' },
+    { code: 'unit-003', Type: 'CFU/g' },
+    { code: 'unit-004', Type: '-' }
+]);
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -82,7 +95,7 @@ const columns = ref([
     { field: 'productType', header: '제품유형' },
     { field: 'inspItem', header: '검사항목' },
     { field: 'unit', header: '단위' },
-    { field: 'range', header: '허용범위' },
+    { field: 'operator', header: '허용범위' },
     { field: 'writer', header: '작성자' },
     { field: 'writeAt', header: '작성날짜' },
     { field: 'inspPurpose', header: '검사목적' },
@@ -107,14 +120,13 @@ const fetchtestitems = async () => {
                 productType: item.product_type,
                 inspItem: item.item_name,
                 unit: item.unit,
-                range: item.fixedStandard,
+                operator: item.fixedStandard,
                 writer: item.createdBy,
                 writeAt: item.createdAt,
                 inspPurpose: item.purpose_name,
                 purposeid: item.purpose_id
             }));
         } else {
-            // 데이터가 배열이 아니면 items를 빈 배열로 초기화하여 오류 방지
             items.value = [];
             console.error('서버 응답 데이터가 배열이 아닙니다:', response.data);
         }
@@ -124,6 +136,8 @@ const fetchtestitems = async () => {
 };
 
 onMounted(() => {
+    selectItem.value.inspPurpose = '샘플링검사';
+    selectItem.value.purposeid = '201';
     fetchtestitems();
 });
 
@@ -137,13 +151,13 @@ function onReset() {
         productType: '',
         inspItem: '',
         unit: '',
-        range: '',
         writer: '',
         writeAt: '',
         inspPurpose: '',
-        purposeid: ''
+        purposeid: '',
+        rangeOperator: '',
+        rangeValue: ''
     };
-    // search 객체 초기화
     search.value = {
         productType: '',
         inspPurpose: ''
@@ -164,6 +178,14 @@ const registItem = async () => {
         itemToRegister.writeAt = `${y}-${m}-${d} ${h}:${min}:${s}`;
 
         delete itemToRegister.testitem_code;
+
+        if (itemToRegister.rangeOperator && itemToRegister.rangeValue) {
+            itemToRegister.fixedStandard = `${itemToRegister.rangeOperator} ${itemToRegister.rangeValue}`;
+        } else {
+            itemToRegister.fixedStandard = '';
+        }
+        delete itemToRegister.rangeOperator;
+        delete itemToRegister.rangeValue;
 
         const res = await axios.post('/api/test/testInform', itemToRegister);
         alert(res.data.message || '등록 완료');
@@ -228,7 +250,7 @@ const registItem = async () => {
                 </div>
                 <div class="flex flex-col">
                     <label for="writer">작성자</label>
-                    <InputText id="writer" v-model="selectItem.writer" />
+                    <InputText id="writer" v-model="selectItem.writer" readonly style="background-color: #f0f0f0" />
                 </div>
                 <div class="flex flex-col">
                     <label class="mb-2">제품유형</label>
@@ -238,10 +260,6 @@ const registItem = async () => {
                             <label :for="'reg_productType_' + item.code">{{ item.Type }}</label>
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-col">
-                    <label for="range">허용범위</label>
-                    <InputText id="range" v-model="selectItem.range" />
                 </div>
                 <div class="flex flex-col">
                     <label class="mb-2">검사목적</label>
@@ -259,6 +277,23 @@ const registItem = async () => {
                         <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspItem', selectItem)" />
                     </IconField>
                 </div>
+                <div class="flex flex-col">
+                    <label for="regUnit">단위</label>
+                    <IconField iconPosition="right" class="w-full">
+                        <InputText id="regUnit" v-model="selectItem.unit" readonly @click="openModal('unit', selectItem)" class="w-full" />
+                        <InputIcon class="pi pi-search cursor-pointer" @click="openModal('unit', selectItem)" />
+                    </IconField>
+                </div>
+                <div class="flex flex-col">
+                    <label for="range">허용범위</label>
+                    <div class="flex gap-2">
+                        <IconField iconPosition="right" class="w-1/3">
+                            <InputText id="rangeOperator" v-model="selectItem.rangeOperator" readonly class="w-full cursor-not-allowed" />
+                            <InputIcon class="pi pi-search cursor-pointer" @click="openModal('rangeOperator', selectItem)" />
+                        </IconField>
+                        <InputText id="rangeValue" v-model="selectItem.rangeValue" class="w-2/3" placeholder="예: 0.5" />
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -270,17 +305,11 @@ const registItem = async () => {
 
     <Dialog v-model:visible="showModal" modal header="선택 리스트" :style="{ width: '40vw' }" @hide="closeModal">
         <p class="font-bold text-lg mb-4">
-            {{ { inspItem: '검사항목' }[modalType] }}
+            {{ { inspItem: '검사항목', unit: '단위', rangeOperator: '연산자' }[modalType] }}
         </p>
-        <DataTable :value="modalType === 'inspItem' ? inspItemList : []" paginator :rows="10" tableStyle="min-width: 20rem">
-            <Column field="code" header="코드">
-                <template #body="{ data }">
-                    <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
-                        {{ data.code }}
-                    </span>
-                </template>
-            </Column>
-            <Column field="Type" header="항목">
+        <DataTable :value="{ inspItem: inspItemList, unit: unitList, rangeOperator: operatorList }[modalType]" paginator :rows="10" tableStyle="min-width: 20rem">
+            <Column field="code" header="코드" />
+            <Column field="Type" :header="modalType === 'rangeOperator' ? '연산자' : '항목'">
                 <template #body="{ data }">
                     <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
                         {{ data.Type }}
