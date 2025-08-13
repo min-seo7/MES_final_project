@@ -10,7 +10,7 @@ import DatePicker from 'primevue/datepicker';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Paginator from 'primevue/paginator';
-import IconField from 'primevue/iconfield'; // 없으면 삭제 가능
+import IconField from 'primevue/iconfield';
 import axios from 'axios';
 
 // 상태코드(int) → 상태명 매핑
@@ -22,37 +22,68 @@ const orderStateMap = {
     5: '제품입고'
 };
 
-// 상태코드 숫자 → 문자열 변환 함수
+// 상태명(string) → 상태코드 매핑 (서버로 보낼 때 필요)
+const orderStateMapReverse = {
+    주문서등록: 1,
+    생산대기: 2,
+    생산중: 3,
+    품질검수완료: 4,
+    제품입고: 5
+};
+
 const getStatusText = (code) => orderStateMap[code] ?? '알수없음';
 
-// 검색 필터 및 데이터
 const calendarValue = ref(null);
 const orderState = ref('');
 const spec = ref('');
 const productType = ref('');
+const orderId = ref('');
+const partnerId = ref('');
+// 'productId'를 위한 새로운 ref 변수 추가
+const productId = ref('');
+
 const items = ref([]);
 
-// 주문내역 데이터 로드
 const orders = async () => {
     try {
-        const response = await axios.get('/api/sales/orderSearch');
+        const queryParams = {
+            orderId: orderId.value || null,
+            orderStatus: orderStateMapReverse[orderState.value] || null,
+            spec: spec.value || null,
+            productType: productType.value || null,
+            partnerId: partnerId.value || null,
+            productId: productId.value || null, // 'productId'를 쿼리 파라미터에 추가
+            delDate: calendarValue.value
+                ? new Date(calendarValue.value).getFullYear().toString() + '-' + (new Date(calendarValue.value).getMonth() + 1).toString().padStart(2, '0') + '-' + new Date(calendarValue.value).getDate().toString().padStart(2, '0')
+                : null
+        };
+
+        const response = await axios.get('/api/sales/orderSearch', { params: queryParams });
         console.log(response.data);
-        items.value = response.data.list.map((item) => ({
-            orderId: item.order_id,
-            partnerId: item.partner_id,
-            quantity: item.quantity,
-            deliveryAddr: item.delivery_addr,
-            orderDate: item.order_date,
-            delDate: item.del_date,
-            ordState: getStatusText(item.ord_status), // 숫자 -> 문자열 변환
-            orderManager: item.order_manager
-        }));
+
+        if (response.data && response.data.list && Array.isArray(response.data.list)) {
+            items.value = response.data.list.map((item) => ({
+                orderId: item.order_id,
+                partnerId: item.partner_id,
+                productId: item.product_id,
+                productName: item.product_name,
+                manager: item.manager,
+                quantity: item.quantity,
+                deliveryAddr: item.delivery_addr,
+                orderDate: item.order_date,
+                delDate: item.del_date,
+                ordState: getStatusText(item.ord_status),
+                orderManager: item.order_manager
+            }));
+        } else {
+            items.value = [];
+            console.warn('서버 응답에 유효한 리스트 데이터가 없습니다.', response.data);
+        }
     } catch (error) {
         console.error('데이터 로드 실패:', error);
     }
 };
 
-// 주문상태별 태그 색상
 const getSeverity = (status) => {
     switch (status) {
         case '주문서등록':
@@ -69,12 +100,17 @@ const getSeverity = (status) => {
             return null;
     }
 };
-console.log('조회 조건:', {
-    orderState: orderState.value,
-    spec: spec.value,
-    productType: productType.value,
-    calendarValue: calendarValue.value
-});
+
+const resetFilters = () => {
+    orderState.value = '';
+    spec.value = '';
+    productType.value = '';
+    calendarValue.value = null;
+    orderId.value = '';
+    partnerId.value = '';
+    productId.value = ''; // 'productId' 필터 초기화 추가
+    orders();
+};
 
 onMounted(() => {
     orders();
@@ -84,34 +120,44 @@ onMounted(() => {
 <template>
     <div class="flex justify-end mb-4 space-x-2">
         <Button label="조회" rounded @click="orders" />
-        <Button
-            label="초기화"
-            severity="info"
-            rounded
-            @click="
-                orderState = '';
-                spec = '';
-                productType = '';
-                calendarValue = null;
-            "
-        />
+        <Button label="초기화" severity="info" rounded @click="resetFilters" />
     </div>
 
     <div class="font-semibold text-xl mb-4">검색</div>
+
     <Toolbar>
         <template #center>
             <IconField>
                 <div class="flex flex-col gap-6">
-                    <!-- 주문번호/주문상태/규격 -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="flex flex-wrap items-end gap-5">
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">주문번호</label>
                             <InputGroup>
-                                <InputText placeholder="ORD001" />
-                                <Button icon="pi pi-search" />
+                                <InputText placeholder="ORD001" v-model="orderId" />
+                                <Button icon="pi pi-search" @click="orders" />
                             </InputGroup>
                         </div>
-
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">거래처코드</label>
+                            <InputGroup>
+                                <InputText placeholder="SUP002" v-model="partnerId" />
+                                <Button icon="pi pi-search" @click="orders" />
+                            </InputGroup>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">제품코드</label>
+                            <InputGroup>
+                                <InputText placeholder="PROD001" v-model="productId" />
+                                <Button icon="pi pi-search" @click="orders" />
+                            </InputGroup>
+                            <div class="w-1/2">
+                                <InputText v-model="searchForm.productName" placeholder="제품명" disabled />
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">납기일자</label>
+                            <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue" dateFormat="yy-mm-dd" />
+                        </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">주문상태</label>
                             <div class="flex flex-wrap gap-3">
@@ -120,48 +166,6 @@ onMounted(() => {
                                     <label :for="`orderState${idx + 1}`">{{ state }}</label>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">규격</label>
-                            <div class="flex flex-wrap gap-3">
-                                <div class="flex items-center gap-2" v-for="(size, idx) in ['40', '20']" :key="idx">
-                                    <RadioButton v-model="spec" :inputId="`spec${idx + 1}`" name="spec" :value="size" />
-                                    <label :for="`spec${idx + 1}`">{{ size }}</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처코드</label>
-                            <InputGroup>
-                                <InputText placeholder="SUP002" />
-                                <Button icon="pi pi-search" />
-                            </InputGroup>
-                        </div>
-
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">제품명</label>
-                            <div class="flex flex-wrap gap-3">
-                                <div class="flex items-center gap-2" v-for="(type, idx) in ['분쇄형', '과립형', '액상형']" :key="idx">
-                                    <RadioButton v-model="productType" :inputId="`product${idx + 1}`" name="product" :value="type" />
-                                    <label :for="`product${idx + 1}`">{{ type }}</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">납기일자</label>
-                            <DatePicker :showIcon="true" :showButtonBar="true" v-model="calendarValue" />
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처명</label>
-                            <InputText type="text" placeholder="테흔 랜치" disabled />
                         </div>
                     </div>
                 </div>
@@ -176,6 +180,9 @@ onMounted(() => {
         <DataTable :value="items" scrollable scrollHeight="200px" class="mt-6">
             <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
             <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
+            <Column field="productId" header="제품코드" style="min-width: 120px" />
+            <Column field="productName" header="제품명" style="min-width: 120px" />
+            <Column field="manager" header="거래담당자" style="min-width: 120px" />
             <Column field="quantity" header="수량" style="min-width: 80px" />
             <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
             <Column field="orderDate" header="등록일자" style="min-width: 100px" />
