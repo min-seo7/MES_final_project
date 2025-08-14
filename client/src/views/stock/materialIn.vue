@@ -38,13 +38,14 @@ export default {
 
             //선택행데이터
             selectPandingMats: null,
+            selectMatLots: null,
 
             //입고대기 테이블 컬럼
             pandingCol: [
                 { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
                 { field: 'p_purNo', header: '발주번호', headerStyle: 'width: 25rem' },
-                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 20rem' },
-                { field: 'p_matName', header: '자재명', headerStyle: 'width: 13rem' },
+                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 12rem' },
+                { field: 'p_matName', header: '자재명', headerStyle: 'width: 30rem' },
                 { field: 'p_testResult', header: '검사결과', headerStyle: 'width: 13rem' },
                 { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
                 { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
@@ -59,8 +60,8 @@ export default {
             //입고등록 테이블 컬럼
             ReceiptCol: [
                 { field: 'inDate', header: '입 고 일', headerStyle: 'width: 20rem' },
-                { field: 'matLotNo', header: '자재 Lot번호', headerStyle: 'width: 25rem' },
-                { field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem' },
+                { field: 'matLotNo', header: '자재 LOT번호', headerStyle: 'width: 25rem' },
+                { field: 'matCode', header: '자재코드', headerStyle: 'width: 12rem' },
                 { field: 'matName', header: '자재명', headerStyle: 'width: 20rem' },
                 { field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem' },
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
@@ -73,6 +74,7 @@ export default {
         };
     },
     methods: {
+        //조회버튼
         //초기화버튼
         onReset() {
             this.dueDate = '';
@@ -122,7 +124,7 @@ export default {
                 console.log(purInfo);
                 await axios.post('/api/stock/reMatLot', purInfo);
             } catch (error) {
-                console.lof('등록실패', error);
+                console.lof('입고등록실패', error);
             }
         },
         //입고처리목록들
@@ -144,7 +146,38 @@ export default {
                 console.error('자재LOT목록 불러오기 실패:', error);
             }
         },
-
+        //반품
+        async postReject() {
+            if (!this.selectPandingMats) {
+                alert('대기자재 반품가능');
+            } else {
+                try {
+                    let rejecgInfo = this.this.selectPandingMats.map((row) => ({
+                        purch_id: row.p_purchId
+                    }));
+                    await axios.post('/api/stock/matReturn', rejecgInfo);
+                } catch (error) {
+                    console.lof('반품실패', error);
+                }
+                this.getMatPandigList();
+            }
+        },
+        //입고취소
+        async postCanelLot() {
+            if (!this.selectMatLots) {
+                alert('입고확정시 취소가능');
+            } else {
+                try {
+                    let cancelLotInfo = this.this.selectMatLots.map((row) => ({
+                        lot_no: row.matLotNo
+                    }));
+                    await axios.post('/api/stock/matLotCancel', cancelLotInfo);
+                } catch (error) {
+                    console.lof('취소실패', error);
+                }
+            }
+            this.getMatPandigList();
+        },
         //모달==============================================================================
         //(모달)자재
         openMatModal() {
@@ -275,8 +308,8 @@ export default {
             :buttons="[
                 { label: '입고등록', icon: 'pi pi-check', onClick: postInsertMat },
                 { label: '신규', icon: 'pi pi-plus', onClick: deleteHandler },
-                { label: '반품', icon: 'pi pi-box', onClick: deleteHandler },
-                { label: '입고취소', icon: 'pi pi-trash', onClick: deleteHandler }
+                { label: '반품', icon: 'pi pi-box', onClick: postReject },
+                { label: '입고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"
         />
 
@@ -294,7 +327,7 @@ export default {
                     </TabPanel>
                     <TabPanel value="1">
                         <!--1번탭 컨텐츠영역-->
-                        <stockCommTable v-model="MatReceipts" :columns="ReceiptCol" :dataRows="MatReceipts" />
+                        <stockCommTable v-model:selection="selectMatLots" :columns="ReceiptCol" :dataRows="MatReceipts" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

@@ -83,13 +83,13 @@ let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_dat
                           ON t.material_code = m.material_id
                           JOIN partner pa
                           ON p.partner_id = pa.partner_id
-                          WHERE d.pro_status NOT IN ('취소', '입고완료')`;
+                          WHERE d.pro_status NOT IN ('취소', '입고완료', '반품')`;
 
 //자재입고처리
 let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?)`;
 
 //자재LOT목록(입고)
-let matLotListQury = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
+let matLotListQuery = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
                              l.lot_no, 
                              l.material_id, 
                              m.material_name,
@@ -99,7 +99,41 @@ let matLotListQury = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
                              l.comm
                       FROM tbl_mat_lot l
                       JOIN material m
-                      ON l.material_id = m.material_id;`
+                      ON l.material_id = m.material_id
+                      WHERE l.pro_status NOT IN ('입고취소')`;
+//자재반품
+let matReturnQuery = `UPDATE  tbl_purchase_detail
+                         SET pro_status = '반품'
+                       WHERE purch_id = ?`;
+
+//입고취소
+let matLotCancelQuery = ` UPDATE  tbl_mat_lot
+                     SET pro_status = '입고취소'
+                     WHERE lot_no = ?`;
+
+//제품관리============================================================================
+//제품입고
+//
+//제품출고
+//
+//제품출고대기목록
+//
+//제품출고목록
+let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
+                                    po.prd_out_no,
+                                    po.product_id,
+                                    p.product_name,
+                                    po.prd_out_qty,
+                                    p.unit,
+                                    s.product_name,
+                                    po.e_name,
+                                    po.ship_partner,
+                                    po.comm
+                          FROM tbl_prd_out po
+                          JOIN shipment s
+                          ON po.shipment_id = s.shipment_id
+                          JOIN product p
+                          ON po.product_id = p.product_id`;
 
 module.exports = {
   matListQuery,
@@ -112,5 +146,8 @@ module.exports = {
   warehouseListQuery,
   MatPandigListQuery,
   matInsertQuery,
-  matLotListQury
+  matLotListQuery,
+  matReturnQuery,
+  matLotCancelQuery,
+  prdOutListQuery,
 };

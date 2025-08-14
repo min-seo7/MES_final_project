@@ -150,7 +150,7 @@ export default {
 
     <!--목록 테이블 -->
     <div class="card w-full">
-        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem">
+        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem" crollable scrollHeight="400px">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
             <Column field="id" header="-" style="display: none"></Column>
