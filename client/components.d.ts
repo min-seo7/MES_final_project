@@ -57,6 +57,7 @@ declare module 'vue' {
     MaterialRegistWidget: typeof import('./src/components/information/material/materialRegistWidget.vue')['default']
     MaterialSearchWidget: typeof import('./src/components/information/material/materialSearchWidget.vue')['default']
     Menu: typeof import('primevue/menu')['default']
+    Modal: typeof import('./src/components/common/modal.vue')['default']
     NotificationsWidget: typeof import('./src/components/dashboard/NotificationsWidget.vue')['default']
     OrderModfiyList: typeof import('./src/components/sales/orderModify/orderModfiyList.vue')['default']
     OrderModifyRegist: typeof import('./src/components/sales/orderModify/orderModifyRegist.vue')['default']

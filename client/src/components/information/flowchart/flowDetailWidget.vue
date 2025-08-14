@@ -3,7 +3,7 @@ import { ref, watch, defineProps } from 'vue';
 
 const items = ref([]);
 const currentPage = ref(1);
-const rowsPerPage = 10;
+const rowsPerPage = 5;
 
 const props = defineProps({
     detailData: {
@@ -70,7 +70,7 @@ function onPageChange(event) {
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">목록</h2>
     </div>
-    <div class="card mt-4 p-4 border rounded" style="height: 550px">
+    <div class="card mt-4 p-4 border rounded" style="height: 500px">
         <DataTable :value="items" :rows="10" :paginator="true" showGridlines @page="onPageChange">
             <Column field="num" header="" />
             <Column field="processId" header="공정코드" />

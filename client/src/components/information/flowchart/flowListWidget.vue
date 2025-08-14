@@ -1,30 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { defineProps } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 
-const items = ref([]);
-
-const fetchFlowchart = async () => {
-    try {
-        const response = await axios.get('/api/information/flowchart');
-        items.value = response.data.list.map((item, index) => ({
-            num: index + 1,
-            flowId: item.flow_id,
-            flowName: item.flow_name,
-            productId: item.product_id,
-            productName: item.product_name,
-            note: item.note,
-            createDate: item.create_date,
-            status: item.status
-        }));
-    } catch (error) {
-        console.log(items.value);
-        console.error('실패:', error);
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
     }
-};
-
-onMounted(() => {
-    fetchFlowchart();
 });
 </script>
 
@@ -33,7 +16,7 @@ onMounted(() => {
         <h2 class="text-xl font-bold">목록</h2>
     </div>
 
-    <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
+    <DataTable :value="props.items" :rows="5" :paginator="true" showGridlines>
         <Column field="num" header="" />
         <Column field="flowId" header="흐름도코드" />
         <Column field="flowName" header="흐름도명" />
