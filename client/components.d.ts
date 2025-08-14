@@ -31,7 +31,6 @@ declare module 'vue' {
     EquipmentRegistWidget: typeof import('./src/components/equipment/information/equipmentRegistWidget.vue')['default']
     EquipmentSearchWidget: typeof import('./src/components/equipment/information/equipmentSearchWidget.vue')['default']
     FeaturesWidget: typeof import('./src/components/landing/FeaturesWidget.vue')['default']
-    FileUpload: typeof import('primevue/fileupload')['default']
     FloatingConfigurator: typeof import('./src/components/FloatingConfigurator.vue')['default']
     FlowDetailRegistWidget: typeof import('./src/components/information/flowchart/flowDetailRegistWidget.vue')['default']
     FlowDetailWidget: typeof import('./src/components/information/flowchart/flowDetailWidget.vue')['default']
