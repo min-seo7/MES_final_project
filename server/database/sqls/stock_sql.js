@@ -134,6 +134,22 @@ let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date
                           ON po.shipment_id = s.shipment_id
                           JOIN product p
                           ON po.product_id = p.product_id`;
+//제품출고목록
+let aaaa = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
+                                    po.prd_out_no,
+                                    po.product_id,
+                                    p.product_name,
+                                    po.prd_out_qty,
+                                    p.unit,
+                                    s.product_name,
+                                    po.e_name,
+                                    po.ship_partner,
+                                    po.comm
+                          FROM tbl_prd_out po
+                          JOIN shipment s
+                          ON po.shipment_id = s.shipment_id
+                          JOIN product p
+                          ON po.product_id = p.product_id`;
 
 module.exports = {
   matListQuery,
@@ -150,4 +166,5 @@ module.exports = {
   matReturnQuery,
   matLotCancelQuery,
   prdOutListQuery,
+  aaaa,
 };
