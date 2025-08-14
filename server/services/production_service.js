@@ -8,45 +8,45 @@ function convertToArray(obj, columns) {
 
 // yy-MM-dd HH:mm:ss 포맷으로 변환하는 함수
 const formatToDatabaseDatetime = (dateString) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    
-    // 날짜 구성 요소 추출
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  if (!dateString) return null;
+  const date = new Date(dateString);
+
+  // 날짜 구성 요소 추출
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
-const startWork = async (director,plan_detail_no, details) => {
+const startWork = async (director, plan_detail_no, details) => {
   let conn;
   try {
     conn = await getConnection();
     // 1. DB 연결을 얻고 트랜잭션 시작
     await conn.beginTransaction();
 
-     // 2. 데이터베이스에서 마지막 주문번호 조회 
+    // 2. 데이터베이스에서 마지막 주문번호 조회
     const [lastOrderRow] = await conn.query(sqlList.SelectMaxOrdNo);
     // 3. 시퀀스를 사용하지 않고 고유코드생성
     let newOrderId;
     if (lastOrderRow && lastOrderRow.max_ord_no) {
-        // 'ord20250813-001' -> '001' -> 1 -> 2 -> '002' -> 'ord20250813-002'
-        const lastNum = parseInt(lastOrderRow.max_ord_no.split('-')[1], 10);
-        const newNum = lastNum + 1;
-        const formattedNum = String(newNum).padStart(3, "0");
-        const today = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // '20250813'
-        newOrderId = `ord${today}-${formattedNum}`;
+      // 'ord20250813-001' -> '001' -> 1 -> 2 -> '002' -> 'ord20250813-002'
+      const lastNum = parseInt(lastOrderRow.max_ord_no.split("-")[1], 10);
+      const newNum = lastNum + 1;
+      const formattedNum = String(newNum).padStart(3, "0");
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // '20250813'
+      newOrderId = `ord${today}-${formattedNum}`;
     } else {
-        // 주문이 없을 경우 'ordYYYYMMDD-001'로 시작
-        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        newOrderId = `ord${today}-001`;
+      // 주문이 없을 경우 'ordYYYYMMDD-001'로 시작
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      newOrderId = `ord${today}-001`;
     }
 
     // 4. 마스터 테이블인 production_order 테이블에 데이터 삽입
-    await conn.query(sqlList.insertPrdOrder, [newOrderId,director]);
+    await conn.query(sqlList.insertPrdOrder, [newOrderId, director]);
     // 5. 1개 또는 1개이상의 배열인경우 판단하여 반환
     const detailsArray = Array.isArray(details) ? details : [details];
 
@@ -54,24 +54,27 @@ const startWork = async (director,plan_detail_no, details) => {
     for (const info of detailsArray) {
       const formattedStartDate = formatToDatabaseDatetime(info.startDatetime);
       const formattedEndDate = formatToDatabaseDatetime(info.endDatetime);
-    // 1건 또는 여러 건의 지시를 모두 처리
+      // 1건 또는 여러 건의 지시를 모두 처리
       // 가져온 생산계획코드를 임시 저장
-      const detailPlanNo = info.plan_detail_no || plan_detail_no  || null;
+      const detailPlanNo = info.plan_detail_no || plan_detail_no || null;
       const insertedDetail = [
-          formattedStartDate, 
-          formattedEndDate, 
-          info.currentQty, 
-          info.line, 
-          info.productname,
-          newOrderId,
-          detailPlanNo];
+        formattedStartDate,
+        formattedEndDate,
+        info.currentQty,
+        info.line,
+        info.productname,
+        newOrderId,
+        detailPlanNo,
+        info.specification,
+        info.unit,
+        info.form,
+      ];
       await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
     }
-    
+
     // 7. 모든 작업이 성공하면 커밋
     await conn.commit();
-    return { success: true, message: '작업 지시가 성공적으로 등록되었습니다.' };
-
+    return { success: true, message: "작업 지시가 성공적으로 등록되었습니다." };
   } catch (error) {
     // 8. 중간에 오류가 발생하면 롤백
     if (conn) await conn.rollback();
@@ -81,7 +84,5 @@ const startWork = async (director,plan_detail_no, details) => {
     if (conn) conn.release();
   }
 };
-
-
 
 module.exports = { startWork };

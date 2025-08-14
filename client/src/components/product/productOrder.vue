@@ -14,8 +14,11 @@ const search = ref({
     productname: '',
     productType: '',
     planEndDate: '',
-    line: ''
-    
+    line: '',
+    specification: '',
+    unit: '',
+    form: '',
+    code: ''
 });
 
 const showModal = ref(false);
@@ -32,7 +35,14 @@ const closeModal = () => {
 
 const selectModalValue = (value) => {
     if (modalType.value === 'productPlanCode') search.value.productPlanCode = value.code;
-    else if (modalType.value === 'productNameInputModal') {search.value.productname = value.name;}
+    else if (modalType.value === 'productNameInputModal') {
+        search.value.productname = value.name;
+        search.value.productType = value.type;
+        search.value.line = value.line;
+        search.value.specification = value.specification;
+        search.value.unit = value.unit;
+        search.value.form = value.form;
+    }
     showModal.value = false;
 };
 
@@ -44,15 +54,15 @@ const productPlanCodeList = ref([
     { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김관리' }
 ]);
 const productNameList = ref([
-    { name: '분말형비료 20kg', type: '분말형', line: 'A01' , form:'완제품'},
-    { name: '분말형비료 40kg', type: '분말형', line: 'A01' , form:'완제품'},
-    { name: '과립형비료 20kg', type: '과립형', line: 'B01' , form:'완제품'},
-    { name: '과립형비료 40kg', type: '과립형', line: 'B01' , form:'완제품'},
-    { name: '액체형비료 5L',   type: '액체형', line: 'C01' , form:'완제품'},
-    { name: '액체형비료 10L',  type: '액체형', line: 'C01' , form:'완제품'},
-    { name: '분말형반제품',    type: '분말형', line: 'A01' , form:'반제품'},
-    { name: '과립형반제품',    type: '과립형', line: 'B01' , form:'반제품'},
-    { name: '액체형반제품',    type: '액체형', line: 'C01' , form:'반제품'}
+    { code: 'P001', name: '분말형비료', type: '분말형', specification: 20, unit: 'kg', line: 'A01', form: '완제품' },
+    { code: 'P001', name: '분말형비료', type: '분말형', specification: 40, unit: 'kg', line: 'A01', form: '완제품' },
+    { code: 'P002', name: '과립형비료', type: '과립형', specification: 20, unit: 'kg', line: 'B01', form: '완제품' },
+    { code: 'P002', name: '과립형비료', type: '과립형', specification: 40, unit: 'kg', line: 'B01', form: '완제품' },
+    { code: 'P003', name: '액체형비료', type: '액체형', specification: 5, unit: 'L', line: 'C01', form: '완제품' },
+    { code: 'P003', name: '액체형비료', type: '액체형', specification: 10, unit: 'L', line: 'C01', form: '완제품' },
+    { code: 'HFP001', name: '분말형비료', type: '분말형', specification: null, unit: null, line: 'A01', form: '반제품' },
+    { code: 'HFP002', name: '과립형비료', type: '과립형', specification: null, unit: null, line: 'B01', form: '반제품' },
+    { code: 'HFP003', name: '액체형비료', type: '액체형', specification: null, unit: null, line: 'C01', form: '반제품' }
 ]);
 
 const products = ref([
@@ -60,9 +70,12 @@ const products = ref([
         id: 1,
         startDatetime: new Date('2025-08-10 10:00'),
         endDatetime: new Date('2025-08-12 10:10'),
-        productname: '과립형비료 20kg',
+        productname: '과립형비료',
         productPlanQty: 10000,
         productType: '과립형',
+        specification: 20,
+        unit: 'kg',
+        form: '완제품',
         undefinedQty: 9000,
         currentQty: 1000,
         line: 'B01',
@@ -72,9 +85,12 @@ const products = ref([
         id: 2,
         startDatetime: new Date('2025-08-10 10:20'),
         endDatetime: new Date('2025-08-12 10:20'),
-        productname: '과립형비료 20kg',
+        productname: '과립형비료',
         productPlanQty: 10000,
         productType: '과립형',
+        specification: 20,
+        unit: 'kg',
+        form: '완제품',
         undefinedQty: 9000,
         currentQty: 1000,
         line: 'B01',
@@ -102,6 +118,9 @@ const columns = ref([
     { field: 'productname', header: '제품명' },
     { field: 'productPlanQty', header: '생산계획수량' },
     { field: 'productType', header: '제품형태' },
+    { field: 'specification', header: '제품규격' },
+    { field: 'unit', header: '단위' },
+    { field: 'form', header: '제품구분' },
     { field: 'undefinedQty', header: '미지시수량' },
     { field: 'currentQty', header: '현지시수량' },
     { field: 'line', header: '라인' },
@@ -125,7 +144,7 @@ const startProduction = async () => {
     //selectedProducts.value = event.value;
 
     // const payload = {
-    // // 로그인이 된경우 세션에 저장된 사람의 이름으로 등록될예정    
+    // // 로그인이 된경우 세션에 저장된 사람의 이름으로 등록될예정
     //     plan_detail_no: search.value.productPlanCode || null,
     //     details: selectedProducts.value
     // };
@@ -189,25 +208,22 @@ const onCellEditComplete = (event) => {
     } else {
         data[field] = newValue;
     }
-    if (['productname', 'productType', 'line'].includes(field)) {
+    if (['productname'].includes(field)) {
         if (field == 'productname' && newValue && newValue.length >= 3) {
             //data.productType = data.productname.slice(0, 3);
-             if ( !newValue.includes('분말형') && !newValue.includes('과립형') && !newValue.includes('액체형'))
-            {
+            if (!newValue.includes('분말형') && !newValue.includes('과립형') && !newValue.includes('액체형')) {
                 alert('제품명에는 "분말형", "과립형", "액체형" 중 하나가 포함되어야 합니다.');
                 // 변경된 값을 되돌립니다.
                 data[field] = null;
                 // DataTable이 편집을 취소하도록 합니다.
-                event.preventDefault(); 
+                event.preventDefault();
                 return;
-            }
-            else if ( !newValue.includes(' 20kg') && !newValue.includes(' 40kg') && !newValue.includes(' 5L') && !newValue.includes(' 10L') && !newValue.includes('반제품') )
-            {
+            } else if (!newValue.includes(' 20kg') && !newValue.includes(' 40kg') && !newValue.includes(' 5L') && !newValue.includes(' 10L') && !newValue.includes('반제품')) {
                 alert('제품명에는 "20kg", "40kg", "5L", "10L", "반제품" 중 하나가 포함되어야 합니다.');
                 // 변경된 값을 되돌립니다.
                 data[field] = null;
                 // DataTable이 편집을 취소하도록 합니다.
-                event.preventDefault(); 
+                event.preventDefault();
                 return;
             }
             if (newValue.slice(0, 3) === '분말형') {
@@ -221,13 +237,13 @@ const onCellEditComplete = (event) => {
                 data.line = 'C01';
             }
         }
-        else{
-            alert('제품명은 3글자 이상이어야 합니다.');
-            data.productType = ''; 
-            data.line = '';
-            data.productname = '';
-            return;
-        }
+        // else {
+        //     alert('제품명은 3글자 이상이어야 합니다.');
+        //     data.productType = '';
+        //     data.line = '';
+        //     data.productname = '';
+        //     return;
+        // }
     }
     event.preventDefault();
 
@@ -309,9 +325,9 @@ const dropContent = () => {
                         <InputNumber v-model="data[field]" autofocus fluid />
                     </template>
                     <!--  -->
-                     <!-- <template v-else-if="['productname'].includes(field)">
-                        <InputText v-model="search.productname" @click="openModal('productNameInputModal')" readonly/>
-                    </template> -->
+                    <template v-else-if="['productname'].includes(field)">
+                        <InputText v-model="search.productname" @click="openModal('productNameInputModal')" readonly />
+                    </template>
                     <!--  -->
                     <template v-else>
                         <InputText v-model="data[field]" autofocus fluid />
@@ -327,7 +343,7 @@ const dropContent = () => {
             {{
                 {
                     productPlanCode: '생산계획코드',
-                    productNameInputModal:'제품명'
+                    productNameInputModal: '제품명'
                 }[modalType]
             }}
         </p>
@@ -346,7 +362,7 @@ const dropContent = () => {
                 <Column field="director" header="지시자"></Column>
             </DataTable>
         </div>
-        <!-- <div v-else-if="modalType === 'productNameInputModal'">
+        <div v-else-if="modalType === 'productNameInputModal'">
             <DataTable :value="productNameList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]">
                 <Column field="name" header="제품명">
                     <template #body="{ data }">
@@ -359,6 +375,6 @@ const dropContent = () => {
                 <Column field="line" header="생산라인"></Column>
                 <Column field="form" header="제품구분"></Column>
             </DataTable>
-        </div> -->
+        </div>
     </Dialog>
 </template>

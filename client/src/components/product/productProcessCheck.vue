@@ -1,5 +1,5 @@
 <script setup>
-import { ref , watch , onMounted , onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -47,11 +47,11 @@ const productForm = ref(null);
 const lineData = ref(null);
 const lineOptions = ref(null);
 let intervalId = null;
-onMounted(async() => {
+onMounted(async () => {
     setColorOptions();
     //intervalId = await setInterval( addRandomTemperature, 5000); // 1초마다 새로운 온도 데이터를 추가합니다.
 
-     // 컴포넌트가 언마운트될 때 메모리 누수를 방지하기 위해 인터벌을 정리합니다.
+    // 컴포넌트가 언마운트될 때 메모리 누수를 방지하기 위해 인터벌을 정리합니다.
     onUnmounted(() => {
         clearInterval(intervalId);
     });
@@ -78,12 +78,11 @@ function setColorOptions() {
                 borderColor: documentStyle.getPropertyValue('--p-primary-500'),
                 data: [],
                 fill: true, // 선 아래를 채웁니다.
-                tension: 0.1,   // 선의 곡률을 조정합니다. 0은 직선, 1은 완전한 곡선입니다.
+                tension: 0.1, // 선의 곡률을 조정합니다. 0은 직선, 1은 완전한 곡선입니다.
                 pointHoverRadius: 7, // 마우스 오버 시 데이터 포인트의 반지름
                 pointBackgroundColor: documentStyle.getPropertyValue('--p-primary-500'), // 데이터 포인트의 배경색
-                pointBorderColor: '#fff', // 데이터 포인트의 테두리 색상   
-                
-            },
+                pointBorderColor: '#fff' // 데이터 포인트의 테두리 색상
+            }
             // {
             //     label: 'My Second dataset',
             //     backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
@@ -92,15 +91,14 @@ function setColorOptions() {
             // }
         ]
     };
-     lineOptions.value = {
+    lineOptions.value = {
         plugins: {
             legend: {
                 labels: {
                     fontColor: textColor
-                },
-               
+                }
             },
-           
+
             datalabels: {
                 color: textColorSecondary,
                 display: true,
@@ -118,13 +116,12 @@ function setColorOptions() {
                 grid: {
                     color: surfaceBorder,
                     drawBorder: false
-                }, 
+                },
                 title: {
                     display: true,
                     text: '생산량',
                     color: textColor
-                },
-                
+                }
             },
             y: {
                 ticks: {
@@ -140,28 +137,27 @@ function setColorOptions() {
                     color: textColor
                 },
                 min: 0, // y축 최소값
-                max: 120, // y축 최대값
+                max: 120 // y축 최대값
             }
         },
-        responsive: true,
-        
+        responsive: true
     };
-};
+}
 // 새로운 랜덤 온도 데이터를 추가하는 함수
 function addRandomTemperature() {
     // 데이터 배열의 길이가 11(레이블 수)에 도달하면 인터벌을 중지합니다.
     if (lineData.value.datasets[0].data.length >= 11) {
         clearInterval(intervalId);
-        console.log("생산량 1000에 도달하여 데이터 추가를 멈춥니다.");
+        console.log('생산량 1000에 도달하여 데이터 추가를 멈춥니다.');
         return;
     }
     const newTemperature = getRandomTemperature();
     // datasets 배열의 첫 번째 데이터셋에 새로운 값을 추가
     lineData.value.datasets[0].data.push(newTemperature);
-    
+
     // 이 시점에서 차트 컴포넌트는 새로운 데이터를 감지하고 갱신되어야 합니다.
     // Vue의 경우 ref나 reactive로 감싸져 있으면 자동으로 갱신됩니다.
-    console.log("새로운 데이터가 추가되었습니다:", newTemperature);
+    console.log('새로운 데이터가 추가되었습니다:', newTemperature);
 }
 watch(
     [getPrimary, getSurface, isDarkTheme],
@@ -280,11 +276,12 @@ const dropContent = () => {
 <template>
     <div class="flex justify-end mb-4 space-x-2">
         <Button label=" 조회 " rounded @click="selectList" />
+        <Button label=" 설비상태 " rounded @click="openModal('temporaryProcess')" />
         <Button label=" 초기화 " severity="info" rounded @click="dropContent" />
     </div>
     <div class="font-semibold text-xl mb-2">공정조회</div>
-    <div class="p-4 min-h-screen">
-        <div class="bg-white p-4 rounded-lg shadow-md mb-2">
+    <div class="h-[calc(100vh - 100px)] overflow-hidden flex flex-col p-4">
+        <div class="flex-shrink-0 bg-white p-4 rounded-lg shadow-md mb-2">
             <!-- grid-cols-3으로 세 개의 균일한 열을 만듭니다. -->
             <div class="grid grid-cols-3 gap-2 items-center">
                 <!-- 첫 번째 행 -->
@@ -361,10 +358,6 @@ const dropContent = () => {
                 </Column>
             </DataTable>
         </div>
-        <div class="card">
-                <div class="font-semibold text-xl mt-4" :value="aaa">ddd</div>
-                <Chart type="line" :data="lineData" :options="lineOptions"></Chart>
-            </div>
     </div>
 
     <!-- <div class="flex-auto card mt-2"></div> -->
@@ -375,7 +368,7 @@ const dropContent = () => {
             {{
                 {
                     processCode: '공정코드',
-                    processName: '공정명',
+                    temporaryProcess: '공정생산량대비설비온도',
                     line: '라인'
                 }[modalType]
             }}
@@ -392,6 +385,12 @@ const dropContent = () => {
                 <Column field="processName" header="공정명"></Column>
                 <Column field="line" header="라인"></Column>
             </DataTable>
+        </div>
+        <div v-else-if="modalType === 'temporaryProcess'">
+            <div class="card">
+                <div class="font-semibold text-xl mb-2" :value="aaa">ddd</div>
+                <Chart type="line" :data="lineData" :options="lineOptions"></Chart>
+            </div>
         </div>
     </Dialog>
 </template>
