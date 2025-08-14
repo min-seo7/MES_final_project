@@ -24,24 +24,44 @@ export default {
             prdLotNo: '',
             //모달
             productModal: false,
-            //(모달)선택된 자재
+
+            //(모달)선택된 제품
             selectPrd: null,
-            //입고대기 테이블 컬럼
-            pandingCol: [
-                { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
-                { field: 'p_purNo', header: '발주번호', headerStyle: 'width: 25rem' },
-                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 20rem' },
-                { field: 'p_matName', header: '자재명', headerStyle: 'width: 13rem' },
-                { field: 'p_testResult', header: '검사결과', headerStyle: 'width: 13rem' },
-                { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
-                { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
-                { field: 'p_unit', header: '단위', headerStyle: 'width: 13rem' },
-                { field: 'p_partnerName', header: '공급처', headerStyle: 'width: 15rem' },
-                { field: 'p_warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal }, //창고위치모달.
-                { field: 'p_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
+
+            //테이블 선택데이터
+            selectOutWaitPrds: null,
+            selectOutPrds: null,
+            //출고대기 테이블 컬럼
+            outWaitPrdsCol: [
+                { field: 'w_dueDate', header: '출고예정일', headerStyle: 'width: 20rem' },
+                { field: 'w_shipmentId', header: '출하지시번호', headerStyle: 'width: 25rem' },
+                { field: 'w_prdCode', header: '제품코드', headerStyle: 'width: 20rem' },
+                { field: 'w_prdName', header: '제품명', headerStyle: 'width: 13rem' },
+                { field: 'w_reqQty', header: '요청수량', headerStyle: 'width: 15rem' },
+                { field: 'w_outQty', header: '출고수량', headerStyle: 'width: 15rem', inputNumber: true },
+                { field: 'w_unit', header: '단위', headerStyle: 'width: 13rem' },
+                { field: 'w_partnerName', header: '거래처', headerStyle: 'width: 15rem' },
+                { field: 'w_shipEnt', header: '배송업체', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal }, //배송업체모달.
+                { field: 'w_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],
-            //입고대기 데이터
-            MatReceiptPanding: []
+            //출고대기 데이터
+            outWaitPrds: [],
+
+            //출고처리 테이블컬럼
+            outPrdCol: [
+                { field: 'outDate', header: '출고일', headerStyle: 'width: 20rem' },
+                { field: 'shipNo', header: '출고번호', headerStyle: 'width: 25rem' },
+                { field: 'prdCode', header: '제품코드', headerStyle: 'width: 20rem' },
+                { field: 'prdName', header: '제품명', headerStyle: 'width: 13rem' },
+                { field: 'outQty', header: '출고수량', headerStyle: 'width: 13rem' },
+                { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
+                { field: 'partnerName', header: '거래처', headerStyle: 'width: 15rem' },
+                { field: 'e_name', header: '담당자', headerStyle: 'width: 15rem' },
+                { field: 'shipEnt', header: '배송업체', headerStyle: 'width: 15rem' },
+                { field: 'memo', header: '비고', headerStyle: 'width: 50rem' }
+            ],
+            //출고처리 데이터
+            outPrds: []
         };
     },
     methods: {
@@ -54,6 +74,22 @@ export default {
             this.prdInDate = '';
             this.prdLotNo = '';
         },
+        //테이블영역=====================================================================
+        //출고대기
+        //출고처리목록
+        async getoutPrds() {
+            try {
+                const res = await axios.get('/api/stock/modalMatList');
+                this.materials = res.data.map((item) => ({
+                    matCode: item.material_id,
+                    matName: item.material_name,
+                    unit: item.unit
+                }));
+            } catch (error) {
+                console.error('자재목록 불러오기 실패:', error);
+            }
+        },
+        //모달============================================================================================
         //(모달)제품
         openPrdModal() {
             console.log('제품모달');
@@ -62,13 +98,13 @@ export default {
             this.getMatList();
         },
         onSelectMat() {
-            //(모달)자재선택시 반영.
+            //(모달)제품선택시 반영.
             this.prdCode = this.selectPrd.prdCode;
             this.prdName = this.selectPrd.prdName;
 
             this.productModal = false;
         },
-        //(모달)자재목록가지고오기
+        //(모달)제품목록가지고오기
         async getMatList() {
             try {
                 const res = await axios.get('/api/stock/modalPrdList');
@@ -178,11 +214,11 @@ export default {
                 <TabPanels>
                     <TabPanel value="0">
                         <!--0번탭 컨텐츠영역-->
-                        <stockCommTable v-model:selection="selectPandingMats" :columns="pandingCol" :dataRows="MatReceiptPanding" />
+                        <stockCommTable v-model:selection="selectOutWaitPrds" :columns="outWaitPrdsCol" :dataRows="outWaitPrds" />
                     </TabPanel>
                     <TabPanel value="1">
                         <!--1번탭 컨텐츠영역-->
-                        <stockCommTable v-model="prdReceipt" :columns="ReceiptCol" />
+                        <stockCommTable v-modelselection="selectOutPrds" :columns="outPrdCol" :dataRows="outPrds" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
