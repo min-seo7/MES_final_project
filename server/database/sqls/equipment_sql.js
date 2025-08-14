@@ -51,6 +51,10 @@ VALUES (:eq_id, :equipment_name, :manufacturer, :serial_no,
         :purchase_date, :start_date, :eq_type, :loc, :status, :note)
 `;
 
+// 설비정보 등록/수정
+// 목록(조건검색/돋보기)
+/* ===== 목록(검색/돋보기용) ===== */
+const selectEquipmentList = `
 const selectEquipmentList = `
 SELECT
   e.equipment_id   AS eq_id,
@@ -99,6 +103,9 @@ WHERE 1=1
       AND ( :status  IS NULL OR e.\`status\`   = :status )
     ORDER BY e.equipment_id ASC
     LIMIT :offset, :size
+  `,
+  /* ===== 카운트(목록과 컬럼/조건 1:1 동일) ===== */
+  countEquipmentList = `
   `;
 
   /* ===== 카운트(목록과 컬럼/조건 1:1 동일) ===== */
@@ -111,6 +118,9 @@ WHERE 1=1
       AND ( :eq_name IS NULL OR e.eq_name      LIKE CONCAT('%', :eq_name, '%') )
       AND ( :loc     IS NULL OR e.location     LIKE CONCAT('%', :loc, '%') )
       AND ( :status  IS NULL OR e.\`status\`   = :status )
+  `,
+  /* ===== 단건 조회 ===== */
+  selectEquipmentById = `
   `;
   
     /* ===== 단건 조회 ===== */
@@ -128,6 +138,9 @@ WHERE 1=1
       e.note         AS note
     FROM equipment e
     WHERE e.equipment_id = :eq_id
+  `,
+  /* ===== 코드 생성: EQ-YYYYMM-#### (월별 시퀀스) ===== */
+  generateEquipmentCode = `
   `;
 
 
@@ -147,6 +160,9 @@ WHERE 1=1
     ) AS next_code
     FROM equipment
     WHERE equipment_id LIKE CONCAT('EQ-', DATE_FORMAT(CURDATE(), '%Y%m'), '-%')
+  `,
+  /* ===== 등록 ===== */
+  insertEquipment = `
   `;
 
     /* ===== 등록 ===== */
@@ -155,6 +171,8 @@ WHERE 1=1
       (equipment_id, eq_name, manufacturer, serial_no, purchase_date, start_date, eq_type, location, status, note)
     VALUES
       (:eq_id, :eq_name, :manufacturer, :serial_no, :purchase_date, :start_date, :eq_type, :loc, :status, :note)
+  `,
+  updateEquipment = `
   `;
   const  updateEquipment= `
     UPDATE equipment
@@ -169,6 +187,7 @@ WHERE 1=1
         note          = :note
     WHERE equipment_id = :eq_id
   `;
+       
 const selectEquipmentById = `
 SELECT
   e.equipment_id   AS eq_id,
