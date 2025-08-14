@@ -26,7 +26,7 @@ const addBOMdetail = () => {
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
-    <div class="card mt-4 p-4 border rounded" style="height: 550px">
+    <div class="card p-4 border rounded" style="height: 300px">
         <div class="flex flex-col md:flex-row gap-6">
             <!-- 왼쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
@@ -57,6 +57,8 @@ const addBOMdetail = () => {
                     <label class="block mb-1">혼합율</label>
                     <InputText v-model="form.mixRatio" class="w-full" />%
                 </div>
+            </div>
+            <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">소요량</label>
                     <InputText v-model="form.requiredQty" class="w-full" />

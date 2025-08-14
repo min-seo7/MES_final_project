@@ -13,6 +13,20 @@ const handleBomDetail = (detail) => {
     bomDetailData.value = [...bomDetailData.value, newDetail];
 };
 
+const bomSearchData = ref([]);
+
+const handleSearch = (result) => {
+    bomSearchData.value = result.map((item, index) => ({
+        num: index + 1,
+        bomId: item.bom_id,
+        prodId: item.product_id,
+        prodName: item.product_name,
+        prodType: item.product_type,
+        createDate: item.created_date,
+        status: item.status
+    }));
+};
+
 onUnmounted(() => {
     console.log('employee.vue unmounted!');
 });
@@ -20,8 +34,8 @@ onUnmounted(() => {
 
 <template>
     <section class="employee-container">
-        <BomSearchWidget />
-        <BomListWidget />
+        <BomSearchWidget @bomFilterSearch="handleSearch" />
+        <BomListWidget :items="bomSearchData" />
         <BomRegistWidget :detailData="bomDetailData" />
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
