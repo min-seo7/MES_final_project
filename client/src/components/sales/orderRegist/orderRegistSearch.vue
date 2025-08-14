@@ -299,10 +299,14 @@ onMounted(() => {
                 </IconField>
             </template>
         </Toolbar>
-
+        <!-- icon="pi pi-plus" -->
         <br />
+        <div class="flex gap-3 mt-4 justify-end">
+            <Button label="추가" @click="addOrder" rounded />
+            <Button label="삭제" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" rounded />
+        </div>
         <div class="font-semibold text-xl mb-4">주문등록</div>
-        <div class="p-4 border rounded-md shadow-md mt-6">
+        <div class="p-4 border rounded-md shadow-md mt-6" style="background-color: white">
             <div
                 v-for="order in orders"
                 :key="order.itemSeq"
@@ -341,11 +345,6 @@ onMounted(() => {
                     <label class="font-semibold text-sm mb-1">공급가액</label>
                     <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" />
                 </div>
-            </div>
-
-            <div class="flex gap-3 mt-4 justify-center">
-                <Button label="주문내역 추가" icon="pi pi-plus" @click="addOrder" />
-                <Button label="주문내역 삭제" icon="pi pi-minus" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" />
             </div>
         </div>
         <!-- ESLint 설정에서 발생한 에러 -->

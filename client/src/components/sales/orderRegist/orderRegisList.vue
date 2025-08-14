@@ -63,6 +63,7 @@ const fetchOrders = async () => {
             items.value = response.data.list.map((item) => ({
                 orderId: item.order_id,
                 partnerId: item.partner_id,
+                partnerName: item.partner_name,
                 productId: item.product_id,
                 productName: item.product_name,
                 manager: item.manager,
@@ -173,9 +174,10 @@ onMounted(() => {
 
         <div class="font-semibold text-xl mb-4 mt-6">
             주문내역
-            <DataTable :value="items" scrollable scrollHeight="400px" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 30]" class="mt-3">
+            <DataTable :value="items" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 30]" class="mt-3">
                 <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
                 <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
+                <Column field="partnerName" header="거래처명" style="min-width: 120px" />
                 <Column field="productId" header="제품코드" style="min-width: 120px" />
                 <Column field="productName" header="제품명" style="min-width: 120px" />
                 <Column field="manager" header="거래담당자" style="min-width: 120px" />
