@@ -17,7 +17,6 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     ButtonGroup: typeof import('primevue/buttongroup')['default']
     Calendar: typeof import('primevue/calendar')['default']
-    Chart: typeof import('primevue/chart')['default']
     CheckStockList: typeof import('./src/components/product/checkStockList.vue')['default']
     Column: typeof import('primevue/column')['default']
     DataTable: typeof import('primevue/datatable')['default']

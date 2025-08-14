@@ -34,22 +34,7 @@ const findInspectionByFilter = async (q = {}) => {
   return list;
 };
 
-// 등록
-const insertInspection = async (body) => {
-  const insertData = toArray(body, [
-    "equipmentId",
-    "inspectionType",
-    "inspectionDate",
-    "scheduledDate",
-    "inspectionCycle",
-    "inspector",
-    "result",
-    "requestedBy",
-    "note",
-  ]);
-  const result = await mariadb.query("insertInspection", insertData);
-  return result;
-};
+//
 
 // 설비정보 등록/수정
 
@@ -57,6 +42,12 @@ function paging(p, s) {
   const page = Math.max(1, Number(p || 1));
   const size = Math.min(200, Math.max(1, Number(s || 20)));
   return { page, size, offset: (page - 1) * size };
+}
+
+//설비 돋보기검색
+async function findEquipmentPickerList() {
+  const rows = await mariadb.query(sql.selectEquipmentPickerList);
+  return rows;
 }
 
 async function findEquipmentList(q) {
@@ -80,26 +71,20 @@ async function findEquipmentById(eq_id) {
   return row || null;
 }
 
-async function generateEquipmentCode() {
-  const [{ next_code }] = await db.query("generateEquipmentCode", {});
-  return next_code;
-}
-
-async function insertEquipment(body) {
-  const eq_id = body.eq_id || (await generateEquipmentCode());
-  await db.query("insertEquipment", {
-    eq_id,
-    eq_name: body.eq_name,
-    manufacturer: body.manufacturer || null,
-    serial_no: body.serial_no || null,
-    purchase_date: body.purchase_date || null, // 'YYYY-MM-DD' 또는 null
-    start_date: body.start_date || null,
-    eq_type: body.eq_type || null,
-    loc: body.loc || null,
-    status: body.status || "사용",
-    note: body.note || null,
-  });
-  return await findEquipmentById(eq_id);
+async function insertEquipment(data) {
+  const params = {
+    eq_id: data.equipmentCode, // form.equipmentCode → equipment_id
+    equipment_name: data.equipmentName,
+    manufacturer: data.manufacturer,
+    serial_no: data.serialNo,
+    purchase_date: data.purchaseDate,
+    start_date: data.startDate,
+    eq_type: data.equipmentType,
+    loc: data.location,
+    status: data.status,
+    note: data.note,
+  };
+  return await db.query("insertEquipment", params);
 }
 
 async function updateEquipment(eq_id, body) {
@@ -118,10 +103,13 @@ async function updateEquipment(eq_id, body) {
   return await findEquipmentById(eq_id);
 }
 
+//
+
 module.exports = {
   findInspectionList,
   findInspectionByFilter,
-  insertInspection,
-  generateEquipmentCode,
+  // insertInspection,
   updateEquipment,
+  insertEquipment,
+  findEquipmentPickerList,
 };
