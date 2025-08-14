@@ -21,7 +21,7 @@ function formatDateToYMD(isoDate) {
 //   return list;
 // };
 
-// 주문 내역 조회 (필터링 적용)
+// 주문 내역 조회 필터링
 const selectFilteredOrders = (filter) => {
   // 쿼리 파라미터 배열을 필터 객체를 기반으로 생성
   const params = [
@@ -31,21 +31,41 @@ const selectFilteredOrders = (filter) => {
     filter.orderStatus,
     filter.orderStatus,
     filter.orderStatus,
-    filter.spec,
-    filter.spec,
-    filter.spec,
+    filter.productName,
+    filter.productName,
+    filter.productName,
     filter.partnerId,
     filter.partnerId,
     filter.partnerId,
-    filter.productType,
-    filter.productType,
-    filter.productType,
+    // productType은 현재 사용되지 않아 제외하거나 필요시 추가
     filter.delDate,
     filter.delDate,
   ];
 
-  // sqlList에서 정의된 selectOrderDetail 쿼리를 실행
+  // selectOrderDetail 쿼리를 실행
   let list = query("selectOrderDetail", params);
+  return list;
+};
+
+//출하요청등록대상 조회
+const selectFilteredShips = (filters) => {
+  const params = [
+    filters.partnerId,
+    filters.partnerId,
+    filters.partnerId,
+    filters.productId,
+    filters.productId,
+    filters.productId,
+    filters.startDate,
+    filters.startDate,
+    filters.startDate,
+    filters.endDate,
+    filters.endDate,
+    filters.endDate,
+  ];
+  // selectShipDetail 쿼리를 실행
+  console.log("필터링 파라미터:", params);
+  let list = query("selectShipOrders", params);
   return list;
 };
 
@@ -142,4 +162,5 @@ module.exports = {
   selectOrdRegistModal,
   selectOrderProductModal,
   // selectRegisList,
+  selectFilteredShips,
 };
