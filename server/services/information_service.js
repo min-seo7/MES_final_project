@@ -133,9 +133,22 @@ const updateMaterial = async (materialInfo) => {
   return result;
 };
 
+// 거래처명 조회
+const findAllpartnerName = async () => {
+  let list = await mariadb.query("selectPartnerName");
+  return list;
+};
+
 // 거래처 조회
-const findAllPartner = async () => {
-  let list = await mariadb.query("selectPartner");
+const findAllPartner = async (partnerInfo) => {
+  const insertData = [
+    partnerInfo.partnerId ?? null,
+    partnerInfo.partnerName ?? null,
+    partnerInfo.partnerType ?? null,
+    partnerInfo.status ?? null,
+  ];
+
+  let list = await mariadb.query("selectPartnerList", insertData);
   return list;
 };
 
@@ -363,15 +376,6 @@ const insertBOM = async (bomInfo) => {
 // BOM 등록 + 상세 등록
 const insertAllBOM = async (bomInfo, bomDetails) => {
   try {
-    // 1. 마지막 BOM ID 조회
-    // const rows = await mariadb.query("SelectMaxBOMId");
-    // let newBOMId;
-    // if (rows && rows[0].max_bom_id) {
-    //   const lastNum = parseInt(rows[0].max_bom_id.replace("BOM", ""), 10);
-    //   newBOMId = `BOM${String(lastNum + 1).padStart(3, "0")}`;
-    // } else {
-    //   newBOMId = "BOM001";
-    // }
     const rows = await mariadb.query("SelectMaxBOMId");
     let maxId = rows?.[0]?.max_bom_id || null; // 안전하게 읽기
     let newBOMId;
@@ -526,6 +530,7 @@ module.exports = {
   updateDetailFlowchart,
   updateFlowchart,
   findAllPartner,
+  findAllpartnerName,
   insertPartner,
   updatePartner,
   findAllMaterial,

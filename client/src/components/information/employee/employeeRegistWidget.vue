@@ -80,8 +80,7 @@ const registEmployee = async () => {
                 <div>
                     <label class="block mb-1">사원번호</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.empId" class="w-full" />
-                        <!--<Button label="생성" size="small" />-->
+                        <InputText v-model="form.empId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
                     </div>
                 </div>
                 <div>
