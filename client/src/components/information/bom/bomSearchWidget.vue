@@ -5,10 +5,6 @@ const prodTypeValue = ref('');
 </script>
 
 <template>
-    <!--
-    <div class="flex flex-col">
-        <div class="card">
-            -->
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>검색조건</div>
         <div class="space-x-2">

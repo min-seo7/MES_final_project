@@ -53,8 +53,8 @@ const selectStockList = ref([
 </script>
 <template>
     <div class="font-semibold text-xl mb-2">제품재고조회</div>
-    <div class="p-4 min-h-screen">
-        <div class="bg-white p-4 rounded-lg shadow-md mb-2">
+    <div class="h-[calc(100vh - 100px)] overflow-hidden flex flex-col p-4">
+        <div class="flex-shrink-0 bg-white p-4 rounded-lg shadow-md mb-2">
             <DataTable
                 :value="selectStockList"
                 scrollable

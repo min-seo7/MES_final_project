@@ -4,70 +4,24 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Paginator from 'primevue/paginator';
 import Dialog from 'primevue/dialog';
+import axios from 'axios';
 
 const productinspec = ref([]);
 const selectedItem = ref(null); // 선택된 항목
 const showDetail = ref(false); // 모달 표시 여부
 
+const fetchInspFinList = async () => {
+    try {
+        const response = await axios.get('/api/test/matTestResult');
+        productinspec.value = response.data;
+        console.log('대기목록로드:', productinspec.value);
+    } catch (err) {
+        console.error('대기목록조회실패.', err);
+    }
+};
 onBeforeMount(() => {
-    productinspec.value = [
-        {
-            자재검수번호: 'MI001',
-            발주번호: 'PO001',
-            자재코드: 'M001',
-            자재명: '부엽토',
-            수량: 100,
-            등록날짜: '2025-08-07',
-            상태: '대기'
-        },
-        {
-            자재검수번호: 'MI002',
-            발주번호: 'PO002',
-            자재코드: 'M002',
-            자재명: 'EM 발효액',
-            수량: 200,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            자재검수번호: 'MI003',
-            발주번호: 'PO003',
-            자재코드: 'M003',
-            자재명: '막걸리',
-            수량: 300,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            자재검수번호: 'MI004',
-            발주번호: 'PO004',
-            자재코드: 'M004',
-            자재명: '톱밥',
-            수량: 240,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            자재검수번호: 'MI005',
-            발주번호: 'PO005',
-            자재코드: 'M005',
-            자재명: '깻묵',
-            수량: 250,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            자재검수번호: 'MI006',
-            발주번호: 'PO006',
-            자재코드: 'M006',
-            자재명: '포대',
-            수량: 600,
-            등록날짜: '2025-08-05',
-            상태: '대기'
-        }
-    ];
+    fetchInspFinList();
 });
 
 function handleRowSelect(e) {
@@ -130,20 +84,19 @@ function handleRowSelect(e) {
     <div>
         <div class="card flex flex-col gap-4">
             <div class="font-semibold text-xl mb-4">검사 완료 목록</div>
-            <DataTable :value="productinspec" selectionMode="single" dataKey="name" @rowSelect="handleRowSelect" :selection="selectedItem" @update:selection="(val) => (selectedItem = val)">
+            <DataTable :value="productinspec" selectionMode="single" dataKey="자재검수번호" @rowSelect="handleRowSelect" :selection="selectedItem" @update:selection="(val) => (selectedItem = val)" :paginator="true" :rows="6">
                 <Column field="자재검수번호" header="자재검수번호" style="min-width: 80px" frozen class="font-bold" />
                 <Column field="발주번호" header="발주번호" />
                 <Column field="자재코드" header="자재코드" />
                 <Column field="자재명" header="자재명" />
-                <Column field="수량" header="수량(EA)" />
+                <Column field="수량_EA" header="수량(EA)" />
                 <Column field="등록날짜" header="등록날짜" />
                 <Column field="검사결과" header="검사결과" />
                 <Column field="검사완료날짜" header="검사완료날짜" />
             </DataTable>
-            <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator>
         </div>
     </div>
-    <!-- 상세 모달 -->
+    <!-- 상세모달 -->
     <Dialog v-model:visible="showDetail" header="검사 성적서" modal style="width: 800px">
         <div class="border p-4">
             <table class="border-collapse border w-full text-sm">

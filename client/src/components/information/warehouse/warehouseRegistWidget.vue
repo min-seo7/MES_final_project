@@ -37,7 +37,7 @@ const registWarehouse = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">창고코드</label>
-                    <InputText v-model="form.warehouseId" class="w-full" />
+                    <InputText v-model="form.warehouseId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
                 </div>
                 <div>
                     <label class="block mb-1">구역</label>

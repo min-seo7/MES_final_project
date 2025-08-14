@@ -1,28 +1,27 @@
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref, onUnmounted } from 'vue';
 import EmployeeSearchWidget from '@/components/information/employee/employeeSearchWidget.vue';
 import EmployeeListWidget from '@/components/information/employee/employeeListWidget.vue';
 import EmployeeRegistWidget from '@/components/information/employee/employeeRegistWidget.vue';
 
-const employeeList = ref([]);
+const employeeSearchData = ref([]);
 
-const fetchEmployeeList = async (searchCondition) => {
-    try {
-        const res = await axios.post('/api/information/employee/search', searchCondition);
-        return res.data;
-    } catch (err) {
-        console.error('사원조회 실패:', err);
-        return [];
-    }
+const handleSearch = (result) => {
+    employeeSearchData.value = result.map((item, index) => ({
+        num: index + 1,
+        ecode: item.employee_id, // 컬럼명 매핑
+        name: item.name,
+        department: item.department,
+        phone: item.phone || '',
+        email: item.email || '',
+        hiredate: item.hire_date || '',
+        enddate: item.leave_date || '',
+        pw: item.login_pw || '',
+        pwstatus: item.pw_change || '',
+        status: item.status,
+        role: item.auth
+    }));
 };
-
-const handleSearch = async (searchCondition) => {
-    employeeList.value = await fetchEmployeeList(searchCondition);
-    console.log(employeeList);
-};
-
-import { onUnmounted } from 'vue';
 
 onUnmounted(() => {
     console.log('employee.vue unmounted!');
@@ -31,8 +30,8 @@ onUnmounted(() => {
 
 <template>
     <section class="employee-container">
-        <EmployeeSearchWidget @search="handleSearch" />
-        <EmployeeListWidget :items="employeeList" />
+        <EmployeeSearchWidget @employeeFilterSearch="handleSearch" />
+        <EmployeeListWidget :items="employeeSearchData" />
         <EmployeeRegistWidget />
     </section>
 </template>

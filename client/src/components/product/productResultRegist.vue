@@ -173,8 +173,8 @@ const resetData = () => {
             <Button label=" 초기화 " severity="info" rounded @click="resetData" />
         </div>
     </div>
-    <div class="p-6 bg-gray-100 min-h-screen">
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="h-[calc(100vh - 100px)] overflow-hidden flex flex-col p-4">
+        <div class="flex-shrink-0 bg-white p-4 rounded-lg shadow-md mb-2">
             <div class="grid grid-cols-4 gap-4 items-center">
                 <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">작업자</label>
@@ -235,7 +235,7 @@ const resetData = () => {
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="flex-grow overflow-y-auto">
             <DataTable :value="products" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
                 <Column field="process" header="공정"></Column>
                 <Column field="line" header="라인"></Column>
