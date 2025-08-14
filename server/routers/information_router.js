@@ -18,10 +18,10 @@ router.post("/employee/search", async (req, res) => {
     console.log("BODY:", req.body);
     const employeeData = req.body;
     const result = await informationService.findAllEmployees(employeeData);
-    res.status(201).json({ message: "등록성공", result });
+    res.status(201).json({ message: "사원검색성공", result });
   } catch (error) {
-    console.error("사원등록 실패: information_router.js", error);
-    res.status(500).json({ message: "사원등록 실패", error: error.message });
+    console.error("사원검색 실패: information_router.js", error);
+    res.status(500).json({ message: "사원검색 실패", error: error.message });
   }
 });
 
@@ -251,6 +251,28 @@ router.get("/partner", async (req, res) => {
     res.json({ list });
   } catch (error) {
     res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/partner/getPartnerName", async (req, res) => {
+  try {
+    let list = await informationService.findAllpartnerName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.post("/partner/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const partnerData = req.body;
+    const result = await informationService.findAllPartner(partnerData);
+    res.status(201).json({ message: "거래처 검색성공", result });
+  } catch (error) {
+    console.error("거래처 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "거래처 검색 실패", error: error.message });
   }
 });
 

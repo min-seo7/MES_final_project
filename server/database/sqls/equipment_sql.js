@@ -132,5 +132,4 @@ module.exports = {
   selectEquipmentById,
   insertEquipment,
   updateEquipment,
-  selectEquipmentPickerList,
 };

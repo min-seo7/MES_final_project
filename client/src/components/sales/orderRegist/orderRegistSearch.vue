@@ -253,130 +253,133 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex justify-end mb-4 space-x-2">
-        <Button label="저장" severity="success" @click="registEmployee()" rounded />
-        <Button label="초기화" severity="info" rounded @click="resetOrders" />
-    </div>
+    <div>
+        <div class="flex justify-end mb-4 space-x-2">
+            <Button label="저장" severity="success" @click="registEmployee()" rounded />
+            <Button label="초기화" severity="info" rounded @click="resetOrders" />
+        </div>
 
-    <div class="font-semibold text-xl mb-4">검색</div>
-    <Toolbar>
-        <template #center>
-            <IconField>
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
-                    <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">거래처코드</label>
-                        <InputGroup>
-                            <InputText v-model="selectedSupplierCode" placeholder="거래처코드 선택" readonly />
-                            <Button icon="pi pi-search" @click="openModal('supplier')" />
-                        </InputGroup>
+        <div class="font-semibold text-xl mb-4">검색</div>
+        <Toolbar>
+            <template #center>
+                <IconField>
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">거래처코드</label>
+                            <InputGroup>
+                                <InputText v-model="selectedSupplierCode" placeholder="거래처코드 선택" readonly />
+                                <Button icon="pi pi-search" @click="openModal('supplier')" />
+                            </InputGroup>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">* 배송지</label>
+                            <InputText type="text" v-model="form.deliveryAddr" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">총제품단가</label>
+                            <InputText :value="totalUnitPrice.toLocaleString()" disabled />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">총공급가액</label>
+                            <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">거래처 담당자</label>
+                            <InputText type="text" v-model="form.manager" disabled />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm mb-1">주문 담당자</label>
+                            <InputText type="text" v-model="form.orderManager" placeholder="담당자 이름" />
+                        </div>
                     </div>
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">* 배송지</label>
-                        <InputText type="text" v-model="form.deliveryAddr" />
+                        <label class="font-semibold text-sm mb-1">거래처명</label>
+                        <InputText type="text" v-model="form.partnerName" disabled />
                     </div>
-                    <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">총제품단가</label>
-                        <InputText :value="totalUnitPrice.toLocaleString()" disabled />
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">총공급가액</label>
-                        <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled />
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">거래처 담당자</label>
-                        <InputText type="text" v-model="form.manager" disabled />
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">주문 담당자</label>
-                        <InputText type="text" v-model="form.orderManager" placeholder="담당자 이름" />
-                    </div>
+                </IconField>
+            </template>
+        </Toolbar>
+        <!-- icon="pi pi-plus" -->
+        <br />
+        <div class="flex gap-3 mt-4 justify-end">
+            <Button label="추가" @click="addOrder" rounded />
+            <Button label="삭제" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" rounded />
+        </div>
+        <div class="font-semibold text-xl mb-4">주문등록</div>
+        <div class="p-4 border rounded-md shadow-md mt-6" style="background-color: white">
+            <div
+                v-for="order in orders"
+                :key="order.itemSeq"
+                class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-4 items-start cursor-pointer p-2 rounded-md transition-colors"
+                :class="{ 'bg-blue-100': selectedOrder && selectedOrder.itemSeq === order.itemSeq }"
+                @click="selectOrder(order)"
+            >
+                <div class="flex flex-col min-h-[80px]">
+                    <label class="font-semibold text-sm mb-1">주문내역번호</label>
+                    <div class="text-sm font-medium text-center">{{ order.itemSeq }}</div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">거래처명</label>
-                    <InputText type="text" v-model="form.partnerName" disabled />
+                    <label class="font-semibold text-sm mb-1">제품명</label>
+                    <InputGroup>
+                        <InputText v-model="order.productName" placeholder="제품선택" readonly />
+                        <Button icon="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
+                    </InputGroup>
                 </div>
-            </IconField>
-        </template>
-    </Toolbar>
-
-    <br />
-    <div class="font-semibold text-xl mb-4">주문등록</div>
-    <div class="p-4 border rounded-md shadow-md mt-6">
-        <div
-            v-for="order in orders"
-            :key="order.itemSeq"
-            class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-4 items-start cursor-pointer p-2 rounded-md transition-colors"
-            :class="{ 'bg-blue-100': selectedOrder && selectedOrder.itemSeq === order.itemSeq }"
-            @click="selectOrder(order)"
-        >
-            <div class="flex flex-col min-h-[80px]">
-                <label class="font-semibold text-sm mb-1">주문내역번호</label>
-                <div class="text-sm font-medium text-center">{{ order.itemSeq }}</div>
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm mb-1">제품명</label>
-                <InputGroup>
-                    <InputText v-model="order.productName" placeholder="제품선택" readonly />
-                    <Button icon="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
-                </InputGroup>
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm mb-1">* 수량</label>
-                <InputNumber v-model="order.quantity" :min="1" showButtons class="w-full" />
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm mb-1">* 납기일</label>
-                <Calendar v-model="order.delDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm mb-1">규격</label>
-                <InputText v-model="order.specification" class="w-full" disabled />
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm mb-1">제품단가</label>
-                <InputNumber v-model="order.productPrice" :min="0" class="w-full" disabled />
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm mb-1">공급가액</label>
-                <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" />
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm mb-1">* 수량</label>
+                    <InputNumber v-model="order.quantity" :min="1" showButtons class="w-full" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm mb-1">* 납기일</label>
+                    <Calendar v-model="order.delDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm mb-1">규격</label>
+                    <InputText v-model="order.specification" class="w-full" disabled />
+                </div>
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm mb-1">제품단가</label>
+                    <InputNumber v-model="order.productPrice" :min="0" class="w-full" disabled />
+                </div>
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm mb-1">공급가액</label>
+                    <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" />
+                </div>
             </div>
         </div>
-
-        <div class="flex gap-3 mt-4 justify-center">
-            <Button label="주문내역 추가" icon="pi pi-plus" @click="addOrder" />
-            <Button label="주문내역 삭제" icon="pi pi-minus" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" />
-        </div>
+        <!-- ESLint 설정에서 발생한 에러 -->
+        <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="closeModal">
+            <div class="p-4">
+                <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
+                <ul class="mb-3">
+                    <li
+                        v-for="supplier in pagedSupplierList"
+                        :key="supplier.partnerId"
+                        :class="['cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded', selectedSupplierCode === supplier.partnerId ? 'bg-blue-100 text-blue-700 font-semibold' : '']"
+                        @click="selectModalValue(supplier.partnerId)"
+                    >
+                        • {{ supplier.partnerId }} - {{ supplier.partnerName }} - {{ supplier.address }} - {{ supplier.ceo }} - {{ supplier.manager }} - {{ supplier.mainTel }}
+                    </li>
+                </ul>
+            </div>
+            <div class="flex justify-center gap-2 pb-4">
+                <Button label="이전" @click="currentPage--" :disabled="currentPage === 1" size="small" />
+                <span class="px-2">페이지 {{ currentPage }} / {{ totalPages }}</span>
+                <Button label="다음" @click="currentPage++" :disabled="currentPage === totalPages" size="small" />
+            </div>
+        </Dialog>
+        <!-- ESLint 설정에서 발생한 에러 -->
+        <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="showProductModal = false">
+            <div class="p-4">
+                <p class="font-bold mb-3 text-lg">🔍 제품을 선택하세요</p>
+                <ul class="mb-3">
+                    <li v-for="product in products" :key="product.productId" class="cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded" @click="selectProduct(product)">
+                        • {{ product.productName }} - {{ product.productType }} - {{ product.productId }} - {{ product.specification }}{{ product.unit }}
+                    </li>
+                </ul>
+            </div>
+        </Dialog>
     </div>
-    <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="closeModal">
-        <div class="p-4">
-            <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
-            <ul class="mb-3">
-                <li
-                    v-for="supplier in pagedSupplierList"
-                    :key="supplier.partnerId"
-                    :class="['cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded', selectedSupplierCode === supplier.partnerId ? 'bg-blue-100 text-blue-700 font-semibold' : '']"
-                    @click="selectModalValue(supplier.partnerId)"
-                >
-                    • {{ supplier.partnerId }} - {{ supplier.partnerName }} - {{ supplier.address }} - {{ supplier.ceo }} - {{ supplier.manager }} - {{ supplier.mainTel }}
-                </li>
-            </ul>
-        </div>
-        <div class="flex justify-center gap-2 pb-4">
-            <Button label="이전" @click="currentPage--" :disabled="currentPage === 1" size="small" />
-            <span class="px-2">페이지 {{ currentPage }} / {{ totalPages }}</span>
-            <Button label="다음" @click="currentPage++" :disabled="currentPage === totalPages" size="small" />
-        </div>
-    </Dialog>
-    <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="showProductModal = false">
-        <div class="p-4">
-            <p class="font-bold mb-3 text-lg">🔍 제품을 선택하세요</p>
-            <ul class="mb-3">
-                <li v-for="product in products" :key="product.productId" class="cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded" @click="selectProduct(product)">
-                    • {{ product.productName }} - {{ product.productType }} - {{ product.productId }} - {{ product.specification }}{{ product.unit }}
-                </li>
-            </ul>
-        </div>
-    </Dialog>
 </template>
 
 <style>

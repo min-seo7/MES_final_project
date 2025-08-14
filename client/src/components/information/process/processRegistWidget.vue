@@ -42,7 +42,7 @@ const modifyProcess = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">공정코드</label>
-                    <InputText v-model="form.processId" class="w-full" />
+                    <InputText v-model="form.processId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
                 </div>
                 <div>
                     <label class="block mb-1">검사유무</label>

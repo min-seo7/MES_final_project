@@ -73,7 +73,7 @@ const registMaterial = async () => {
                 <div>
                     <label class="block mb-1">자재코드</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.materialId" class="w-full" />
+                        <InputText v-model="form.materialId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
                         <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
