@@ -161,7 +161,7 @@ export default {
         async insertPurse() {
             try {
                 //마스터T 정보
-                if(this.dueDate || this.prtnerId || this.empname == null){
+                if(!this.dueDate || !this.partnerId || !this.empName){
                     alert('필수정보입력');
                     return;
                 }
@@ -191,6 +191,9 @@ export default {
 
                 //서브 DB저장
                 await axios.post('/api/stock/purDetail', subInfo);
+
+                //등록 알람
+                alert('발주등록 완료');
                 //초기화
                 this.reset();
             } catch (error) {
@@ -311,11 +314,11 @@ export default {
 
     <!--모달영역-->
     <!--공급처모달-->
-    <commModal v-model="partnerModal" header="공급처목록">
+    <commModal v-model="partnerModal" header="거래처목록">
         <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">공급처코드</label>
+            <label for="partnerId">거래처코드</label>
             <InputText id="partnerId" type="text" />
-            <label for="partnerName">공급처명</label>
+            <label for="partnerName">거래처명</label>
             <InputText id="partnerName" type="text" />
             <Button label="검색" />
         </div>

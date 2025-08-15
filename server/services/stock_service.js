@@ -105,7 +105,10 @@ let matLotCancel = async (matLotCancelInfoList) => {
 //제품출고
 //
 //제품출고대기목록
-//
+let prdOutWaitList = async () => {
+  let prdOutWaitList = await mariadb.query("prdShipWaitListQurey");
+  return prdOutWaitList;
+};
 //제품출고목록
 
 module.exports = {
@@ -122,4 +125,5 @@ module.exports = {
   matLotList,
   matReturn,
   matLotCancel,
+  prdOutWaitList,
 };

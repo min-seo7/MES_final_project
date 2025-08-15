@@ -12,7 +12,7 @@ let partnerListQuery = `SELECT partner_type,
                                   partner_id, 
                                   partner_name
                             FROM partner
-                            WHERE status = '활성';`;
+                            WHERE status = '활성'`;
 
 //제품(모달용)
 let productListQuery = `SELECT product_id, 
@@ -117,7 +117,18 @@ let matLotCancelQuery = ` UPDATE  tbl_mat_lot
 //제품출고
 //
 //제품출고대기목록
-let prdShipWaitListQurey = ``;
+let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS shipment_date,
+		                               sh.shipment_id, 
+		                               sh.product_code,
+                                   p.product_name,
+		                               sh.shipment_qty,
+                                   p.unit,
+                                   pa.partner_name
+                            FROM ztest_shipment sh
+                            INNER JOIN product p
+                            ON sh.product_code = p.product_id
+                            INNER JOIN partner pa
+                            ON sh.partner = pa.partner_id;`;
 
 //제품출고목록
 let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
@@ -125,7 +136,6 @@ let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date
                                     po.product_id,
                                     p.product_name,
                                     po.prd_out_qty,
-                                    p.unit,
                                     s.product_name,
                                     po.e_name,
                                     po.ship_partner,
@@ -150,5 +160,6 @@ module.exports = {
   matLotListQuery,
   matReturnQuery,
   matLotCancelQuery,
+  prdShipWaitListQurey,
   prdOutListQuery,
 };

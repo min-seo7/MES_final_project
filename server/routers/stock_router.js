@@ -144,5 +144,19 @@ router.post("/matLotCancel", async (req, res) => {
     res.status(500).json({ message: "(서버)입고취소 실패" });
   }
 });
-
+//제품관리============================================================================
+//제품입고
+//
+//제품출고
+//
+//제품출고대기목록
+router.get("/prdWOutList", async (req, res) => {
+  try {
+    let prdWoutList = await stockService.prdOutWaitList();
+    res.json(prdWoutList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)출고대기목록 오류" });
+  }
+});
 module.exports = router;
