@@ -4,6 +4,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import 'primeicons/primeicons.css'
 import axios from 'axios';
 
 export default {
@@ -124,6 +125,12 @@ export default {
                 comm: ''
             });
         },
+        removeRow(){
+           if (this.purshaseList.length > 1) {
+                this.purshaseList.pop(); 
+                this.count--;
+            }
+        },
         reset() {
             //초기화버튼
             console.log('초기화');
@@ -154,6 +161,10 @@ export default {
         async insertPurse() {
             try {
                 //마스터T 정보
+                if(this.dueDate || this.prtnerId || this.empname == null){
+                    alert('필수정보입력');
+                    return;
+                }
                 let masterInfo = {
                     re_date: this.reDate,
                     due_date: this.dateFormat(this.dueDate),
@@ -206,7 +217,6 @@ export default {
         <div class="font-semibold text-2xl mb-4">발주등록페이지</div>
     </div>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" + 추 가 " rounded @click="addEmptyRow()" />
         <Button label=" 등 록 " rounded @click="insertPurse()" />
         <Button label=" 초기화 " severity="info" rounded @click="reset()" />
     </div>
@@ -268,6 +278,10 @@ export default {
                     </div>
                 </div>
                 <!--입력 input박스끝-->
+                <div class ="flex justify-end mt-0 space-x-2">
+                        <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addEmptyRow()" />
+                        <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow()" />
+                </div>
                 <div>
                     <DataTable :value="purshaseList" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
                         <Column field="id" header="" style="min-width: 30px" frozen class="font-bold"></Column>

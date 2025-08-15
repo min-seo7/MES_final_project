@@ -44,8 +44,8 @@ export default {
             pandingCol: [
                 { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
                 { field: 'p_purNo', header: '발주번호', headerStyle: 'width: 25rem' },
-                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 12rem' },
-                { field: 'p_matName', header: '자재명', headerStyle: 'width: 30rem' },
+                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 12rem'},
+                { field: 'p_matName', header: '자재명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenMatModal},
                 { field: 'p_testResult', header: '검사결과', headerStyle: 'width: 13rem' },
                 { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
                 { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
@@ -86,6 +86,26 @@ export default {
         },
         //테이블 영역==================================================
         //입고대기
+            addNewRow() {
+            let newRow = {
+                id: `temp-${Date.now()}`,
+                p_dueDate: '',
+                p_purNo: '',
+                p_matCode: '',
+                p_matName: '',
+                p_testResult: '',
+                p_testPassQty: 0,
+                p_receiptQty: 0,
+                p_unit: '',
+                p_partnerName: '',
+                p_warehouse: '',
+                p_memo: '',
+                p_testNo: '',
+                p_purchId: '',
+                isNew: true
+            };
+            this.MatReceiptPanding.unshift(newRow);
+        },
         async getMatPandigList() {
             try {
                 const res = await axios.get('/api/stock/matPandingList');
@@ -111,6 +131,21 @@ export default {
         },
         //입고등록
         async postInsertMat() {
+             if (this.selectPandingMats == null) {
+                alert('입고처리할 자재를 선택해주세요.');
+                return;
+             }
+
+               // 필수값 체크: p_matCode, p_receiptQty, p_warehouse
+            let checkNull = this.selectPandingMats.find(row => {
+                return !row.p_matCode || !row.p_warehouse || row.p_receiptQty == null;
+            });
+
+            if (checkNull) {
+                alert('자재, 입고수량, 창고는 필수입니다.');
+                return;
+            }
+
             try {
                 //정보담기 [자재코드, 최초수량, 보관장소, 담당자이름, 비고, 검수번호]
                 let purInfo = this.selectPandingMats.map((row) => ({
@@ -124,8 +159,9 @@ export default {
                 console.log(purInfo);
                 await axios.post('/api/stock/reMatLot', purInfo);
             } catch (error) {
-                console.lof('입고등록실패', error);
+                console.log('입고등록실패', error);
             }
+            alert('입고등록 완료');
         },
         //입고처리목록들
         async getMatLotLIst() {
@@ -149,33 +185,34 @@ export default {
         //반품
         async postReject() {
             if (!this.selectPandingMats) {
-                alert('대기자재 반품가능');
-            } else {
-                try {
-                    let rejecgInfo = this.this.selectPandingMats.map((row) => ({
-                        purch_id: row.p_purchId
-                    }));
-                    await axios.post('/api/stock/matReturn', rejecgInfo);
-                } catch (error) {
-                    console.lof('반품실패', error);
-                }
-                this.getMatPandigList();
+                alert('입고대기중인 자재만 반품가능합니다.');
+                return;
             }
-        },
+            try {
+                let rejecgInfo = this.this.selectPandingMats.map((row) => ({
+                    purch_id: row.p_purchId
+                }));
+                await axios.post('/api/stock/matReturn', rejecgInfo);
+            } catch (error) {
+                console.lof('반품실패', error);
+            }
+            this.getMatPandigList();
+            },
         //입고취소
         async postCanelLot() {
             if (!this.selectMatLots) {
-                alert('입고확정시 취소가능');
-            } else {
-                try {
-                    let cancelLotInfo = this.this.selectMatLots.map((row) => ({
-                        lot_no: row.matLotNo
-                    }));
-                    await axios.post('/api/stock/matLotCancel', cancelLotInfo);
-                } catch (error) {
-                    console.lof('취소실패', error);
-                }
+                alert('입고가 확정된 자재만 취소가능합니다.');
+                return;
+            } 
+            try {
+                let cancelLotInfo = this.selectMatLots.map((row) => ({
+                    lot_no: row.matLotNo
+                }));
+                await axios.post('/api/stock/matLotCancel', cancelLotInfo);
+            } catch (error) {
+                console.lof('취소실패', error);
             }
+            
             this.getMatPandigList();
         },
         //모달==============================================================================
@@ -185,9 +222,14 @@ export default {
             this.getMatList();
         },
         onSelectMat() {
-            //(모달)자재선택시 반영.
-            this.materialCode = this.selectMat.matCode;
-            this.materialName = this.selectMat.matName;
+            if (this.selectRow !== null) {
+                this.MatReceiptPanding[this.selectRow].p_matCode = this.selectMat.matCode;
+                this.MatReceiptPanding[this.selectRow].p_matName = this.selectMat.matName;
+            }else{
+                //(모달)자재선택시 반영.
+                this.materialCode = this.selectMat.matCode;
+                this.materialName = this.selectMat.matName;
+            }
 
             this.materialModal = false;
         },
@@ -203,6 +245,11 @@ export default {
             } catch (error) {
                 console.error('자재목록 불러오기 실패:', error);
             }
+        },
+        rowOpenMatModal(rowIndex){
+            this.selectRow = rowIndex; // 클릭한 테이블 행 index
+            this.materialModal = true;
+            this.getMatList();
         },
         //보관창고(모달) ===========
         openWarehouseeModal(rowIndex) {
@@ -307,7 +354,7 @@ export default {
         <stockCommRowBtn
             :buttons="[
                 { label: '입고등록', icon: 'pi pi-check', onClick: postInsertMat },
-                { label: '신규', icon: 'pi pi-plus', onClick: deleteHandler },
+                { label: '신규', icon: 'pi pi-plus', onClick: addNewRow },
                 { label: '반품', icon: 'pi pi-box', onClick: postReject },
                 { label: '입고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"

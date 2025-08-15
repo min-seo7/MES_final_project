@@ -117,7 +117,8 @@ let matLotCancelQuery = ` UPDATE  tbl_mat_lot
 //제품출고
 //
 //제품출고대기목록
-//
+let prdShipWaitListQurey = ``;
+
 //제품출고목록
 let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
                                     po.prd_out_no,
