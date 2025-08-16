@@ -1,31 +1,31 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { defineProps } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 
-const items = ref([]);
-
-// API 호출 함수
-const fetchWarehouse = async () => {
-    try {
-        const response = await axios.get('/api/information/warehouse');
-        items.value = response.data.map((item, index) => ({
-            num: index + 1,
-            warehouseId: item.warehouse_id,
-            warehouse: item.warehouse,
-            zone: item.zone,
-            subZone: item.sub_zone,
-            floor: item.floor,
-            location: item.location,
-            warehouseType: item.warehouse_type,
-            status: item.status
-        }));
-    } catch (error) {
-        console.error('실패:', error);
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
     }
+});
+
+// 선택된 master 행
+const selectedMaster = ref(null);
+
+// row 클릭 시
+const onRowClick = async (event) => {
+    selectedMaster.value = event.data;
+    // detail 데이터 fetch 가능
 };
 
-onMounted(() => {
-    fetchWarehouse();
+// 최소 5행으로 맞춘 데이터
+const tableData = computed(() => {
+    const rows = [...props.items];
+    while (rows.length < 5) {
+        rows.push({}); // 빈 객체를 넣어 빈 행 표시
+    }
+    return rows;
 });
 </script>
 
@@ -34,8 +34,14 @@ onMounted(() => {
         <h2 class="text-xl font-bold">목록</h2>
     </div>
 
-    <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
-        <Column field="num" header="" />
+    <DataTable
+        :value="tableData"
+        :rows="5"
+        :paginator="props.items.length > 5"
+        showGridlines
+        @row-click="onRowClick"
+        selection-mode="single"
+    >        <Column field="num" header="" />
         <Column field="warehouseId" header="창고코드" />
         <Column field="warehouse" header="창고" />
         <Column field="zone" header="구역" />

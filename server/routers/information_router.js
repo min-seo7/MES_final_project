@@ -3,6 +3,91 @@ const router = express.Router();
 
 const informationService = require("../services/information_service.js");
 
+router.post("/bom/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const bomData = req.body;
+    const result = await informationService.findAllBOM(bomData);
+    res.status(201).json({ message: "bom 검색성공", result });
+  } catch (error) {
+    console.error("bom 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "bom 검색 실패", error: error.message });
+  }
+});
+
+
+router.post("/flowchart/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const flowchartData = req.body;
+    const result = await informationService.findAllFlowchart(flowchartData);
+    res.status(201).json({ message: "flowchart 검색성공", result });
+  } catch (error) {
+    console.error("flowchart 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "flowchart 검색 실패", error: error.message });
+  }
+});
+
+router.post("/line/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const lineData = req.body;
+    const result = await informationService.findAllLine(lineData);
+    res.status(201).json({ message: "line 검색성공", result });
+  } catch (error) {
+    console.error("line 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "line 검색 실패", error: error.message });
+  }
+});
+
+router.post("/material/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const materialData = req.body;
+    const result = await informationService.findAllMaterial(materialData);
+    res.status(201).json({ message: "material 검색성공", result });
+  } catch (error) {
+    console.error("material 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "material 검색 실패", error: error.message });
+  }
+});
+
+router.post("/process/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const processData = req.body;
+    const result = await informationService.findAllProcess(processData);
+    res.status(201).json({ message: "process 검색성공", result });
+  } catch (error) {
+    console.error("process 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "process 검색 실패", error: error.message });
+  }
+});
+
+router.post("/product/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const productData = req.body;
+    const result = await informationService.findAllProduct(productData);
+    res.status(201).json({ message: "product 검색성공", result });
+  } catch (error) {
+    console.error("product 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "product 검색 실패", error: error.message });
+  }
+});
+
+router.post("/warehouse/search", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const warehouseData = req.body;
+    const result = await informationService.findAllWarehouse(warehouseData);
+    res.status(201).json({ message: "warehouse 검색성공", result });
+  } catch (error) {
+    console.error("warehouse 검색 실패: information_router.js", error);
+    res.status(500).json({ message: "warehouse 검색 실패", error: error.message });
+  }
+});
+
 router.get("/employee/getEmployeeId", async (req, res) => {
   try {
     let list = await informationService.findAllEmployeeId();
@@ -129,15 +214,24 @@ router.get("/line", async (req, res) => {
   }
 });
 
+
 router.post("/line", async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    const processData = req.body;
-    const result = await informationService.insertLine(processData);
-    res.status(201).json({ message: "라인등록성공", result });
-  } catch (error) {
-    console.error("라인등록 실패: information_router.js", error);
-    res.status(500).json({ message: "라인등록 실패", error: error.message });
+    const { lineInfo, lineDetails } = req.body;
+    if (!lineInfo || !lineDetails) {
+      return res
+        .status(400)
+        .json({ success: false, message: "데이터가 부족합니다." });
+    }
+    const result = await informationService.insertAllLine(lineInfo, lineDetails);
+    if (result.success) {
+      res.json({ success: true, newLineId: result.newLineId });
+    } else {
+      res.status(500).json({ success: false, message: result.error });
+    }
+  } catch (err) {
+    console.error("POST /line Error:", err);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -191,17 +285,28 @@ router.get("/flowchart", async (req, res) => {
   }
 });
 
+
 router.post("/flowchart", async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    const flowData = req.body;
-    const result = await informationService.insertFlowchart(flowData);
-    res.status(201).json({ message: "흐름도 등록성공", result });
-  } catch (error) {
-    console.error("흐름도 등록 실패: information_router.js", error);
-    res.status(500).json({ message: "흐름도 등록 실패", error: error.message });
+    const { flowInfo, flowDetails } = req.body;
+    if (!flowInfo || !flowDetails) {
+      return res
+        .status(400)
+        .json({ success: false, message: "데이터가 부족합니다." });
+    }
+    const result = await informationService.insertAllFlowchart(flowInfo, flowDetails);
+    if (result.success) {
+      res.json({ success: true, newFlowId: result.newFlowId });
+    } else {
+      res.status(500).json({ success: false, message: result.error });
+    }
+  } catch (err) {
+    console.error("POST /flowchart Error:", err);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
+
+
 
 router.post("/flowchart/modify", async (req, res) => {
   try {

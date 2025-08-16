@@ -10,6 +10,24 @@ const props = defineProps({
     }
 });
 
+// 선택된 master 행
+const selectedMaster = ref(null);
+
+// row 클릭 시
+const onRowClick = async (event) => {
+    selectedMaster.value = event.data;
+    // detail 데이터 fetch 가능
+};
+
+// 최소 5행으로 맞춘 데이터
+const tableData = computed(() => {
+    const rows = [...props.items];
+    while (rows.length < 5) {
+        rows.push({}); // 빈 객체를 넣어 빈 행 표시
+    }
+    return rows;
+});
+
 // // API 호출 함수
 // const fetchPartners = async () => {
 //     try {
@@ -41,8 +59,14 @@ const props = defineProps({
         <h2 class="text-xl font-bold">목록</h2>
     </div>
 
-    <DataTable :value="props.items" :rows="5" :paginator="true" showGridlines>
-        <Column field="num" header="" />
+    <DataTable
+        :value="tableData"
+        :rows="5"
+        :paginator="props.items.length > 5"
+        showGridlines
+        @row-click="onRowClick"
+        selection-mode="single"
+    >        <Column field="num" header="" />
         <Column field="partnerId" header="거래처코드" />
         <Column field="partnerType" header="거래처유형" />
         <Column field="partnerName" header="거래처명" />

@@ -3,7 +3,7 @@ import { ref, defineEmits } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
-const emits = defineEmits(['employeeFilterSearch']);
+const emits = defineEmits(['materialFilterSearch']);
 
 const items = ref([]);
 const columns = ref([]);
@@ -12,9 +12,8 @@ const modalType = ref('');
 const selectedItem = ref(null);
 
 const search = ref({
-    employeeId: '',
-    department: '',
-    auth: '',
+    materialId: '',
+    materialName: '',
     status: ''
 });
 
@@ -24,29 +23,16 @@ const openModal = async (type) => {
     showModal.value = true;
     selectedItem.value = null;
 
-    if (type === 'employeeId') {
+    if (type === 'materialName') {
         resetSearch();
-        const res = await axios.get('/api/information/employee/getEmployeeId');
+        const res = await axios.get('/api/information/material/getMaterialName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            employeeId: item.employee_id,
-            name: item.name,
-            department: item.department,
-            status: item.status,
-            auth: item.auth
+            materialName: item.material_name,
         }));
         columns.value = [
-            { field: 'employeeId', header: '사원번호' },
-            { field: 'name', header: '사원명' },
-            { field: 'department', header: '부서명' },
-            { field: 'auth', header: '권한' },
-            { field: 'status', header: '상태' }
+            { field: 'materialName', header: '자재명' },
         ];
-    } else if (type === 'department') {
-        resetSearch();
-        const departments = ['기준정보관리부', '영업부', '재고부', '생산부', '품질관리부', '설비부'];
-        items.value = departments.map((dept) => ({ deptName: dept }));
-        columns.value = [{ field: 'deptName', header: '부서명' }];
     }
 };
 
@@ -57,9 +43,8 @@ const selectModalValue = () => {
         return;
     }
 
-    search.value.employeeId = selectedItem.value.employeeId;
-    search.value.department = selectedItem.value.department || selectedItem.value.deptName;
-    search.value.auth = selectedItem.value.auth;
+    search.value.materialId = selectedItem.value.materialId;
+    search.value.materialName = selectedItem.value.materialName;
     search.value.status = selectedItem.value.status;
 
     showModal.value = false;
@@ -67,9 +52,8 @@ const selectModalValue = () => {
 
 // 선택필터초기화
 const resetSearch = () => {
-    search.value.employeeId = '';
-    search.value.department = '';
-    search.value.auth = '';
+    search.value.materialId = '';
+    search.value.materialName = '';
     search.value.status = '';
     selectedItem.value = null;
 };
@@ -78,17 +62,16 @@ const resetSearch = () => {
 const selectSearch = async () => {
     try {
         const payload = {
-            employeeId: search.value.employeeId || null,
-            department: search.value.department || null,
-            auth: search.value.auth || null,
+            materialId: search.value.materialId || null,
+            materialName: search.value.materialName || null,
             status: search.value.status || null
         };
 
-        const res = await axios.post('/api/information/employee/search', payload);
+        const res = await axios.post('/api/information/material/search', payload);
         console.log(res.data.result);
-        emits('employeeFilterSearch', res.data.result);
+        emits('materialFilterSearch', res.data.result);
     } catch (err) {
-        console.log('사원검색실패');
+        console.log('material 검색실패');
     }
 };
 </script>
@@ -97,8 +80,8 @@ const selectSearch = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>검색조건</div>
         <div class="space-x-2">
-            <Button label=" 조회 " rounded @click="selectSearch" />
-            <Button label=" 초기화 " severity="info" rounded @click="resetSearch" />
+            <Button label=" 조회 " rounded @click="selectSearch"></Button>
+            <Button label=" 초기화 " severity="info" rounded @click="resetSearch"></Button>
         </div>
     </div>
 
@@ -110,7 +93,6 @@ const selectSearch = async () => {
                     <label for="materialId" class="whitespace-nowrap">자재코드</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="materialId" type="text" class="w-60" v-model="search.materialId" />
-                        <InputIcon class="pi pi-search" @click="openModal('department')" />
                     </IconField>
                 </div>
 
@@ -121,6 +103,20 @@ const selectSearch = async () => {
                         <InputText id="materialName" type="text" class="w-60" v-model="search.materialName" />
                         <InputIcon class="pi pi-search" @click="openModal('materialName')" />
                     </IconField>
+                </div>
+
+
+                <!-- 상태 라디오 그룹 -->
+                <div class="flex items-center gap-2">
+                    <label for="materialCode" class="whitespace-nowrap">상태</label>
+                    <div class="flex items-center">
+                        <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                            <RadioButton id="status1" name="status" value="사용" v-model="search.status" />
+                            <label for="status1" class="ml-2 mr-4">사용</label>
+                            <RadioButton id="status2" name="status" value="미사용" v-model="search.status" />
+                            <label for="status2" class="ml-2">미사용</label>
+                        </label>
+                    </div>
                 </div>
             </div>
         </template>

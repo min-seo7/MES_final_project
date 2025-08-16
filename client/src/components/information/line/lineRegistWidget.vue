@@ -2,6 +2,13 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
+const props = defineProps({
+    detailData: {
+        type: Array,
+        default: () => []
+    }
+});
+
 const form = ref({
     lineId: '',
     lineName: '',
@@ -12,13 +19,44 @@ const form = ref({
 });
 
 const registLine = async () => {
+    if (!form.value.productId) {
+        alert('제품코드를 선택해주세요.');
+        return;
+    }
+    if (!form.value.status) {
+        alert('상태를 선택해주세요.');
+        return;
+    }
+    if (props.detailData.length === 0) {
+        alert('Line 상세 항목을 추가해주세요.');
+        return;
+    }
+
     try {
-        const res = await axios.post('/api/information/line', form.value);
-        alert(res.data.message);
+        const payload = {
+            bomInfo: {
+                // 서버에서 받을 기본 정보
+                lineId: form.value.lineId,
+                lineName: form.value.lineName,
+                flowId: form.value.flowId,
+                productId: form.value.productId,
+                note: form.value.note,
+                status: form.value.status
+            },
+            bomDetails: props.detailData // 서버에서 받을 상세 리스트
+        };
+
+        const res = await axios.post('/api/information/line', payload, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        alert(res.data.message || '등록 성공');
     } catch (err) {
-        console.log('line 등록실패');
+        console.error(err);
+        alert('등록 실패');
     }
 };
+
 </script>
 
 <template>

@@ -13,7 +13,7 @@ SELECT distinct partner_name
 FROM partner`;
 
 // 창고조회
-const selectWarehouse = `
+const selectWarehouseList = `
  SELECT warehouse_id,
         warehouse,
         zone,
@@ -22,7 +22,20 @@ const selectWarehouse = `
         location,
         warehouse_type,
         status
-FROM warehouse`;
+FROM warehouse
+WHERE 1=1
+  AND warehouse_id = COALESCE(?, warehouse_id)
+  AND warehouse = COALESCE(?, warehouse)
+  AND location = COALESCE(?, location)
+  AND warehouse_type = COALESCE(?, warehouse_type)
+  AND status = COALESCE(?, status)`;
+
+// 마지막 창고id 조회
+const selectMaxWarehouseId = `
+  SELECT MAX(warehouse_id) AS max_WH_id
+  FROM warehouse
+  FOR UPDATE
+`;
 
 // 창고등록
 const insertWarehouse = `
@@ -49,7 +62,7 @@ SET warehouse = ?,
 WHERE warehouse_id = ?`;
 
 // 제품조회
-const selectProduct = `
+const selectProductList = `
 SELECT product_id,
        product_type,
        product_form,
@@ -63,8 +76,21 @@ SELECT product_id,
        safety_stock_unit,
        product_manual,
        status
-FROM product`;
+FROM product
+WHERE 1=1
+  AND product_id = COALESCE(?, product_id)
+  AND product_name = COALESCE(?, product_name)
+  AND product_type = COALESCE(?, product_type)
+  AND product_form = COALESCE(?, product_form)
+  AND status = COALESCE(?, status)`;
 
+
+// 마지막 제품 ID 조회
+const selectMaxProductId = `
+  SELECT MAX(product_id) AS max_product_id
+  FROM product
+  FOR UPDATE
+`;
 // 제품등록
 const insertProduct = `
 INSERT INTO product (product_id,
@@ -100,7 +126,7 @@ SET product_type = ?,
 WHERE  product_id = ?`;
 
 // 자재 조회
-const selectMaterial = `
+const selectMaterialList = `
 SELECT material_id,
        material_name,
        material_type,
@@ -110,7 +136,12 @@ SELECT material_id,
        safety_stock,
        safety_stock_unit,
        status
-FROM material`;
+FROM material
+WHERE 1=1
+  AND material_id = COALESCE(?, material_id)
+  AND material_name = COALESCE(?, material_name)
+  AND status = COALESCE(?, status)`;
+
 
 // 자재 등록
 const insertMaterial = `
@@ -170,6 +201,13 @@ SELECT partner_id
        , status
 FROM partner`;
 
+// 마지막 partner_id 조회
+const selectMaxPartnerId = `
+  SELECT MAX(partner_id) AS max_partner_id
+  FROM partner
+  FOR UPDATE
+`;
+
 // 거래처 등록
 const insertPartner = `
 INSERT INTO partner (partner_id,
@@ -197,7 +235,7 @@ SET  partner_type = ?,
 WHERE partner_id = 'SUP001'`;
 
 // 흐름도 조회
-const selectFlowchart = `
+const selectFlowchartList = `
 SELECT f.flow_id
        , f.flow_name
        , f.product_id
@@ -207,6 +245,12 @@ SELECT f.flow_id
        , f.status
 FROM flowchart f INNER JOIN product p
 			ON f.product_id = p.product_id
+WHERE 1=1
+  AND f.flow_id = COALESCE(?, f.flow_id)
+  AND f.flow_name = COALESCE(?, f.flow_name)
+  AND f.product_id = COALESCE(?, f.product_id)
+  AND p.product_name = COALESCE(?, p.product_name)
+  AND b.status = COALESCE(?, b.status)
  `;
 
 // 흐름도 등록
@@ -283,20 +327,31 @@ SET equipment_id = ?,
     status = ?`;
 
 // 라인조회
-const selectLine = `
+const selectLineList = `
 SELECT l.line_id
-		, l.line_name
-        , l.flow_id
-        , f.flow_name
-        , l.product_id
-        , p.product_name
-        , l.note
-        , DATE_FORMAT(l.created_date, '%Y-%m-%d') as created_date
-        , l.status
-FROM line l INNER JOIN product p
-	        ON l.product_id = p.product_id
-            INNER JOIN flowchart f
-            ON l.flow_id = f.flow_id`;
+     , l.line_name
+     , l.flow_id
+     , f.flow_name
+     , l.product_id
+     , p.product_name
+     , l.note
+     , DATE_FORMAT(l.created_date, '%Y-%m-%d') AS created_date
+     , l.status
+FROM line l
+INNER JOIN product p ON l.product_id = p.product_id
+INNER JOIN flowchart f ON l.flow_id = f.flow_id
+WHERE 1=1
+  AND l.line_id   = COALESCE(?, l.line_id)
+  AND l.line_name = COALESCE(?, l.line_name)
+  AND EXISTS (
+        SELECT 1
+        FROM line_detail d
+        WHERE d.line_id = l.line_id
+          AND (? IS NULL OR d.process_id   = ?)
+          AND (? IS NULL OR d.equipment_id = ?)
+      )
+  AND l.status = COALESCE(?, l.status);
+`;
 
 // 라인등록
 const insertLine = `
@@ -318,6 +373,13 @@ SET line_name = ?,
     status = ?
 WHERE line_id = ?`;
 
+// 마지막 process_id 조회
+const selectMaxProcessId = `
+  SELECT MAX(process_id) AS max_process_id
+  FROM process
+  FOR UPDATE
+`;
+
 // 공정등록
 const insertProcess = `
  INSERT INTO process (process_id,
@@ -328,12 +390,17 @@ VALUES (?,?,?,?)
 `;
 
 // 공정조회
-const selectProcess = `
+const selectProcessList = `
 SELECT process_id,
        process_name,
        is_inspection,
        status
-FROM process`;
+FROM process
+WHERE 1=1
+  AND process_id = COALESCE(?, process_id)
+  AND process_name = COALESCE(?, process_name)
+  AND status = COALESCE(?, status)`;
+
 
 // 공정수정
 const updateProcess = `
@@ -353,7 +420,13 @@ SELECT b.bom_id,
        b.status
 FROM bom b 
 	     INNER JOIN product p
-       ON b.product_id = p.product_id`;
+       ON b.product_id = p.product_id
+WHERE 1=1
+  AND b.bom_id = COALESCE(?, b.bom_id)
+  AND p.product_name = COALESCE(?, p.product_name)
+  AND p.product_type = COALESCE(?, p.product_type)
+  AND b.status = COALESCE(?, b.status)`;
+
 
 // bom detail 조회
 const selectBomDetail = `
@@ -430,42 +503,87 @@ WHERE 1=1
   AND status = COALESCE(?, status)
 `;
 
+// 마지막 material_id 조회
+const selectMaxMaterialId = `
+  SELECT MAX(material_id) AS max_material_id
+  FROM material
+  FOR UPDATE
+`;
+
+// 마지막 line_id 조회
+const selectMaxLineId = `
+  SELECT MAX(line_id) AS max_line_id
+  FROM line
+  FOR UPDATE
+`;
+
+
+// 마지막 flow_id 조회
+const selectMaxFlowId = `
+  SELECT MAX(flow_id) AS max_flow_id
+  FROM flowchart
+  FOR UPDATE
+`;
+
+// 마지막 bom_id 조회
+const selectMaxBOMId = `
+  SELECT MAX(bom_id) AS max_bom_id
+  FROM bom
+  FOR UPDATE
+`;
+
+// 마지막 emp_id 조회
+const selectMaxEmpId = `
+  SELECT MAX(emp_id) AS max_emp_id
+  FROM employee
+  FOR UPDATE
+`;
+
+
 module.exports = {
+  selectMaxMaterialId,
+  selectMaxEmpId,
+  selectMaxBOMId,
+  selectMaxFlowId,
+  selectMaxLineId,
+  selectMaxPartnerId,
+  selectMaxProcessId,
+  selectMaxProductId,
+  selectMaxWarehouseId,
   insertEmployee,
   selectEmployeeList,
   selectBomList,
   selectBomDetail,
   insertProcess,
-  selectProcess,
+  selectProcessList,
   updateProcess,
   insertBOM,
   insertDetailBOM,
   SelectMaxBOMId,
-  selectLine,
+  selectLineList,
   insertLine,
   updateLine,
   selectDetailLine,
   insertDetailLine,
   updateDetailLine,
-  selectFlowchart,
+  selectFlowchartList,
   selectDetailFlowchart,
   insertFlowchart,
   insertDetailFlowchart,
   updateFlowchart,
   updateDetailFlowchart,
-  selectPartner,
+  selectPartnerList,
   insertPartner,
   updatePartner,
-  selectMaterial,
+  selectMaterialList,
   insertMaterial,
   updateMaterial,
-  selectProduct,
+  selectProductList,
   insertProduct,
   updateProduct,
-  selectWarehouse,
+  selectWarehouseList,
   insertWarehouse,
   updateWarehouse,
   selectEmployeeIdModal,
   selectPartnerName,
-  selectPartnerList,
 };
