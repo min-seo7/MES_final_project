@@ -48,10 +48,27 @@ export default {
                 }
             ],
             //안전재고수량 미달
-            lowMat: [{ id: '1', matCode: 'm001', matName: '왕겨', safeStock: '50', nowStock: '30', shortage: '20', unit: 'KG' }]
+            lowMat: [],
         };
     },
     methods: {
+        //안전재고미달
+        async getLessMatList() {
+            try {
+                const res = await axios.get('/api/stock/lessMatList');
+
+                this.lowMat = res.data.map((item) => ({
+                    low_matCode: item.material_id,
+                    low_matName: item.material_name,
+                    low_safeStock: item.safety_stock,
+                    low_nowStock: item.total_curr_qty,
+                    low_shortage: item.less,
+                    low_unit: item.unit
+                }));
+            } catch (error) {
+                console.error('부족목록 불러오기 실패:', error);
+            }
+        },
         //모달 ==========================================================================
         //거래처
         async getPartnerList() {
@@ -72,15 +89,13 @@ export default {
             this.getPartnerList();
         },
         onSelectPartner() {
-            //(모달)거래처선택시 반영.
             this.partnerId = this.selectPartner.partnerId;
             this.partnerName = this.selectPartner.partnerName;
 
             this.purshaseList.forEach((row) => {
-                //배열의 각 행을 순환하면서 거래처명.
                 row.patner = this.partnerName;
             });
-
+            this.selectPartner = null
             this.partnerModal = false;
         },
         //자재용 모달
@@ -105,11 +120,22 @@ export default {
             this.materialModal = true;
         },
         onSelectMat() {
+             // 행 중복 체크
+            let selectedMatCode = this.selectMat.matCode;
+            const isDuplicate = this.purshaseList.some((item, index) => 
+                item.mat_id === selectedMatCode && index !== this.selectRow
+            );
+            if (isDuplicate) {
+                alert('이미 선택된 자재입니다.');
+                return;
+            }
+
             //(모달)자재선택시 반영
             this.purshaseList[this.selectRow].mat_id = this.selectMat.matCode;
             this.purshaseList[this.selectRow].mat_name = this.selectMat.matName;
             this.purshaseList[this.selectRow].unit = this.selectMat.unit;
 
+            this.selectMat = null;
             this.materialModal = false;
         },
         //=============================================================================================
@@ -211,6 +237,7 @@ export default {
         //등록일 자동입력
         let today = new Date();
         this.reDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        this.getLessMatList();
     }
 };
 </script>
@@ -230,12 +257,12 @@ export default {
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
                 <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
-                    <Column field="matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
-                    <Column field="matName" header="자재명" style="min-width: 100px"></Column>
-                    <Column field="safeStock" header="안전재고" style="min-width: 80px"></Column>
-                    <Column field="nowStock" header="현재고" style="min-width: 80px"></Column>
-                    <Column field="shortage" header="부족" style="min-width: 80px"></Column>
-                    <Column field="unit" header="단위" style="min-width: 80px"></Column>
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
+                    <Column field="low_matName" header="자재명" style="min-width: 100px"></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px"></Column>
+                    <Column field="low_nowStock" header="현재고" style="min-width: 80px"></Column>
+                    <Column field="low_shortage" header="부족" style="min-width: 80px"></Column>
+                    <Column field="low_unit" header="단위" style="min-width: 80px"></Column>
                 </DataTable>
             </div>
         </div>

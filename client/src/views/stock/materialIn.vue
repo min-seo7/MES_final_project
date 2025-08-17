@@ -30,15 +30,15 @@ export default {
             warehouses: [],
 
             //(모달)선택된 자재
-            selectMat: null,
-            selectWare: null,
+            selectMat: [],
+            selectWare: [],
 
             //모달용-테이블행선택rowIdex
             selectRow: null,
 
             //선택행데이터
-            selectPandingMats: null,
-            selectMatLots: null,
+            selectPandingMats: [],
+            selectMatLots: [],
 
             //입고대기 테이블 컬럼
             pandingCol: [
@@ -140,13 +140,13 @@ export default {
         },
         //입고등록
         async postInsertMat() {
-             if (this.selectPandingMats == null) {
+             if (!this.selectPandingMats.length) {
                 alert('입고처리할 자재를 선택해주세요.');
                 return;
              }
 
-            // 필수값 체크: p_matCode, p_receiptQty, p_warehouse
-            let checkNull = this.selectPandingMats.find(row => {
+            // 필수값 체크
+             let checkNull = this.selectPandingMats.find(row => {
                 return !row.p_matCode || !row.p_warehouse || !row.p_receiptQty ;
             });
 
@@ -171,6 +171,7 @@ export default {
                 console.log('입고등록실패', error);
             }
             alert('입고등록 완료');
+            this.selectPandingMats = [];
             this.getMatPandigList();
             this.getMatLotLIst();
         },
@@ -187,6 +188,7 @@ export default {
                     receiptQty: item.init_qty,
                     unit: item.unit,
                     warehouse: item.warehouse,
+                    empName: item.e_name,
                     memo: item.comm
                 }));
             } catch (error) {
@@ -208,6 +210,7 @@ export default {
                 console.lof('반품실패', error);
             }
             this.getMatPandigList();
+            this.selectPandingMats = [];
             },
         //입고취소
         async postCanelLot() {
@@ -224,7 +227,8 @@ export default {
                 console.lof('취소실패', error);
             }
             
-             this.getMatLotLIst();
+            this.getMatLotLIst();
+            this.selectPandingMats = [];
         },
         //모달==============================================================================
         //(모달)자재
@@ -243,6 +247,7 @@ export default {
                 this.materialName = this.selectMat.matName;
             }
             this.selectRow = null;
+            this.selectMat = [];
             this.materialModal = false;
         },
         //(모달)자재목록가지고오기
@@ -284,6 +289,7 @@ export default {
         },
         onSelectWare() {
             this.MatReceiptPanding[this.selectRow].p_warehouse = this.selectWare.warerName;
+            this.selectWare = [];
             this.WarehouseModal = false;
         }
     },
@@ -328,36 +334,6 @@ export default {
                 <!-- 자재명 -->
                 <div class="flex items-center gap-2">
                     <label for="materialName" class="whitespace-nowrap">자재명</label>
-                    <InputText id="materialName" type="text" class="w-60" v-model="materialName" />
-                </div>
-            </div>
-            <!--end 검색1열-->
-
-            <!--검색2열-->
-            <div class="flex flex-wrap justify-center gap-6 my-6">
-                <!-- 등록일 -->
-                <div class="flex items-center gap-2">
-                    <label for="MatInDate" class="whitespace-nowrap">입 고 일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="MatInDate" dateFormat="yy-mm-dd"></DatePicker>
-                </div>
-
-                <!-- 발주번호 -->
-                <div class="flex items-center gap-2">
-                    <label for="MatLotNo" class="whitespace-nowrap">LOT번호</label>
-                    <InputText id="MatLotNo" type="text" class="w-60" v-model="MatLotNo" />
-                </div>
-
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialCode" class="whitespace-nowrap">====</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                        <InputIcon class="pi pi-search" />
-                    </IconField>
-                </div>
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialName" class="whitespace-nowrap">====</label>
                     <InputText id="materialName" type="text" class="w-60" v-model="materialName" />
                 </div>
             </div>

@@ -39,7 +39,7 @@ export default {
 
             //출고대기 테이블 컬럼
             outWaitPrdsCol: [
-                { field: 'w_dueDate', header: '출고예정일', headerStyle: 'width: 20rem' },
+                { field: 'w_dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
                 { field: 'w_shipmentId', header: '출하지시번호', headerStyle: 'width: 25rem' },
                 { field: 'w_prdCode', header: '제품코드', headerStyle: 'width: 15rem' },
                 { field: 'w_prdName', header: '제품명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenPrdModal },
@@ -107,8 +107,7 @@ export default {
             }
         },
         //테이블영역=====================================================================
-        //출고대기
-        //출고처리목록
+        //출고대기목록
         async getoutPrds() {
             try {
                 const res = await axios.get('/api/stock/prdWOutList');
@@ -204,13 +203,13 @@ export default {
             <div class="flex flex-wrap justify-center gap-6 my-6">
                 <!-- 제품입고예정일 -->
                 <div class="flex items-center gap-2">
-                    <label for="dueDate" class="whitespace-nowrap">출고예정일</label>
+                    <label for="dueDate" class="whitespace-nowrap">출고요청일</label>
                     <DatePicker :showIcon="true" :showButtonBar="true" v-model="dueDate" dateFormat="yy-mm-dd"></DatePicker>
                 </div>
 
                 <!-- 생산/검수번호 -->
                 <div class="flex items-center gap-2">
-                    <label for="shipNumber" class="whitespace-nowrap">출하번호</label>
+                    <label for="shipNumber" class="whitespace-nowrap">출하지시번호</label>
                     <InputText id="shipNumber" type="text" class="w-60" v-model="shipNumber" />
                 </div>
 
@@ -227,36 +226,6 @@ export default {
                 <div class="flex items-center gap-2">
                     <label for="prdName" class="whitespace-nowrap">제품명</label>
                     <InputText id="prdName" type="text" class="w-60" v-model="prdName" />
-                </div>
-            </div>
-            <!--end 검색1열-->
-
-            <!--검색2열-->
-            <div class="flex flex-wrap justify-center gap-6 my-6">
-                <!-- 등록일 -->
-                <div class="flex items-center gap-2">
-                    <label for="prdOutDate" class="whitespace-nowrap">출 고 일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="prdOutDate" dateFormat="yy-mm-dd"></DatePicker>
-                </div>
-
-                <!-- 제품LOT번호 -->
-                <div class="flex items-center gap-2">
-                    <label for="prdLotNo" class="whitespace-nowrap">LOT번호</label>
-                    <InputText id="prdLotNo" type="text" class="w-60" v-model="prdLotNo" />
-                </div>
-
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialCode" class="whitespace-nowrap">====</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                        <InputIcon class="pi pi-search" />
-                    </IconField>
-                </div>
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialName" class="whitespace-nowrap">====</label>
-                    <InputText id="materialName" type="text" class="w-60" v-model="materialName" />
                 </div>
             </div>
         </div>

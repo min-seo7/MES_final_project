@@ -24,17 +24,20 @@ export default {
             prdLotNo: '',
             //모달
             productModal: false,
+            WarehouseModal: false,
             //(모달)선택된 제품
             selectPrd: null,
+            selectWare: null,
             //모달용-테이블 행선택
             selectRow: null,
+
             //테이블 데이터 선택 
-            selectPandingPrds: null,
-            selectPrdLots: null,
+            selectPendingPrds: [],
+            selectPrdLots: [],
            //입고대기 테이블 컬럼
-            pandingCol: [
+            pendingCol: [
                 { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
-                { field: 'p_No', header: '생산번호', headerStyle: 'width: 25rem' },
+                { field: 'p_No', header: '검수번호', headerStyle: 'width: 25rem' },
                 { field: 'p_prdType', header: '제품타입', headerStyle: 'width: 15rem'},
                 { field: 'p_prdCode', header: '제품코드', headerStyle: 'width: 15rem'},
                 { field: 'p_prdName', header: '제품명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenPrdModal},
@@ -46,11 +49,12 @@ export default {
                 { field: 'p_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],
             //제품입고대기 데이터
-            prdReceiptPanding: [],
+            prdReceiptPending: [],
             //입고완료 컬럼
             ReceiptCol: [
                 { field: 'inDate', header: '입 고 일', headerStyle: 'width: 20rem' },
                 { field: 'prdLotNo', header: '제품 LOT번호', headerStyle: 'width: 25rem' },
+                { field: 'prdType', header: '제품타입', headerStyle: 'width: 15rem'},
                 { field: 'prdCode', header: '제품코드', headerStyle: 'width: 12rem' },
                 { field: 'prdName', header: '제품명', headerStyle: 'width: 20rem' },
                 { field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem' },
@@ -76,10 +80,10 @@ export default {
         //행삭제버튼
         removeRow() {
             // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제 
-            let index = this.prdReceiptPanding.findIndex(row => !row.p_prdCode);
+            let index = this.prdReceiptPending.findIndex(row => !row.p_prdCode);
 
             if (index !== -1) {
-                this.prdReceiptPanding.splice(index, 1);
+                this.prdReceiptPending.splice(index, 1);
             } else {
                 alert('삭제할 행이 없습니다.');
             }
@@ -100,12 +104,104 @@ export default {
                 p_warehouse: '',
                 p_memo: '',
             };
-            this.prdReceiptPanding.unshift(newRow);
+            this.prdReceiptPending.unshift(newRow);
+        },
+        //입고등록==========================================================================
+        async postInsertPrd() {
+             if (!this.selectPendingPrds.length) {
+                alert('입고처리할 제품을 선택해주세요.');
+                return;
+             }
+
+            // 필수값 체크
+             let checkNull =  this.selectPendingPrds.find(row => {
+                return !row.p_prdCode || !row.p_warehouse || !row.p_receiptQty ;
+            });
+
+            if (checkNull) {
+                alert('제품, 입고수량, 창고는 필수입니다.');
+                return;
+            }
+
+            try {
+                //정보담기 [자재코드, 최초수량, 보관장소, 담당자이름, 비고, 검수번호]
+                let prdInfo = this.selectPendingPrds.map((row) => ({
+                    product_id: row.p_prdCode,
+                    init_qty: row.p_receiptQty,
+                    warehouse: row.p_warehouse,
+                    comm: row.p_memo || null,
+                    inspection_id: row.p_No || null,
+                }));
+                console.log(prdInfo);
+                await axios.post('/api/stock/rePrdtLot', prdInfo);
+            } catch (error) {
+                console.log('입고등록실패', error);
+            }
+            alert('입고등록 완료');
+            this.selectPendingPrds = []
+            this.getPrdPendigList();
+            this.getprdLotLIst()
+        },
+        //입고취소
+        async postCanelLot() {
+            if (!this.selectPrdLots) {
+                alert('입고가 확정된 자재만 취소가능합니다.');
+                return;
+            } 
+            console.log(this.selectPrdLots);
+            try {
+                let cancelLotInfo = this.selectPrdLots.map((row) => ({
+                    prd_lot_no: row.prdLotNo
+                }));
+                await axios.post('/api/stock/prdLotCancel', cancelLotInfo);
+            } catch (error) {
+                console.lof('취소실패', error);
+            }
+            
+            this.getprdLotLIst();
+            this.selectPandingPrds = [];
         },
         //테이블===========================================================================================
-
+        async getPrdPendigList() {
+            try {
+                const res = await axios.get('/api/stock/prdPendingList');
+                this.prdReceiptPending = res.data.map((item) => ({
+                    id: `${item.inspection_id}-${item.product_id}`,
+                    p_dueDate: item.inspection_date,
+                    p_No: item.inspection_id,
+                    p_prdType: item.product_type,
+                    p_prdCode: item.product_id,
+                    p_prdName: item.product_name,
+                    p_testPassQty: item.qty,
+                    p_unit: `${'EA'}`
+                }));
+            } catch (error) {
+                console.error('제품입고대기목록 불러오기 실패', error);
+            }
+        },
+        //제품lot목록
+        async getprdLotLIst() {
+            try {
+                const res = await axios.get('/api/stock/prdLotList');
+                this.prdReceipt = res.data.map((item) => ({
+                    id: `${item.prd_lot_no}-${item.product_id}`,
+                    inDate: item.open_date,
+                    prdLotNo: item.prd_lot_no,
+                    prdType: item.product_type,
+                    prdCode: item.product_id,
+                    prdName: item.product_name,
+                    receiptQty: item.init_qty,
+                    unit: `${'EA'}`,
+                    warehouse: item.warehouse,
+                    empName:item.e_name,
+                    memo: item.comm
+                }));
+            } catch (error) {
+                console.error('제품LOT목록 불러오기 실패:', error);
+            }
+        },
         //모달===============================================================================================
-               //(모달)제품=============
+        //(모달)제품=============
         openPrdModal() { //검색용
             this.productModal = true;
             this.getPrdList();
@@ -117,12 +213,14 @@ export default {
         },
         onSelectonSelectPrd() {
             if (this.selectRow !== null) { //선택시.
-                this.prdReceiptPanding[this.selectRow].p_prdCode = this.selectPrd.prdCode;
-                this.prdReceiptPanding[this.selectRow].p_prdName = this.selectPrd.prdName;
+                this.prdReceiptPending[this.selectRow].p_prdType = this.selectPrd.prdType;
+                this.prdReceiptPending[this.selectRow].p_prdCode = this.selectPrd.prdCode;
+                this.prdReceiptPending[this.selectRow].p_prdName = this.selectPrd.prdName;
             }else{
                 this.prdCode = this.selectPrd.prdCode;
                 this.prdName = this.selectPrd.prdName;
             }
+            this.selectPrd = []
             this.selectRow = null;
             this.productModal = false;
         },
@@ -161,13 +259,15 @@ export default {
             }
         },
         onSelectWare() {
-            this.MatReceiptPanding[this.selectRow].p_warehouse = this.selectWare.warerName;
+            this.prdReceiptPending[this.selectRow].p_warehouse = this.selectWare.warerName;
             this.WarehouseModal = false;
         }
 
     },
     mounted() {
         console.log('제품입고');
+        this.getPrdPendigList();
+        this.getprdLotLIst();
 
     }
 };
@@ -198,7 +298,7 @@ export default {
                 <div class="flex items-center gap-2">
                     <label for="prdCode" class="whitespace-nowrap">제품코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" @click="openPrdModal()" />
+                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" @click="openPrdModal" />
                         <InputIcon class="pi pi-search" />
                     </IconField>
                 </div>
@@ -209,43 +309,13 @@ export default {
                     <InputText id="prdName" type="text" class="w-60" v-model="prdName" />
                 </div>
             </div>
-            <!--end 검색1열-->
-
-            <!--검색2열-->
-            <div class="flex flex-wrap justify-center gap-6 my-6">
-                <!-- 등록일 -->
-                <div class="flex items-center gap-2">
-                    <label for="prdInDate" class="whitespace-nowrap">입 고 일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="MatInDate" dateFormat="yy-mm-dd"></DatePicker>
-                </div>
-
-                <!-- 제품LOT번호 -->
-                <div class="flex items-center gap-2">
-                    <label for="prdLotNo" class="whitespace-nowrap">LOT번호</label>
-                    <InputText id="prdLotNo" type="text" class="w-60" v-model="prdLotNo" />
-                </div>
-
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialCode" class="whitespace-nowrap">=====</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                        <InputIcon class="pi pi-search" />
-                    </IconField>
-                </div>
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialName" class="whitespace-nowrap">=====</label>
-                    <InputText id="materialName" type="text" class="w-60" v-model="materialName" />
-                </div>
-            </div>
         </div>
 
         <!--검색박스end-->
         <!--중간버튼-->
         <stockCommRowBtn
             :buttons="[
-                { label: '입고등록', icon: 'pi pi-check', onClick: editHandler },
+                { label: '입고등록', icon: 'pi pi-check', onClick: postInsertPrd },
                 { label: '입고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"
         />
@@ -264,7 +334,7 @@ export default {
                         <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow" />
                       </div>
                         <!--0번탭 컨텐츠영역-->
-                      <stockCommTable v-model:selection="selectPandingPrds" :columns="pandingCol" :dataRows="prdReceiptPanding"/>
+                      <stockCommTable v-model:selection="selectPendingPrds" :columns="pendingCol" :dataRows="prdReceiptPending" />
                      
                     </TabPanel>
                     <TabPanel value="1">
@@ -273,14 +343,14 @@ export default {
                             <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  />
                         </div>
                         <!--1번탭 컨텐츠영역-->
-                        <stockCommTable v-model:selection="selectPrdLots" :columns="ReceiptCol" :dataRows="prdReceipt"/>
+                        <stockCommTable v-model:selection="selectPrdLots" :columns="ReceiptCol" :dataRows="prdReceipt" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
         </div>
     </div>
 
-    <!--자재모달-->
+    <!--제품모달-->
     <commModal v-model="productModal" header="제품목록" style="width: 40rem">
         <div class="mt-5 mb-4 space-x-2">
             <label for="prdCode">제품코드</label>
@@ -322,7 +392,7 @@ export default {
         <!-- footer 슬롯 -->
         <template #footer>
             <div class="mt-5 flex justify-center">
-                <Button label="선택 완료" @click="onSelectWare()" />
+                <Button label="선택 완료" @click="onSelectWare" />
             </div>
         </template>
     </commModal>

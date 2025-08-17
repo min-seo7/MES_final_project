@@ -31,7 +31,39 @@ export default {
             this.materialCode = '';
             this.materialName = '';
         },
-        //발주목록
+        //조회
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    registerDate: this.dateFormat(this.registerDate) || null,
+                    orderNumber: this.orderNumber || null,
+                    materialCode: this.materialCode || null,
+                    materialName: this.materialName || null
+                };
+
+                console.log(filters);
+
+                const res = await axios.post('/api/stock/searchPurchaseList', filters);
+                //조회결과 
+                this.purchaseList = res.data.map((item) => ({
+                    id: `${item.pur_no}-${item.material_id}`,
+                    reDate: item.re_date,
+                    purNo: item.pur_no,
+                    matCode: item.material_id,
+                    matName: item.material_name,
+                    purQty: item.pur_qty,
+                    unit: item.unit,
+                    supPatner: item.partner_name,
+                    eName: item.manager,
+                    dueDate: item.due_date,
+                    status: item.pro_status
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
+        },
+        //발주목록=========================================================================
         async getPurchaseList() {
             try {
                 const res = await axios.get('/api/stock/purchaseList');
@@ -54,8 +86,9 @@ export default {
                 console.error('자재목록 불러오기 실패:', error);
             }
         },
-        //발주취소버튼
+        //발주취소버튼=================================================================
         async cancelPur() {
+    
             try {
                 let cancelRow = this.cancelList.map((row) => ({
                     pur_no: row.purNo,
@@ -69,7 +102,6 @@ export default {
             console.log('테스트');
             this.getPurchaseList();
         },
-
         //모달 ==========================================================================
         //(모달)자재
         openMatModal() {
@@ -98,7 +130,13 @@ export default {
             } catch (error) {
                 console.error('자재목록 불러오기 실패:', error);
             }
-        }
+        },
+        //날짜포맷
+        dateFormat(date) {
+                if (!date || isNaN(new Date(date).getTime())) return null;
+                let newDateFormat = new Date(date);
+                return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
+            }
     },
     mounted() {
         console.log('발주목록');
@@ -111,7 +149,7 @@ export default {
     <div>
         <div class="font-semibold text-2xl mb-4">발주조회페이지</div>
     </div>
-    <stockCommButton @search="onSearch()" @reset="onReset()" />
+    <stockCommButton @search="onSearch" @reset="onReset" />
 
     <!--검색박스영역-->
     <div class="card w-full">
@@ -150,7 +188,7 @@ export default {
 
     <!--목록 테이블 -->
     <div class="card w-full">
-        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem" crollable scrollHeight="400px">
+        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem" scrollable scrollHeight="400px">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
             <Column field="id" header="-" style="display: none"></Column>
