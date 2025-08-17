@@ -98,6 +98,117 @@ router.get("/employee/getEmployeeId", async (req, res) => {
   }
 });
 
+
+router.get("/process/getProcessName", async (req, res) => {
+  try {
+    let list = await informationService.findAllProcessName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/line/getLineName", async (req, res) => {
+  try {
+    let list = await informationService.findAllLineName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/line/getProcessId", async (req, res) => {
+  try {
+    let list = await informationService.findAllProcessId();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/line/getEquipmentId", async (req, res) => {
+  try {
+    let list = await informationService.findAllEquipmentId();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/material/getMaterialName", async (req, res) => {
+  try {
+    let list = await informationService.findAllMaterialName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/bom/getProductName", async (req, res) => {
+  try {
+    let list = await informationService.findAllProductName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/warehouse/getWarehouseType", async (req, res) => {
+  try {
+    let list = await informationService.findAllWarehouseTypeModal();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/warehouse/getLocation", async (req, res) => {
+  try {
+    let list = await informationService.findAllLocationModal();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/warehouse/getWarehouse", async (req, res) => {
+  try {
+    let list = await informationService.findAllWarehouseModal();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/product/getProductName", async (req, res) => {
+  try {
+    let list = await informationService.findAllProductName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+router.get("/flowchart/getFlowchartName", async (req, res) => {
+  try {
+    let list = await informationService.findAllFlowchartName();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
 router.post("/employee/search", async (req, res) => {
   try {
     console.log("BODY:", req.body);

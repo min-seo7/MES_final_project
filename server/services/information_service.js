@@ -748,11 +748,60 @@ const insertDetailBOM = async (bomInfo) => {
   return result;
 };
 
+const findAllMaterialName = async () => {
+  let list = await mariadb.query("selectMaterialNameModal");
+  return list;
+};
+
 const findAllEmployeeId = async () => {
   let list = await mariadb.query("selectEmployeeIdModal");
   return list;
 };
 
+
+const findAllLocationModal = async () => {
+  let list = await mariadb.query("selectLocationModal");
+  return list;
+};
+
+const findAllWarehouseModal = async () => {
+  let list = await mariadb.query("selectWarehouseModal");
+  return list;
+};
+
+const findAllWarehouseTypeModal = async () => {
+  let list = await mariadb.query("selectWarehouseTypeModal");
+  return list;
+};
+
+const findAllProcessName = async () => {
+  let list = await mariadb.query("selectProcessNameModal");
+  return list;
+};
+const findAllEquipmentId = async () => {
+  let list = await mariadb.query("selectEquipmentIdModal");
+  return list;
+};
+
+const findAllLineName = async () => {
+  let list = await mariadb.query("selectLineNameModal");
+  return list;
+};
+
+const findAllProcessId = async () => {
+  let list = await mariadb.query("selectProcessIdModal");
+  return list;
+};
+
+const findAllProductName = async () => {
+  let list = await mariadb.query("selectProductNameModal");
+  return list;
+};
+
+const findAllFlowchartName = async () => {
+  let list = await mariadb.query("selectFlowchartNameModal");
+  return list;
+};
 const findAllEmployees = async (employeeInfo) => {
   const insertData = convertToArray(employeeInfo, [
     "employeeId",
@@ -860,6 +909,16 @@ function convertToArray(obj, columns) {
 }
 
 module.exports = {
+  findAllFlowchartName,
+  findAllWarehouseModal,
+  findAllWarehouseTypeModal,
+  findAllLocationModal,
+  findAllProcessName,
+  findAllMaterialName,
+  findAllProcessId,
+  findAllLineName,
+  findAllEquipmentId,
+  findAllProductName,
   insertProduct,
   insertAllLine,
   insertAllFlowchart,

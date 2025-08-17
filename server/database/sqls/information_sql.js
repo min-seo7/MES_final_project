@@ -7,6 +7,51 @@ SELECT employee_id,
        status
 FROM employee`;
 
+const selectFlowchartNameModal = `
+SELECT flowchart_name
+FROM flowchart`;
+
+const selectWarehouseModal = `
+SELECT warehouse
+FROM warehouse`;
+
+const selectLocationModal = `
+SELECT location
+FROM warehouse`;
+
+const selectWarehouseTypeModal = `
+SELECT warehouse_type
+FROM warehouse`;
+
+const selectProductNameModal = `
+SELECT product_name,
+       product_id,
+       product_type,
+       product_form
+FROM product`;
+
+const selectProcessIdModal = `
+SELECT process_id,
+       process_name
+FROM process`;
+
+const selectLineNameModal = `
+SELECT line_name
+FROM line`;
+
+const selectEquipmentIdModal = `
+SELECT equipment_id,
+       equipment_name
+FROM equipment`;
+
+const selectMaterialNameModal =`
+SELECT material_name
+FROM material`;
+
+const selectProcessNameModal = `
+SELECT process_name
+FROM process`;
+
 // 거래처명 모달 조회
 const selectPartnerName = `
 SELECT distinct partner_name
@@ -542,6 +587,16 @@ const selectMaxEmpId = `
 
 module.exports = {
   selectMaxMaterialId,
+  selectWarehouseTypeModal,
+  selectWarehouseModal,
+  selectLocationModal,
+  selectProcessNameModal,
+  selectMaterialNameModal,
+  selectProcessIdModal,
+  selectLineNameModal,
+  selectEquipmentIdModal,
+  selectProductNameModal,
+  selectFlowchartNameModal,
   selectMaxEmpId,
   selectMaxBOMId,
   selectMaxFlowId,

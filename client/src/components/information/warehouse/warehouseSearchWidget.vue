@@ -31,11 +31,9 @@ const openModal = async (type) => {
         items.value = res.data.map((item, index) => ({
             num: index + 1,
             warehouse: item.warehouse,
-            location: item.location
         }));
         columns.value = [
             { field: 'warehouse', header: '창고' },
-            { field: 'location', header: '위치' },
         ];
     } else if (type === 'location'){
         resetSearch();

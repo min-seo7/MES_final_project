@@ -29,10 +29,10 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/bom/getProductName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            productName: item.name,
-            productId: item.employee_id,
-            productType: item.department,
-            productForm: item.status,
+            productName: item.product_name,
+            productId: item.product_id,
+            productType: item.product_type,
+            productForm: item.product_form,
         }));
         columns.value = [
             { field: 'productName', header: '제품명' },

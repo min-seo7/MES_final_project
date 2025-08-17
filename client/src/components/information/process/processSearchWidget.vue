@@ -27,7 +27,7 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/process/getProcessName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            processName: item.name,
+            processName: item.process_name,
         }));
         columns.value = [
             { field: 'processName', header: '공정명' },
