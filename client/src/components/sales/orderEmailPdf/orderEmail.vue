@@ -33,7 +33,7 @@ const fetchOrders = async () => {
             spec: search.value.spec || null,
             delDate: formattedDelDate
         };
-        const response = await axios.get('/api/sales/orderSearch', { params: queryParams });
+        const response = await axios.get('/api/sales/pdfEmail', { params: queryParams });
         if (response.data?.list && Array.isArray(response.data.list)) {
             orders.value = response.data.list.map((item) => ({
                 ...item,

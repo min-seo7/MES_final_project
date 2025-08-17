@@ -66,6 +66,25 @@ router.get("/orderSearch", async (req, res) => {
   }
 });
 
+//이메일 관련 주문내역
+router.get("/pdfEmail", async (req, res) => {
+  try {
+    const filter = {
+      orderId: req.query.orderId || null,
+      orderStatus: req.query.orderStatus || null,
+      productName: req.query.productName || null,
+      partnerId: req.query.partnerId || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.selectFilterInfoEmail(filter);
+    res.json({ list: filteredData });
+  } catch (error) {
+    console.error("이메일 + 주문내역 조회 실패:sales_router.js", error);
+    res.status(500).json({ error: "데이터를 가져오는 데 실패했습니다." });
+  }
+});
+
 //출하요청내역(주문서목록조회)
 router.get("/shipReqOrders", async (req, res) => {
   try {

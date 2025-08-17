@@ -244,8 +244,34 @@ WHERE
 
 //이메일+pdf관련 주문내역
 const mailPdfOrderList = `
-
-
+  SELECT
+    o.order_id,
+    o.partner_id,
+    o.partner_name,
+    i.product_id,
+    i.product_name,
+    o.order_manager,
+    i.quantity,
+    o.delivery_addr,
+    DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
+    DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
+    i.ord_status,
+    p.email AS partner_email,
+    e.email AS order_manager_email
+FROM
+    orders o
+JOIN
+    order_items i ON o.order_id = i.order_id
+JOIN
+    partner p ON o.partner_id = p.partner_id
+ LEFT JOIN
+    employee e ON o.order_manager = e.employee_id
+WHERE
+    (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.ord_status = ?)
+    AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR DATE(i.del_date) = ?)
 `;
 
 module.exports = {
@@ -267,4 +293,5 @@ module.exports = {
   orderDetailId,
   SelectMaxShipId,
   modifyNextList,
+  mailPdfOrderList,
 };

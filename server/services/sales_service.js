@@ -110,6 +110,28 @@ const selectFilteredOrders = (filter) => {
   return list;
 };
 
+//이메일 포함된 주문내역 조회
+const selectFilterInfoEmail = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
+  let list = query("mailPdfOrderList", params);
+  return list;
+};
+
 //출하요청등록대상 조회
 const selectFilteredShips = (filters) => {
   const params = [
@@ -281,4 +303,5 @@ module.exports = {
   shipList,
   modifyUpdate,
   modifyList,
+  selectFilterInfoEmail,
 };
