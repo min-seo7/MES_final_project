@@ -142,7 +142,7 @@ module.exports = {
   SelectOrders,
   SelectMaxOrderId,
   selectOrderDetail,
-  selectShipDetail,
+  // selectShipDetail,
   selectShipOrders,
   insertShip,
 };

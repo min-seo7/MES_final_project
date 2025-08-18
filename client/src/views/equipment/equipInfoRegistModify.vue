@@ -1,63 +1,51 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref } from 'vue';
 import axios from 'axios';
 import EquipmentSearchWidget from '@/components/equipment/information/equipmentSearchWidget.vue';
 import EquipmentRegistWidget from '@/components/equipment/information/equipmentRegistWidget.vue';
 
+const searchRef = ref();
 const registRef = ref();
-const list = ref([]);
-const total = ref(0);
 
-/* 🔹 돋보기 데이터 소스 */
-const pickerCache = ref([]);
-const pickerData = computed(() => (list.value?.length ? list.value : pickerCache.value));
-
-/* 최초 진입 시 돋보기 데이터 프리로드 */
-onMounted(async () => {
-    try {
-        const { data } = await axios.get('/api/information/equipment/search', {
-            params: { page: 1, size: 200 }
-        });
-        pickerCache.value = data.items ?? [];
-    } catch (e) {
-        console.error('picker preload failed:', e);
-    }
-});
-
-/* 조회 */
+// 검색 실행 → 서버 요청 → 결과 1건이면 등록/수정폼에 바인딩
 async function handleSearch(q) {
     try {
-        const { data } = await axios.get('/api/information/equipment/search', { params: q });
-        list.value = data.items ?? [];
-        total.value = data.total ?? 0;
-    } catch (e) {
-        console.error('search failed:', e);
+        const { data } = await axios.get('/api/equipment/find-one', { params: { equipment_id: q.equipment_id } });
+        if (data) registRef.value?.load(data);
+        else alert('검색 결과가 없습니다.');
+    } catch (err) {
+        console.error(err);
+        alert('조회 중 오류가 발생했습니다.');
     }
 }
 
-/* 초기화 */
-function handleClear() {
-    list.value = [];
-    total.value = 0;
-}
-
-/* 목록 클릭 → 폼 로드 */
-function handleRowSelect({ data: row }) {
-    registRef.value?.load(row.eq_id);
-}
-
-/* 등록/수정 위젯 초기화 */
+// 등록/수정폼 초기화
 function handleReset() {
     registRef.value?.reset();
 }
+
+// 설비등록
+async function handleSave() {
+    await registRef.value?.save();
+}
+
+// 수정
+async function handleUpdate() {
+    await registRef.value?.updateEquipment();
+}
+
+// 리스트에서 한 행 클릭했을 때
+// function handlePick(item) {
+//     registRef.value.load(item); // ← 이게 핵심
+// }
 </script>
 
 <template>
-    <EquipmentSearchWidget :pickerData="pickerData" @submit="handleSearch" @clear="handleClear" />
+    <div>
+        <!-- 검색 위젯 -->
+        <EquipmentSearchWidget ref="searchRef" @submit="handleSearch" />
 
-    <DataTable :value="list" selectionMode="single" @rowSelect="handleRowSelect">
-        <!-- 컬럼 정의 -->
-    </DataTable>
-
-    <EquipmentRegistWidget ref="registRef" @reset="handleReset" />
+        <!-- 등록/수정 위젯 -->
+        <EquipmentRegistWidget ref="registRef" @save="handleSave" @update="handleUpdate" @reset="handleReset" />
+    </div>
 </template>
