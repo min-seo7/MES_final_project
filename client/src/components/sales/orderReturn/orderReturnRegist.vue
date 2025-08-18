@@ -91,12 +91,8 @@ const productSearch = ref({
     prodCode: '',
     prodName: ''
 });
-
-// 제품 데이터 로드 함수 (실제 API 호출)
 const fetchProducts = async () => {
     try {
-        // 백엔드 API가 있다고 가정하고 호출
-        // 실제 데이터와 구조가 다를 수 있으므로 필요에 따라 수정
         const response = await axios.get('/api/products/search', {
             params: {
                 prodCode: productSearch.value.prodCode,
@@ -188,7 +184,7 @@ const fetchOrders = async () => {
             productName: search.value.productName || null,
             partnerId: search.value.partCode || null,
             delDate: formattedDelDate,
-            spec: search.value.spec || null // Added spec to queryParams
+            spec: search.value.spec || null
         };
 
         const response = await axios.get('/api/sales/orderSearch', { params: queryParams });
@@ -208,7 +204,7 @@ const fetchOrders = async () => {
                 ordState: getStatusText(item.ord_status),
                 orderManager: item.order_manager,
                 spec: item.spec,
-                orderDetailId: item.order_detail_id // ✅ 추가: 백엔드에서 받아온 order_detail_id
+                orderDetailId: item.order_detail_id
             }));
         } else {
             orders.value = [];

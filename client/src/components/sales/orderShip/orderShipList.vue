@@ -41,7 +41,7 @@ const shipStateMapReverse = computed(() => Object.fromEntries(Object.entries(shi
 const getSeverity = (status) => {
     switch (status) {
         case '출하대기':
-            return 'info';
+            return 'contrast';
         case '출하중':
             return 'warning';
         case '출하완료':
