@@ -119,10 +119,9 @@ const selectShipOrders = `
       AND (? IS NULL OR i.del_date <= ?)
     `;
 
-const selectShipDetails = `
+// const selectShipDetails = `
 
-
-`;
+// `;
 
 const insertShip = `
   INSERT INTO (product_code,
@@ -142,7 +141,7 @@ module.exports = {
   SelectOrders,
   SelectMaxOrderId,
   selectOrderDetail,
-  selectShipDetail,
+  //selectShipDetail,
   selectShipOrders,
   insertShip,
 };
