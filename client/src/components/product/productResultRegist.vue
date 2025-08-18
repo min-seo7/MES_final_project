@@ -1,5 +1,5 @@
 <script setup>
-import { ref , onMounted} from 'vue';
+import { ref, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import DatePicker from 'primevue/datepicker';
@@ -116,19 +116,23 @@ const generateCode = () => {
 // API 호출 함수
 const fetchProductionProcess = async () => {
     try {
-        const response = await axios.get('/api/selectProcessList');
-    //     items.value = response.data.list.map((item, index) => ({
-    //         process: item.process_name,
-    //         line: item.line_name,
-    //         planQuantity: item.plan_quantity,
-    //         productionQuantity: item.production_quantity,
-            
-            
-            
-    //         status: item.status
-    //     })
-    // );
-    console.log(response);
+        const response = await axios.get('/api/production/productionResultRegist');
+        items.value = response.data.list.map((item) => ({
+            process: item.process_id,
+            line: item.line_id,
+            productId: item.product_id,
+            productName: item.product_name,
+            specification: item.specification,
+            unit: item.unit,
+            useOrder: item.use_order,
+            equipmentCode: item.equipment_id,
+            productionQuantity: item.prd_noworder_qty,
+            inQty: 0,
+            defQty: 0,
+            qty: 0,
+            status: item.status
+        }));
+        console.log(response);
     } catch (error) {
         // console.log(items.value);
         console.error('실패:', error);
@@ -272,7 +276,7 @@ const resetData = () => {
         </div>
 
         <div class="flex-grow overflow-y-auto">
-            <DataTable :value="products" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
+            <DataTable :value="items" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
                 <Column field="process" header="공정"></Column>
                 <Column field="line" header="라인"></Column>
                 <Column field="productionQuantity" header="생산수량"></Column>
