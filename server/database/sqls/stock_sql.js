@@ -12,7 +12,7 @@ let partnerListQuery = `SELECT partner_type,
                                   partner_id, 
                                   partner_name
                             FROM partner
-                            WHERE status = '활성';`;
+                            WHERE status = '활성'`;
 
 //제품(모달용)
 let productListQuery = `SELECT product_id, 
@@ -30,6 +30,21 @@ let warehouseListQuery = `SELECT warehouse_id,
 
 //발주등록=====================================================
 //마스터T 기본정보
+//안전재고 미달 출력
+let lessMatListQuery = `SELECT ml.material_id,
+                               m.material_name,
+                           SUM(ml.curr_qty) AS total_curr_qty,
+                              m.safety_stock,
+                              (m.safety_stock - SUM(ml.curr_qty)) AS less,
+                              m.unit
+                       FROM tbl_mat_lot ml
+                       JOIN material m ON ml.material_id = m.material_id
+                       GROUP BY ml.material_id, 
+                               m.material_name, 
+                               m.safety_stock,
+                               m.unit
+                       HAVING total_curr_qty < m.safety_stock;`
+
 let masterInfoPro = `CALL insert_purchase_master(?, ?, ?, ?)`;
 //서브T 등록
 let subInfoQuery = `INSERT INTO tbl_purchase_detail (material_id, pur_qty, comm, pur_no)
@@ -44,22 +59,44 @@ let purchaseListQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
                                   b.unit, 
                                   p.partner_name, 
                                   m.manager, 
-                              DATE_FORMAT(m.due_date, '%Y-%m-%d') AS due_date,
-                                s.pro_status
+                                  DATE_FORMAT(m.due_date, '%Y-%m-%d') AS due_date,
+                                  s.pro_status
                           FROM tbl_purchase m
                           JOIN tbl_purchase_detail s
-                              ON m.pur_no = s.pur_no
+                          ON m.pur_no = s.pur_no
                           JOIN material b
-                              ON  s.material_id = b.material_id
+                          ON  s.material_id = b.material_id
                           JOIN partner p
-                              ON m.partner_id = p.partner_id
-                          WHERE s.pro_status NOT IN ('취소')`;
+                          ON m.partner_id = p.partner_id
+                          WHERE s.pro_status NOT IN ('취소')
+                          ORDER BY m.re_date DESC`;
 
 //발주취소[발주번호 기준, 해당자재코드]
 let purchaseCancelQuery = `UPDATE  tbl_purchase_detail
                               SET pro_status = '취소'
                            WHERE pur_no = ?
                              AND material_id = ?`;
+//발주목록 내 조회
+let purchaseSearchQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
+                                  m.pur_no,
+                                  s.material_id,
+                                  b.material_name,
+                                  s.pur_qty,
+                                  b.unit, 
+                                  p.partner_name, 
+                                  m.manager, 
+                                  DATE_FORMAT(m.due_date, '%Y-%m-%d') AS due_date,
+                                  s.pro_status
+                          FROM tbl_purchase m
+                          JOIN tbl_purchase_detail s 
+                          ON m.pur_no = s.pur_no
+                          JOIN material b 
+                          ON s.material_id = b.material_id
+                          JOIN partner p 
+                          ON m.partner_id = p.partner_id
+                          WHERE 1=1`;
+/* 조건문은 서비스영역 안에서 추가 가능 */
+
 
 //자재관리===================================================================
 //자재입고
@@ -83,7 +120,8 @@ let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_dat
                           ON t.material_code = m.material_id
                           JOIN partner pa
                           ON p.partner_id = pa.partner_id
-                          WHERE d.pro_status NOT IN ('취소', '입고완료', '반품')`;
+                          WHERE d.pro_status NOT IN ('취소', '입고완료', '반품')
+                          ORDER BY p.due_date DESC`;
 
 //자재입고처리
 let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?)`;
@@ -100,7 +138,8 @@ let matLotListQuery = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
                       FROM tbl_mat_lot l
                       JOIN material m
                       ON l.material_id = m.material_id
-                      WHERE l.pro_status NOT IN ('입고취소')`;
+                      WHERE l.pro_status = '등록'
+                      ORDER BY l.open_date DESC`;
 //자재반품
 let matReturnQuery = `UPDATE  tbl_purchase_detail
                          SET pro_status = '반품'
@@ -111,20 +150,65 @@ let matLotCancelQuery = ` UPDATE  tbl_mat_lot
                      SET pro_status = '입고취소'
                      WHERE lot_no = ?`;
 
-//제품관리============================================================================
-//제품입고
-//
-//제품출고
+//제품
+//제품입고===========================================================================
+//제품입고대기목록
+let prdPendigListQuery = `select DATE_FORMAT(zt.inspection_date, '%Y-%m-%d') AS inspection_date,
+       zt.inspection_id,
+       p.product_type,
+       zt.product_id,
+       p.product_name,
+       zt.qty,
+       p.unit
+from ztestprdresult zt
+JOIN product p
+ON zt.product_id = p.product_id
+WHERE zt.judgment = '합격'`; //쿼리 만들어진걸로 수정해야 함.  
+// -> 입고처리완료 상태값 필요함 목록출력제어위해서.. 
+
+//제품입고처리
+let prdInsertQuery = `CALL insert_prd_lot(?, ?, ?, ?, ?)`;
+//제품입고완료목록
+let prdLotListQuerty = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_date,
+                          pl.prd_lot_no,
+                          p.product_type,
+                          pl.product_id,
+                          p.product_name,
+                          pl.init_qty,
+                          p.unit,
+                          pl.warehouse,
+                          pl.e_name,
+                          pl.comm
+                  FROM tbl_prd_lot pl
+                  JOIN product p
+                  ON pl.product_id = p.product_id
+                  WHERE pl.pro_status = '등록'
+                  ORDER BY pl.open_date DESC`;
+
+//입고취소
+let prdLotCancelQuery = ` UPDATE tbl_prd_lot
+                          SET pro_status = '입고취소'
+                          WHERE prd_lot_no  = ?`;
+//제품출고======================================================
 //
 //제품출고대기목록
-//
+let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS shipment_date,
+		                               sh.shipment_id, 
+		                               sh.product_code,
+                                   p.product_name,
+		                               sh.shipment_qty,
+                                   p.unit
+                            FROM shipment sh
+                            INNER JOIN product p
+                            ON sh.product_code = p.product_id`;
+                            //거래처 받아와야함. 
+
 //제품출고목록
 let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
                                     po.prd_out_no,
                                     po.product_id,
                                     p.product_name,
                                     po.prd_out_qty,
-                                    p.unit,
                                     s.product_name,
                                     po.e_name,
                                     po.ship_partner,
@@ -135,6 +219,93 @@ let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date
                           JOIN product p
                           ON po.product_id = p.product_id`;
 
+//재고조회========================================================================================
+//제품재고조회(첫목록)
+let searchPrdListQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_date,
+                                   pl.prd_lot_no,
+                                   p.product_type,
+                                   pl.product_id,
+                                   p.product_name,
+                                   pl.curr_qty,
+                                   p.unit,
+                                   pl.warehouse,
+                                   pl.pro_status
+                           FROM tbl_prd_lot pl
+                           JOIN product p
+                           ON pl.product_id = p.product_id
+                           WHERE pl.pro_status NOT IN ('입고취소', '종료')
+                           ORDER BY pl.open_date DESC`;
+
+let searchPrdLotSearchQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_date,
+                                   pl.prd_lot_no,
+                                   p.product_type,
+                                   pl.product_id,
+                                   p.product_name,
+                                   pl.curr_qty,
+                                   p.unit,
+                                   pl.warehouse,
+                                   pl.pro_status
+                           FROM tbl_prd_lot pl
+                           JOIN product p
+                           ON pl.product_id = p.product_id
+                           WHERE 1=1`;                
+//================================================================
+//자재재고조회
+//자재재고조회(첫목록)
+let searchMatListQuery =`SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_date,
+                                   ml.lot_no,
+                                   ml.material_id,
+                                   m.material_name,
+                                   ml.curr_qty,
+                                   m.unit,
+                                   ml.warehouse,
+                                   ml.pro_status
+                        FROM tbl_mat_lot ml
+                        JOIN material m
+                        ON ml.material_id = m.material_id
+                        WHERE ml.pro_status NOT IN ('입고취소', '종료')
+                        ORDER BY ml.open_date DESC`;
+
+let searchMatLotSearchQuery =`SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_date,
+                                   ml.lot_no,
+                                   ml.material_id,
+                                   m.material_name,
+                                   ml.curr_qty,
+                                   m.unit,
+                                   ml.warehouse,
+                                   ml.pro_status
+                        FROM tbl_mat_lot ml
+                        JOIN material m
+                        ON ml.material_id = m.material_id
+                        WHERE 1=1`;
+
+
+//폐기물=====================================================================
+//목록
+let wasteListQurey = `SELECT tw.seq,
+                             DATE_FORMAT(tw.re_date, '%Y-%m-%d') AS re_date,
+                            tw.waste_id,
+                            tw.waste_name,
+                            tw.qty,
+                            tw.unit,
+                            w.warehouse,
+                            tw.pro_status,
+                            tw.out_date,
+                            p.partner_name,
+                            tw.comm
+                     FROM tbl_waste tw
+                     LEFT JOIN warehouse w
+                     ON tw.warehouse_id = w.warehouse_id
+                     LEFT JOIN partner p
+                     ON tw.partner_id = p.partner_id
+                     ORDER BY tw.re_date DESC;`;
+//등록
+let wasteOutQuery = `UPDATE tbl_waste
+                     SET out_date = ?,
+	                  partner_id = ?,
+                         comm = ?,
+                         pro_status = '확정'
+                     WHERE seq = ?`;
 module.exports = {
   matListQuery,
   productListQuery,
@@ -149,5 +320,18 @@ module.exports = {
   matLotListQuery,
   matReturnQuery,
   matLotCancelQuery,
-  prdOutListQuery,
+  prdShipWaitListQurey, //발송해야할 업체 받아와야함. 
+  prdOutListQuery, 
+  purchaseSearchQuery, 
+  prdPendigListQuery,
+  prdInsertQuery,
+  prdLotListQuerty,
+  lessMatListQuery,
+  searchMatListQuery,
+  searchMatLotSearchQuery,
+  searchPrdListQuery,
+  searchPrdLotSearchQuery,
+  prdLotCancelQuery,
+  wasteListQurey,
+  wasteOutQuery,
 };

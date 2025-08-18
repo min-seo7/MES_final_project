@@ -68,7 +68,17 @@ router.post("/purDetail", async (req, res) => {
     res.status(500).json({ message: "(서버)디테일 저장 실패" });
   }
 });
-
+//재고부족리스트
+router.get("/lessMatList", async (req, res) => {
+  try {
+    let lessMatList = await stockService.lessMatList();
+    res.json(lessMatList);
+    console.log(lessMatList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)리스트 오류" });
+  }
+});
 //발주목록=======================================================
 //리스트
 router.get("/purchaseList", async (req, res) => {
@@ -88,6 +98,17 @@ router.post("/purCancel", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "(서버)발주취소 실패" });
+  }
+});
+//조회
+router.post("/searchPurchaseList", async (req, res) => {
+  try {
+    const data = await stockService.getSearchPurchaseList(req.body); // 검색조건 전달
+    res.json(data);
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "조회 실패" });
   }
 });
 
@@ -144,5 +165,129 @@ router.post("/matLotCancel", async (req, res) => {
     res.status(500).json({ message: "(서버)입고취소 실패" });
   }
 });
+//제품관리============================================================================
+//제품입고대기목록
+router.get("/prdPendingList", async (req, res) => {
+  try {
+    let prdPendigList = await stockService.prdPendigList();
+    res.json(prdPendigList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)제품목록 오류" });
+  }
+ 
+});
+//제품lot등록
+router.post("/rePrdtLot", async (req, res) => {
+  console.log("Received details:", req.body);
+  try {
+    await stockService.prdLotInsert(req.body);
+    res.json({ message: "success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)제품lot등록 실패" });
+  }
+});
+//제품lot목록
+router.get("/prdLotList", async (req, res) => {
+  try {
+    let prdLotList = await stockService.prdLotList();
+    res.json(prdLotList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)lot제품목록 오류" });
+  }
+});
+//입고취소
+router.post("/prdLotCancel", async (req, res) => {
+  try {
+    await stockService.prdLotCancel(req.body);
+    res.json({ message: "success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)입고취소 실패" });
+  }
+});
 
+//제품출고=====================================================
+//제품출고대기목록
+router.get("/prdWOutList", async (req, res) => {
+  try {
+    let prdWoutList = await stockService.prdOutWaitList();
+    res.json(prdWoutList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)출고대기목록 오류" });
+  }
+});
+
+//재고조회======================================================================
+//제품재고조회
+//제품첫목록
+router.get("/prdSearchList", async (req, res) => {
+  try {
+    let prdSearchList = await stockService.prdSearchtList();
+    res.json(prdSearchList);
+    console.log(prdSearchList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)제품조회목록 오류" });
+  }
+});
+//조회
+router.post("/searchPrdLotList", async (req, res) => {
+  try {
+    const data = await stockService.getSearchPrdLotList(req.body); // 검색조건 전달
+    res.json(data);
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "조회 실패" });
+  }
+});
+
+//자재재고조회
+//첫목록
+router.get("/matSearchList", async (req, res) => {
+  try {
+    let matSearchList = await stockService.matSearchtList();
+    res.json(matSearchList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)자재조회목록 오류" });
+  }
+});
+//조회
+router.post("/searchMatLotList", async (req, res) => {
+  try {
+    const data = await stockService.getSearchMatLotList(req.body); // 검색조건 전달
+    res.json(data);
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "조회 실패" });
+  }
+});
+
+//폐기물===========================================================================================
+router.get("/wasteList", async (req, res) => {
+  try {
+    let wasteList = await stockService.wasteList();
+    res.json(wasteList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)자재조회목록 오류" });
+  }
+});
+//등록
+router.post("/wasteOutReg", async (req, res) => {
+  console.log("Received details:", req.body);
+  try {
+    await stockService.wasteInfoUpdate(req.body);
+    res.json({ message: "success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)반출등록 실패" });
+  }
+});
 module.exports = router;

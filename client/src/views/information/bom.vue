@@ -7,16 +7,29 @@ import BomDetailRegistWidget from '@/components/information/bom/bomDetailRegistW
 
 import { ref, onUnmounted } from 'vue';
 const bomDetailData = ref([]);
+const bomSelectedData = ref([]);
+const rowsPerPage = 5;
+
+// 초기 빈 데이터 (placeholder)
+const bomSearchData = ref(
+    Array(rowsPerPage).fill({
+        num: '\u00A0',
+        bomId: '\u00A0',
+        prodId: '\u00A0',
+        prodName: '\u00A0',
+        prodType: '\u00A0',
+        createDate: '\u00A0',
+        status: '\u00A0'
+    })
+);
 
 const handleBomDetail = (detail) => {
     const newDetail = { ...detail };
     bomDetailData.value = [...bomDetailData.value, newDetail];
 };
 
-const bomSearchData = ref([]);
-
 const handleSearch = (result) => {
-    bomSearchData.value = result.map((item, index) => ({
+    const mapped = result.map((item, index) => ({
         num: index + 1,
         bomId: item.bom_id,
         prodId: item.product_id,
@@ -25,6 +38,33 @@ const handleSearch = (result) => {
         createDate: item.created_date,
         status: item.status
     }));
+
+    // 최소 행 수 유지
+    while (mapped.length < rowsPerPage) {
+        mapped.push({
+            num: '\u00A0',
+            bomId: '\u00A0',
+            prodId: '\u00A0',
+            prodName: '\u00A0',
+            prodType: '\u00A0',
+            createDate: '\u00A0',
+            status: '\u00A0'
+        });
+    }
+
+    bomSearchData.value = mapped;
+};
+
+const handleSelect = (row) => {
+    bomSelectedData.value = [
+        {
+            bomId: row.bomId,
+            prodName: row.prodName,
+            prodId: row.prodId,
+            status: row.status
+        }
+    ];
+    console.log(bomSelectedData);
 };
 
 onUnmounted(() => {
@@ -35,8 +75,8 @@ onUnmounted(() => {
 <template>
     <section class="employee-container">
         <BomSearchWidget @bomFilterSearch="handleSearch" />
-        <BomListWidget :items="bomSearchData" />
-        <BomRegistWidget :detailData="bomDetailData" />
+        <BomListWidget :items="bomSearchData" @bomSelected="handleSelect" />
+        <BomRegistWidget :detailData="bomDetailData" :items="bomSelectedData" />
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
                 <BomDetailWidget :detailData="bomDetailData" />
