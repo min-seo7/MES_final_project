@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import DatePicker from 'primevue/datepicker';
@@ -14,7 +14,11 @@ const products = ref([
         line: 'A01',
         planQuantity: 10000,
         productionQuantity: 1000,
-        productName: '분말형비료 20kg',
+        productId: 'P001',
+        productName: '분말형비료',
+        specification: '20',
+        unit: 'kg',
+        prd_form: '완제품',
         equipmentCode: 'EQ-COMB-01',
         equipmentName: '배합기#1',
         startDate: '2025-08-10 09:00',
@@ -26,7 +30,11 @@ const products = ref([
         line: 'A01',
         planQuantity: 10000,
         productionQuantity: 1000,
-        productName: '분말형비료 20kg',
+        productId: 'P001',
+        productName: '분말형비료',
+        specification: '20',
+        unit: 'kg',
+        prd_form: '완제품',
         equipmentCode: 'EQ-FERM-01',
         equipmentName: '발효기#1',
         startDate: '2025-08-10 09:00',
@@ -35,6 +43,7 @@ const products = ref([
     }
     // ... 이미지에 표시된 다른 행 데이터들
 ]);
+const items = ref([]);
 const selectedRow = ref(null);
 const onRowSelect = (event) => {
     const selectedData = event.data;
@@ -103,6 +112,37 @@ const generateCode = () => {
 
     return newCode;
 };
+
+// API 호출 함수
+const fetchProductionProcess = async () => {
+    try {
+        const response = await axios.get('/api/production/productionResultRegist');
+        items.value = response.data.list.map((item) => ({
+            process: item.process_id,
+            line: item.line_id,
+            productId: item.product_id,
+            productName: item.product_name,
+            specification: item.specification,
+            unit: item.unit,
+            useOrder: item.use_order,
+            equipmentCode: item.equipment_id,
+            productionQuantity: item.prd_noworder_qty,
+            inQty: 0,
+            defQty: 0,
+            qty: 0,
+            status: item.status
+        }));
+        console.log(response);
+    } catch (error) {
+        // console.log(items.value);
+        console.error('실패:', error);
+    }
+};
+
+onMounted(() => {
+    fetchProductionProcess();
+});
+
 const performanceInsert = () => {
     // const performanceInsertDate = new Date();
     // console.log(performanceInsertDate);
@@ -117,9 +157,9 @@ const performanceInsert = () => {
         productName: productName.value,
         equipmentCode: equipmentCode.value,
         equipmentName: equipmentName.value,
-        productionQuantity: productionQuantity.value,
-        performanceInsStartDate: performanceInsStartDate.value,
-        performanceInsEndDate: performanceInsEndDate.value
+        productionQuantity: productionQuantity.value
+        // ,performanceInsStartDate: performanceInsStartDate.value
+        // ,performanceInsEndDate: performanceInsEndDate.value
     };
     console.log(payload);
     // if (!payload.performanceNumber) {
@@ -168,8 +208,8 @@ const resetData = () => {
         <div class="w-full flex justify-end gap-2">
             <Button label=" 실적등록 " rounded @click="performanceInsert" />
             <!-- <Button label=" 실적번호부여 " rounded @click="performanceNumberInsert" /> -->
-            <Button label=" 실적시작 " rounded @click="registStartPerformance" />
-            <Button label=" 실적종료 " rounded @click="registEndPerformance" />
+            <!-- <Button label=" 실적시작 " rounded @click="registStartPerformance" /> -->
+            <!-- <Button label=" 실적종료 " rounded @click="registEndPerformance" /> -->
             <Button label=" 초기화 " severity="info" rounded @click="resetData" />
         </div>
     </div>
@@ -224,24 +264,27 @@ const resetData = () => {
                     <label class="w-24 text-right">공정 상태</label>
                     <InputText class="flex-1" v-model="status" disabled />
                 </div>
-                <div class="col-span-1 flex items-center gap-2">
+                <!-- <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">실적 시작 일시</label>
                     <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="performanceInsStartDate" />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">실적 종료 일시</label>
                     <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="performanceInsEndDate" />
-                </div>
+                </div> -->
             </div>
         </div>
 
         <div class="flex-grow overflow-y-auto">
-            <DataTable :value="products" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
+            <DataTable :value="items" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
                 <Column field="process" header="공정"></Column>
                 <Column field="line" header="라인"></Column>
-                <Column field="planQuantity" header="계획수량"></Column>
                 <Column field="productionQuantity" header="생산수량"></Column>
+                <Column field="productId" header="제품코드"></Column>
                 <Column field="productName" header="제품명"></Column>
+                <Column field="specification" header="규격"></Column>
+                <Column field="unit" header="단위"></Column>
+                <Column field="prd_form" header="제품구분"></Column>
                 <Column field="equipmentCode" header="설비코드"></Column>
                 <Column field="equipmentName" header="설비명"></Column>
                 <Column field="startDate" header="작업시작일시"

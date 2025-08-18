@@ -1,8 +1,9 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
-    pickerData: { type: Array, default: () => [] }
+    pickerData: { type: Array, default: () => [] } // 기존 유지(백업용)
 });
 const emit = defineEmits(['submit', 'clear']);
 
@@ -14,24 +15,67 @@ const search = ref({
     next_date: null
 });
 
+// 조회 버튼
+// function onSubmit() {
+//     const cond = { ...search.value };
+//     // 빈 문자열은 null로 교체
+//     Object.keys(cond).forEach((k) => {
+//         if (!cond[k]) cond[k] = null;
+//     });
+//     emit('submit', cond);
+// }
+
 function onSubmit() {
-    emit('submit', { ...search.value });
+    const cond = { ...search.value };
+    console.log('[SearchWidget] submit payload:', cond); // ✅ 여기
+    emit('submit', cond);
 }
+
+// 초기화 버튼
 function onClear() {
     search.value = { insp_code: '', eq_id: '', insp_type: '', insp_date: null, next_date: null };
     emit('clear');
 }
 
+/* ---------------------------
+   돋보기 모달 + 페이지네이션(5개 고정)
+   openPicker: 모달 오픈 & 1페이지 로드
+   fetchPicker: 서버에서 distinct 목록 페이징 조회
+   selectPicker: 선택값 반영
+--------------------------- */
 const showPicker = ref(false);
 const pickerList = ref([]);
+const page = ref(1);
+const total = ref(0);
+const size = 5;
 let currentField = '';
 
-const unique = (arr) => [...new Set(arr.filter(Boolean))];
-
-function openPicker(field) {
+async function openPicker(field) {
     currentField = field;
-    pickerList.value = unique((props.pickerData || []).map((i) => i?.[field]));
+    await fetchPicker(1);
     showPicker.value = true;
+}
+
+async function fetchPicker(p) {
+    try {
+        page.value = p;
+        const { data } = await axios.get('/api/equipment/inspection/distinct', {
+            params: { field: currentField, page: p, size }
+        });
+        // 서버 응답 우선, 실패 시 기존 pickerData로 fallback
+        pickerList.value = data?.items ?? [];
+        total.value = data?.total ?? pickerList.value.length;
+        if (!data) {
+            const backup = [...new Set((props.pickerData || []).map((i) => i?.[currentField]).filter(Boolean))];
+            pickerList.value = backup.slice((p - 1) * size, p * size);
+            total.value = backup.length;
+        }
+    } catch (e) {
+        // 네트워크 이슈 시에도 기존 방식으로 안전하게 동작
+        const backup = [...new Set((props.pickerData || []).map((i) => i?.[currentField]).filter(Boolean))];
+        pickerList.value = backup.slice((p - 1) * size, p * size);
+        total.value = backup.length;
+    }
 }
 
 function selectPicker(val) {
@@ -94,9 +138,13 @@ function selectPicker(val) {
                 </li>
                 <li v-if="pickerList.length === 0" class="p-2 text-gray-500 text-center">항목 없음</li>
             </ul>
+
+            <!-- 모달 페이지네이션 -->
+            <div v-if="total > size" class="flex justify-between items-center mt-3">
+                <Button label="이전" :disabled="page === 1" @click="fetchPicker(page - 1)" />
+                <span>{{ page }} / {{ Math.ceil(total / size) }}</span>
+                <Button label="다음" :disabled="page * size >= total" @click="fetchPicker(page + 1)" />
+            </div>
         </Dialog>
     </div>
 </template>
-
-
-

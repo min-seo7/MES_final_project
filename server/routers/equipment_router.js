@@ -2,20 +2,19 @@ const express = require("express");
 const router = express.Router();
 const equipmentService = require("../services/equipment_service.js");
 
-// ====================== 설비점검 ======================
-
-// 점검 목록(심플)
+// 설비점검 페이지
+// 설비점검 목록(심플)
 router.get("/inspection", async (req, res) => {
   try {
     const list = await equipmentService.findInspectionList();
-    res.json(list);
+    res.json(list); // 배열 그대로
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "서버 오류" });
   }
 });
 
-// 점검 검색(필터)
+// 설비점검 검색(필터 포함)
 router.get("/inspection/search", async (req, res) => {
   try {
     const list = await equipmentService.findInspectionByFilter(req.query);
@@ -26,80 +25,145 @@ router.get("/inspection/search", async (req, res) => {
   }
 });
 
-// 점검 등록
-router.post("/inspection", async (req, res) => {
+// 설비점검 DISTINCT (모달용 페이지네이션 5개 고정)
+router.get("/inspection/distinct", async (req, res) => {
   try {
-    const result = await equipmentService.insertInspection(req.body);
-    res.status(201).json({ message: "설비점검 등록성공", result });
+    const { field, page = 1, size = 5 } = req.query;
+    const result = await equipmentService.findInspectionDistinct(
+      field,
+      Number(page),
+      Number(size)
+    );
+    res.json(result); // { items, total, page, size }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "설비점검 등록 실패", error: err.message });
+    res.status(500).json({ message: "inspection distinct 실패" });
   }
 });
 
-// ====================== 설비정보 ======================
+/////////////////////////////////
 
-// 설비 검색 (picker + 조건)
-router.get("/search", async (req, res, next) => {
+// 설비정보 등록/수정 페이지
+// DISTINCT 목록 조회
+router.get("/distinct", async (req, res) => {
   try {
-    const q = {
-      eq_id: req.query.eq_id || "",
-      eq_type: req.query.eq_type || "",
-      eq_name: req.query.eq_name || "",
-      loc: req.query.loc || "",
-      status: req.query.status || "",
-      page: Number(req.query.page || 1),
-      size: Number(req.query.size || 20),
-    };
-    const result = await equipmentService.findEquipmentList(q);
-    res.json(result);
-  } catch (e) {
-    next(e);
+    const { field } = req.query;
+    const items = await equipmentService.getDistinct(field);
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "distinct 조회 실패" });
   }
 });
 
-// 설비 단건 조회
-router.get("/:eq_id", async (req, res, next) => {
+// 설비정보 조건 검색 (목록 + 페이지네이션 추가됨)
+router.get("/search", async (req, res) => {
   try {
-    const item = await equipmentService.findEquipmentById(req.params.eq_id);
-    res.json({ item });
-  } catch (e) {
-    next(e);
-  }
-});
-
-// 설비 코드 생성(EQ-YYYYMM-####)
-router.get("/gencode/new", async (_req, res, next) => {
-  try {
-    const code = await equipmentService.generateEquipmentCode();
-    res.json({ code });
-  } catch (e) {
-    next(e);
-  }
-});
-
-// 설비 등록
-router.post("/", async (req, res, next) => {
-  try {
-    console.log("[등록 요청 데이터]", req.body); // 요청 데이터 확인
-    const item = await equipmentService.insertEquipment(req.body);
-    res.status(201).json({ message: "등록성공", item });
-  } catch (e) {
-    console.error("설비등록 실패:", e);
-    next(e);
-  }
-});
-
-// 설비 수정
-router.put("/:eq_id", async (req, res, next) => {
-  try {
-    const item = await equipmentService.updateEquipment(
-      req.params.eq_id,
-      req.body
+    const page = Math.max(parseInt(req.query.page || "1"), 1);
+    const size = Math.max(parseInt(req.query.size || "10"), 1);
+    const result = await equipmentService.searchEquipment(
+      req.query,
+      page,
+      size
     );
-    res.json({ item });
-  } catch (e) {
-    next(e);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "검색 실패" });
+  }
+});
+
+// 설비 단건 조회 (폼 바인딩용)
+router.get("/find-one", async (req, res) => {
+  try {
+    const item = await equipmentService.findOneEquipment(req.query);
+    res.json(item); // null or object
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "단건 조회 실패" });
+  }
+});
+
+//설비정보 등록
+router.post("/regist", async (req, res) => {
+  try {
+    console.log("[information_router] BODY:", req.body);
+    const eqData = req.body;
+    const result = await equipmentService.insertEquipment(eqData);
+
+    res.status(201).json({ message: "설비 등록성공", result });
+  } catch (error) {
+    console.error("설비 등록 실패: information_router.js", error);
+    res.status(500).json({ message: "설비 등록 실패", error: error.message });
+  }
+});
+
+// 설비정보 수정 (PUT)
+router.put("/update", async (req, res) => {
+  try {
+    const result = await equipmentService.updateEquipment(req.body);
+    res.status(200).json({ message: "설비 수정 성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "설비 수정 실패", error: error.message });
+  }
+});
+
+// "설비정보 조회 페이지"
+/* ========== 설비정보 조회 페이지(info2) ========== */
+// 4-1) 진입(무필터) 10건 + 전체 건수
+router.get("/info2", async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page || "1"), 1);
+    const size = Math.max(parseInt(req.query.size || "10"), 1);
+    const result = await equipmentService.findEquipmentInfoPage(page, size);
+    res.json(result); // {items,total,page,size}
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "info2 목록 실패" });
+  }
+});
+
+// 4-2) 조건검색(OR 기본, AND는 주석)
+router.get("/info2/search", async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page || "1"), 1);
+    const size = Math.max(parseInt(req.query.size || "10"), 1);
+    const result = await equipmentService.searchEquipmentInfo2(
+      req.query,
+      page,
+      size
+    );
+    res.json(result); // {items,total,page,size}
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "info2 검색 실패" });
+  }
+});
+
+// 코드생성
+router.get("/gen-code", async (req, res) => {
+  try {
+    const code = await equipmentService.generateCode();
+    res.json({ code });
+  } catch (err) {
+    console.error("gen-code 실패:", err);
+    res.status(500).json({ message: "코드 생성 실패" });
+  }
+});
+
+// 4-3) 모달용 DISTINCT + 페이지네이션(5 고정)
+router.get("/info2/distinct", async (req, res) => {
+  try {
+    const { field, page = 1, size = 5 } = req.query;
+    const result = await equipmentService.findEquipmentInfoDistinct(
+      field,
+      Number(page),
+      Number(size)
+    );
+    res.json(result); // {items,total,page,size}
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "info2 distinct 실패" });
   }
 });
 

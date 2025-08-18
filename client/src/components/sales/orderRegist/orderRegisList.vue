@@ -5,7 +5,7 @@ import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import Toolbar from 'primevue/toolbar';
 import InputText from 'primevue/inputtext';
-import InputGroup from 'primevue/inputgroup';
+// import InputGroup from 'primevue/inputgroup';
 import DatePicker from 'primevue/datepicker';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -131,27 +131,27 @@ onMounted(() => {
             <template #center>
                 <div class="flex flex-wrap gap-6 p-4">
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">주문번호</label>
-                        <InputGroup>
-                            <InputText placeholder="ORD001" v-model="searchFilters.orderId" />
-                            <Button icon="pi pi-search" @click.stop="() => {}" />
-                        </InputGroup>
+                        <label for="orderId" class="font-semibold text-sm mb-1">주문번호</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="orderId" type="text" class="w-60" v-model="searchFilters.orderId" readonly />
+                            <InputIcon class="pi pi-search" @click.stop="openModal('supplier')" />
+                        </IconField>
                     </div>
 
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">거래처코드</label>
-                        <InputGroup>
-                            <InputText placeholder="SUP002" v-model="searchFilters.partnerId" />
-                            <Button icon="pi pi-search" @click.stop="() => {}" />
-                        </InputGroup>
+                        <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="partnerId" type="text" class="w-60" v-model="searchFilters.partnerId" readonly />
+                            <InputIcon class="pi pi-search" @click.stop="openModal('supplier')" />
+                        </IconField>
                     </div>
 
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">제품명</label>
-                        <InputGroup>
-                            <InputText placeholder="제품명" v-model="searchFilters.productName" />
-                            <Button icon="pi pi-search" @click.stop="() => {}" />
-                        </InputGroup>
+                        <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="productName" type="text" class="w-60" v-model="searchFilters.productName" readonly />
+                            <InputIcon class="pi pi-search" @click.stop="openModal('supplier')" />
+                        </IconField>
                     </div>
 
                     <div class="flex flex-col">

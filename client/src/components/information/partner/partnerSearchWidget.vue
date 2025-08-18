@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -57,6 +57,8 @@ const resetSearch = () => {
     search.value.partnerType = '';
     search.value.status = '';
     selectedItem.value = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -70,13 +72,16 @@ const selectSearch = async () => {
         };
 
         const res = await axios.post('/api/information/partner/search', payload);
-        alert(res.data.message);
         console.log(res.data.result);
         emits('partnerFilterSearch', res.data.result);
     } catch (err) {
         console.log('거래처검색실패');
     }
 };
+
+onMounted(() => {
+    selectSearch();
+});
 </script>
 
 <template>
@@ -131,10 +136,10 @@ const selectSearch = async () => {
                     <label for="status" class="whitespace-nowrap">상태</label>
                     <div class="flex items-center">
                         <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                            <RadioButton id="status1" name="status" value="활성" v-model="search.status" />
-                            <label for="status1" class="ml-2 mr-4">활성</label>
-                            <RadioButton id="status2" name="status" value="비활성" v-model="search.status" />
-                            <label for="status2" class="ml-2">비활성</label>
+                            <RadioButton id="status1" name="status" value="사용" v-model="search.status" />
+                            <label for="status1" class="ml-2 mr-4">사용</label>
+                            <RadioButton id="status2" name="status" value="미사용" v-model="search.status" />
+                            <label for="status2" class="ml-2">미사용</label>
                         </label>
                     </div>
                 </div>

@@ -1,5 +1,10 @@
 //const mariadb = require("../database/mapper.js");
-const { query, getConnection, sqlList } = require("../database/mapper.js");
+const {
+  query,
+  getConnection,
+  sqlList,
+  mariadb,
+} = require("../database/mapper.js");
 
 // 객체를 배열로 변환하는 매서드
 function convertToArray(obj, columns) {
@@ -49,29 +54,31 @@ const startWork = async (director, plan_detail_no, details) => {
     await conn.query(sqlList.insertPrdOrder, [newOrderId, director]);
     // 5. 1개 또는 1개이상의 배열인경우 판단하여 반환
     const detailsArray = Array.isArray(details) ? details : [details];
-
     // 6. for문을 돌며 prd_order_detail에 데이터 삽입
     for (const info of detailsArray) {
-      const formattedStartDate = formatToDatabaseDatetime(info.startDatetime);
-      const formattedEndDate = formatToDatabaseDatetime(info.endDatetime);
+      // const formattedStartDate = formatToDatabaseDatetime(info.p_st_date);
+      // const formattedEndDate = formatToDatabaseDatetime(info.p_ed_date);
       // 1건 또는 여러 건의 지시를 모두 처리
       // 가져온 생산계획코드를 임시 저장
       const detailPlanNo = info.plan_detail_no || plan_detail_no || null;
       const insertedDetail = [
-        formattedStartDate,
-        formattedEndDate,
-        info.currentQty,
-        info.line,
-        info.productname,
+        // formattedStartDate,
+        // formattedEndDate,
+        info.p_st_date,
+        info.p_ed_date,
+        info.prd_noworder_qty,
+        info.line_id,
+        info.product_name,
         newOrderId,
         detailPlanNo,
         info.specification,
         info.unit,
-        info.form,
+        info.prd_form,
       ];
+
       await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
     }
-
+    await conn.query(sqlList.insertPrdFlow, [newOrderId]);
     // 7. 모든 작업이 성공하면 커밋
     await conn.commit();
     return { success: true, message: "작업 지시가 성공적으로 등록되었습니다." };
@@ -85,4 +92,42 @@ const startWork = async (director, plan_detail_no, details) => {
   }
 };
 
-module.exports = { startWork };
+// const insertProductionFlow = async () => {
+//   let conn;
+//   try {
+//     conn = await getConnection();
+//     await conn.query(sqlList.insertPrdFlow);
+//     await conn.commit();
+//     return {
+//       success: true,
+//       message: "공정흐름도가 성공적으로 등록되었습니다.",
+//     };
+//   } catch (error) {
+//     // 8. 중간에 오류가 발생하면 롤백
+//     if (conn) await conn.rollback();
+//     throw error;
+//   } finally {
+//     // 9. 연결 해제
+//     if (conn) conn.release();
+//   }
+// };
+
+const selectPrcList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    let list = await conn.query(sqlList.selectProcessList);
+    console.log(list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제
+    if (conn) conn.release();
+  }
+};
+
+module.exports = {
+  startWork,
+  //  insertProductionFlow
+};
