@@ -27,7 +27,7 @@ export default {
             selectRow: null,
             //테이블 데이터
             wasteList: [],
-            selectedWaste: [],
+            selectedWaste: []
         };
     },
     methods: {
@@ -37,6 +37,39 @@ export default {
             this.waName = '';
             this.warehouse = '';
             this.partner = '';
+        },
+        //조회
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    out_date: this.dateFormat(this.outDate) || null,
+                    waste_name: this.waName || null,
+                    warehouse: this.warehouse || null,
+                    partner: this.partner || null
+                };
+
+                console.log(filters);
+
+                const res = await axios.post('/api/stock/searchWasteList', filters);
+                //조회결과
+                this.wasteList = res.data.map((item) => ({
+                    id: item.seq, // 행식별 위한 인덱스용,
+                    reDate: item.re_date,
+                    wasteId: item.waste_id,
+                    wasteName: item.waste_name,
+                    qty: item.qty,
+                    unit: item.unit,
+                    warehouse: item.warehouse,
+                    status: item.pro_status,
+                    date: item.out_date,
+                    partnerId: '',
+                    partner: item.partner_name,
+                    memo: item.comm
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //폐기물리스트
         async getWasteList() {
@@ -51,10 +84,10 @@ export default {
                     unit: item.unit,
                     warehouse: item.warehouse,
                     status: item.pro_status,
-                    date:item.out_date,
-                    partnerId:'',
-                    partner: item.partner_name, 
-                    memo: item.comm,
+                    date: item.out_date,
+                    partnerId: '',
+                    partner: item.partner_name,
+                    memo: item.comm
                 }));
             } catch (error) {
                 console.error('폐기물목록 불러오기 실패:', error);
@@ -62,7 +95,7 @@ export default {
         },
         //모달=============================================
         //보관장소
-        openWhModal(){
+        openWhModal() {
             this.WarehouseModal = true;
             this.getWareList();
         },
@@ -104,22 +137,25 @@ export default {
         },
         onSelectPartner() {
             if (this.selectRow !== null && this.selectPartner) {
-            this.wasteList[this.selectRow].partner = this.selectPartner.partnerName;
-            this.wasteList[this.selectRow].partnerId = this.selectPartner.partnerId;
-             }
+                this.wasteList[this.selectRow].partner = this.selectPartner.partnerName;
+                this.wasteList[this.selectRow].partnerId = this.selectPartner.partnerId;
+            }
 
-            this.selectPartner = null
+            this.selectPartner = null;
             this.partnerModal = false;
         },
         //반출버튼=========================================
-         async postOutWaste() {
-            if (!this.selectedWaste.length) { alert('확정할 항목을 선택하세요.'); return; }
+        async postOutWaste() {
+            if (!this.selectedWaste.length) {
+                alert('확정할 항목을 선택하세요.');
+                return;
+            }
             try {
                 let outInfo = this.selectedWaste.map((row) => ({
                     seq: row.id,
                     out_date: this.dateFormat(row.date),
                     partner_id: row.partnerId,
-                    comm: row.memo,
+                    comm: row.memo
                 }));
                 await axios.post('/api/stock/wasteOutReg', outInfo);
             } catch (error) {
@@ -134,8 +170,8 @@ export default {
             return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
-    mounted(){
-        console.log('폐기물리스트')
+    mounted() {
+        console.log('폐기물리스트');
         this.getWasteList();
     }
 };
@@ -166,7 +202,7 @@ export default {
                 </div>
                 <div class="flex items-center gap-2">
                     <label for="artner" class="whitespace-nowrap">처리업체</label>
-                   <IconField iconPosition="left" class="w-full">
+                    <IconField iconPosition="left" class="w-full">
                         <InputText id="artner" type="text" class="w-60" v-model="partner" @click="openPrdModal" />
                         <InputIcon class="pi pi-search" />
                     </IconField>
@@ -178,21 +214,22 @@ export default {
         <stockCommRowBtn
             :buttons="[
                 { label: '반출등록', icon: 'pi pi-check', onClick: postOutWaste },
+                { label: '수정', icon: 'pi pi-check', onClick: postOutWaste }
             ]"
         />
 
         <!-- 테이블 -->
         <div class="card w-full">
-            <DataTable v-model:selection="selectedWaste" selectionMode="multiple" dataKey="id" :value="wasteList" tableStyle="min-width: 50rem"  scrollable scrollHeight="400px">
+            <DataTable v-model:selection="selectedWaste" selectionMode="multiple" dataKey="id" :value="wasteList" tableStyle="min-width: 50rem" scrollable scrollHeight="400px">
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <Column field="reDate" header="등록일자" style="width: 12rem" />
-                <Column field="wasteId" header="폐기물코드"    style="width: 10rem; display: none"  />
+                <Column field="wasteId" header="폐기물코드" style="width: 10rem; display: none" />
                 <Column field="wasteName" header="폐기물명" style="width: 20rem" />
                 <Column field="qty" header="수량" style="width: 7rem" />
                 <Column field="unit" header="단위" style="width: 5rem" />
                 <Column field="warehouse" header="보관위치" style="width: 10rem" />
                 <Column header="반출일자" style="width: 15rem">
-                     <template #body="slotProps">
+                    <template #body="slotProps">
                         <DatePicker :showIcon="true" :showButtonBar="true" v-model="slotProps.data.date" dateFormat="yy-mm-dd" :disabled="slotProps.data.status === '확정'" />
                     </template>
                 </Column>
@@ -210,8 +247,7 @@ export default {
             </DataTable>
         </div>
     </div>
-    
-    
+
     <!--거래처-->
     <commModal v-model="partnerModal" header="거래처목록">
         <div class="mt-5 mb-4 space-x-2">

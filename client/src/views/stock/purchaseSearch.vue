@@ -45,7 +45,7 @@ export default {
                 console.log(filters);
 
                 const res = await axios.post('/api/stock/searchPurchaseList', filters);
-                //조회결과 
+                //조회결과
                 this.purchaseList = res.data.map((item) => ({
                     id: `${item.pur_no}-${item.material_id}`,
                     reDate: item.re_date,
@@ -88,7 +88,6 @@ export default {
         },
         //발주취소버튼=================================================================
         async cancelPur() {
-    
             try {
                 let cancelRow = this.cancelList.map((row) => ({
                     pur_no: row.purNo,
@@ -133,10 +132,10 @@ export default {
         },
         //날짜포맷
         dateFormat(date) {
-                if (!date || isNaN(new Date(date).getTime())) return null;
-                let newDateFormat = new Date(date);
-                return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
-            }
+            if (!date || isNaN(new Date(date).getTime())) return null;
+            let newDateFormat = new Date(date);
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
+        }
     },
     mounted() {
         console.log('발주목록');

@@ -20,8 +20,7 @@ export default {
             testNumber: '',
             prdCode: '',
             prdName: '',
-            prdInDate: '',
-            prdLotNo: '',
+
             //모달
             productModal: false,
             WarehouseModal: false,
@@ -31,16 +30,16 @@ export default {
             //모달용-테이블 행선택
             selectRow: null,
 
-            //테이블 데이터 선택 
+            //테이블 데이터 선택
             selectPendingPrds: [],
             selectPrdLots: [],
-           //입고대기 테이블 컬럼
+            //입고대기 테이블 컬럼
             pendingCol: [
                 { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
                 { field: 'p_No', header: '검수번호', headerStyle: 'width: 25rem' },
-                { field: 'p_prdType', header: '제품타입', headerStyle: 'width: 15rem'},
-                { field: 'p_prdCode', header: '제품코드', headerStyle: 'width: 15rem'},
-                { field: 'p_prdName', header: '제품명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenPrdModal},
+                { field: 'p_prdType', header: '제품타입', headerStyle: 'width: 15rem' },
+                { field: 'p_prdCode', header: '제품코드', headerStyle: 'width: 15rem' },
+                { field: 'p_prdName', header: '제품명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenPrdModal },
                 { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
                 { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
                 { field: 'p_unit', header: '단위', headerStyle: 'width: 13rem' },
@@ -54,7 +53,7 @@ export default {
             ReceiptCol: [
                 { field: 'inDate', header: '입 고 일', headerStyle: 'width: 20rem' },
                 { field: 'prdLotNo', header: '제품 LOT번호', headerStyle: 'width: 25rem' },
-                { field: 'prdType', header: '제품타입', headerStyle: 'width: 15rem'},
+                { field: 'prdType', header: '제품타입', headerStyle: 'width: 15rem' },
                 { field: 'prdCode', header: '제품코드', headerStyle: 'width: 12rem' },
                 { field: 'prdName', header: '제품명', headerStyle: 'width: 20rem' },
                 { field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem' },
@@ -64,7 +63,7 @@ export default {
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem' }
             ],
             //제품입고완료 데이터
-            prdReceipt: [],
+            prdReceipt: []
         };
     },
     methods: {
@@ -74,13 +73,40 @@ export default {
             this.testNumber = '';
             this.prdCode = '';
             this.prdName = '';
-            this.prdInDate = '';
-            this.prdLotNo = '';
+        },
+        //조회버튼
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    due_date: this.dateFormat(this.dueDate) || null,
+                    test_no: this.testNumber || null,
+                    product_id: this.prdCode || null,
+                    product_name: this.prdName || null
+                };
+
+                console.log(filters);
+
+                const res = await axios.post('/api/stock/p', filters);
+                //조회결과
+                this.prdReceiptPending = res.data.map((item) => ({
+                    id: `${item.inspection_id}-${item.product_id}`,
+                    p_dueDate: item.inspection_date,
+                    p_No: item.inspection_id,
+                    p_prdType: item.product_type,
+                    p_prdCode: item.product_id,
+                    p_prdName: item.product_name,
+                    p_testPassQty: item.qty,
+                    p_unit: `${'EA'}`
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //행삭제버튼
         removeRow() {
-            // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제 
-            let index = this.prdReceiptPending.findIndex(row => !row.p_prdCode);
+            // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제
+            let index = this.prdReceiptPending.findIndex((row) => !row.p_prdCode);
 
             if (index !== -1) {
                 this.prdReceiptPending.splice(index, 1);
@@ -102,20 +128,20 @@ export default {
                 p_unit: '',
                 p_exp: '',
                 p_warehouse: '',
-                p_memo: '',
+                p_memo: ''
             };
             this.prdReceiptPending.unshift(newRow);
         },
         //입고등록==========================================================================
         async postInsertPrd() {
-             if (!this.selectPendingPrds.length) {
+            if (!this.selectPendingPrds.length) {
                 alert('입고처리할 제품을 선택해주세요.');
                 return;
-             }
+            }
 
             // 필수값 체크
-             let checkNull =  this.selectPendingPrds.find(row => {
-                return !row.p_prdCode || !row.p_warehouse || !row.p_receiptQty ;
+            let checkNull = this.selectPendingPrds.find((row) => {
+                return !row.p_prdCode || !row.p_warehouse || !row.p_receiptQty;
             });
 
             if (checkNull) {
@@ -130,7 +156,7 @@ export default {
                     init_qty: row.p_receiptQty,
                     warehouse: row.p_warehouse,
                     comm: row.p_memo || null,
-                    inspection_id: row.p_No || null,
+                    inspection_id: row.p_No || null
                 }));
                 console.log(prdInfo);
                 await axios.post('/api/stock/rePrdtLot', prdInfo);
@@ -138,16 +164,16 @@ export default {
                 console.log('입고등록실패', error);
             }
             alert('입고등록 완료');
-            this.selectPendingPrds = []
+            this.selectPendingPrds = [];
             this.getPrdPendigList();
-            this.getprdLotLIst()
+            this.getprdLotLIst();
         },
         //입고취소
         async postCanelLot() {
             if (!this.selectPrdLots) {
                 alert('입고가 확정된 자재만 취소가능합니다.');
                 return;
-            } 
+            }
             console.log(this.selectPrdLots);
             try {
                 let cancelLotInfo = this.selectPrdLots.map((row) => ({
@@ -157,7 +183,7 @@ export default {
             } catch (error) {
                 console.lof('취소실패', error);
             }
-            
+
             this.getprdLotLIst();
             this.selectPandingPrds = [];
         },
@@ -193,7 +219,7 @@ export default {
                     receiptQty: item.init_qty,
                     unit: `${'EA'}`,
                     warehouse: item.warehouse,
-                    empName:item.e_name,
+                    empName: item.e_name,
                     memo: item.comm
                 }));
             } catch (error) {
@@ -202,25 +228,28 @@ export default {
         },
         //모달===============================================================================================
         //(모달)제품=============
-        openPrdModal() { //검색용
+        openPrdModal() {
+            //검색용
             this.productModal = true;
             this.getPrdList();
         },
-        rowOpenPrdModal(rowIndex){ //테이블행용
+        rowOpenPrdModal(rowIndex) {
+            //테이블행용
             this.selectRow = rowIndex; // 클릭한 테이블 행 index
             this.productModal = true;
             this.getPrdList();
         },
         onSelectonSelectPrd() {
-            if (this.selectRow !== null) { //선택시.
+            if (this.selectRow !== null) {
+                //선택시.
                 this.prdReceiptPending[this.selectRow].p_prdType = this.selectPrd.prdType;
                 this.prdReceiptPending[this.selectRow].p_prdCode = this.selectPrd.prdCode;
                 this.prdReceiptPending[this.selectRow].p_prdName = this.selectPrd.prdName;
-            }else{
+            } else {
                 this.prdCode = this.selectPrd.prdCode;
                 this.prdName = this.selectPrd.prdName;
             }
-            this.selectPrd = []
+            this.selectPrd = [];
             this.selectRow = null;
             this.productModal = false;
         },
@@ -262,13 +291,11 @@ export default {
             this.prdReceiptPending[this.selectRow].p_warehouse = this.selectWare.warerName;
             this.WarehouseModal = false;
         }
-
     },
     mounted() {
         console.log('제품입고');
         this.getPrdPendigList();
         this.getprdLotLIst();
-
     }
 };
 </script>
@@ -329,18 +356,17 @@ export default {
                 </TabList>
                 <TabPanels>
                     <TabPanel value="0">
-                      <div class ="flex justify-end mt-0 space-x-2">
-                        <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addNewRow" />
-                        <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow" />
-                      </div>
+                        <div class="flex justify-end mt-0 space-x-2">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" @click="addNewRow" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" @click="removeRow" />
+                        </div>
                         <!--0번탭 컨텐츠영역-->
-                      <stockCommTable v-model:selection="selectPendingPrds" :columns="pendingCol" :dataRows="prdReceiptPending" />
-                     
+                        <stockCommTable v-model:selection="selectPendingPrds" :columns="pendingCol" :dataRows="prdReceiptPending" />
                     </TabPanel>
                     <TabPanel value="1">
-                        <div class ="flex justify-end mt-0 space-x-2 invisible">
-                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  />
-                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  />
+                        <div class="flex justify-end mt-0 space-x-2 invisible">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" />
                         </div>
                         <!--1번탭 컨텐츠영역-->
                         <stockCommTable v-model:selection="selectPrdLots" :columns="ReceiptCol" :dataRows="prdReceipt" />
