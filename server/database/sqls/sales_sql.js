@@ -273,7 +273,6 @@ module.exports = {
   SelectOrders,
   SelectMaxOrderId,
   selectOrderDetail,
-  // selectShipDetail,
   selectShipOrders,
   insertShip,
   shipList,
