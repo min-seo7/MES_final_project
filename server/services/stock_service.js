@@ -113,8 +113,8 @@ let matLotInsert = async (matInfoList) => {
       matInfo.init_qty,
       matInfo.warehouse,
       matInfo.comm,
-      matInfo.materialOrder_num,
       matInfo.purch_id,
+      matInfo.materialOrder_num,
     ]);
   }
 };
@@ -171,6 +171,19 @@ let prdLotCancel = async (prdLotCancelInfoList) => {
 let prdOutWaitList = async () => {
   let prdOutWaitList = await mariadb.query("prdShipWaitListQurey");
   return prdOutWaitList;
+};
+//제품출고등록
+let prdOusR = async (prdoutInfoList) => {
+  for (let prdoutInfo of prdoutInfoList) {
+    await mariadb.query("prdOutRQuery", [
+      prdoutInfo.shipment_id,
+      prdoutInfo.product_id,
+      prdoutInfo.order_qty,
+      prdoutInfo.prtner,
+      prdoutInfo.shipartner,
+      prdoutInfo.comm,
+    ]);
+  }
 };
 //제품출고목록
 
@@ -363,4 +376,5 @@ module.exports = {
   wasteInfoUpdate,
   getSearchOutWaitList,
   getSearchWasteList,
+  prdOusR,
 };

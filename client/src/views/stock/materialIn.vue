@@ -202,12 +202,13 @@ export default {
                 return;
             }
             try {
-                let rejecgInfo = this.this.selectPandingMats.map((row) => ({
+                let rejecgInfo = this.selectPandingMats.map((row) => ({
                     purch_id: row.p_purchId
                 }));
+                console.log()
                 await axios.post('/api/stock/matReturn', rejecgInfo);
             } catch (error) {
-                console.lof('반품실패', error);
+                console.log('반품실패', error);
             }
             this.getMatPandigList();
             this.selectPandingMats = [];
@@ -224,7 +225,7 @@ export default {
                 }));
                 await axios.post('/api/stock/matLotCancel', cancelLotInfo);
             } catch (error) {
-                console.lof('취소실패', error);
+                console.log('취소실패', error);
             }
             
             this.getMatLotLIst();

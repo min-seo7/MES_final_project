@@ -219,6 +219,17 @@ router.get("/prdWOutList", async (req, res) => {
     res.status(500).json({ message: "(서버)출고대기목록 오류" });
   }
 });
+//제품출고등록
+router.post("/rePrdOut", async (req, res) => {
+  console.log("Received details:", req.body);
+  try {
+    await stockService.prdOusR(req.body);
+    res.json({ message: "success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)제품출고등록 실패" });
+  }
+});
 //조회
 router.post("/productOutSearch", async (req, res) => {
   try {

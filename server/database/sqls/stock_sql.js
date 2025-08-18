@@ -39,11 +39,12 @@ let lessMatListQuery = `SELECT ml.material_id,
                               m.unit
                        FROM tbl_mat_lot ml
                        JOIN material m ON ml.material_id = m.material_id
+                       WHERE ml.pro_status NOT IN ('입고취소', '종료')
                        GROUP BY ml.material_id, 
                                m.material_name, 
                                m.safety_stock,
                                m.unit
-                       HAVING total_curr_qty < m.safety_stock;`;
+                       HAVING total_curr_qty < m.safety_stock`;
 
 let masterInfoPro = `CALL insert_purchase_master(?, ?, ?, ?)`;
 //서브T 등록
@@ -211,7 +212,8 @@ let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS 
                             ON o.partner_id = pt.partner_id
                             WHERE sh.ship_status = 1
                             ORDER BY sh.shipment_date DESC`;
-
+//출고등록
+let prdOutRQuery = `CALL prd_outbound(?, ?, ?, ?, ?, ?)`;
 //제품출고목록
 let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
                                     po.prd_out_no,
@@ -383,4 +385,5 @@ module.exports = {
   wasteOutQuery,
   prdShipWaitSearchQurey,
   wasteSearchQuery,
+  prdOutRQuery,
 };

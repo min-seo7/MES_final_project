@@ -134,6 +134,28 @@ export default {
                 alert('삭제할 행이 없습니다.');
             }
         },
+        async postRegistOut(){
+            try{
+                // if (!this.dueDate || !this.partnerId || !this.empName) {
+                //     alert('필수정보입력');
+                //     return;
+                let prdOutInfo = this.selectOutWaitPrds.map((row) => ({
+                    shipment_id: row.w_shipmentId,
+                    product_id: row.w_prdCode,
+                    order_qty: row.w_outQty,
+                    prtner: row.w_partnerName || null,
+                    shipartner: row.w_shipEnt || null,
+                    comm: row.w_memo || null
+                }));
+                console.log(prdOutInfo);
+                await axios.post('/api/stock/rePrdOut', prdOutInfo);
+            } catch (error){
+                console.error('등록 실패', error);
+            }
+            alert('출고등록 완료');
+            this.selectOutWaitPrds = null;
+            this.getoutPrds();
+        },
         //테이블영역=====================================================================
         //출고대기목록
         async getoutPrds() {
@@ -152,6 +174,27 @@ export default {
                 }));
             } catch (error) {
                 console.error('제품출고대기 불러오기 실패:', error);
+            }
+        },
+        //출고완료목록
+        async getOutList() {
+            try {
+                const res = await axios.get('/api/stock/prdOutList');
+                this.outPrds = res.data.map((item) => ({
+                    id: `${item.shipment_id}-${item.product_code}`,
+                    outDate: item.ship_date,
+                    shipNo: item.prd_out_no,
+                    prdCode: item.prd_out_no,
+                    prdName: item.product_code,
+                    outQty: item.product_name,
+                    unit: `${'EA'}`,
+                    partnerName: item.partner_name,
+                    e_name: item.partner_name,
+                    shipEnt: item.partner_name,
+                    memo: item.partner_name
+                }));
+            } catch (error) {
+                console.error('제품출고 불러오기 실패:', error);
             }
         },
         //모달============================================================================================
@@ -272,7 +315,7 @@ export default {
         <!--중간버튼-->
         <stockCommRowBtn
             :buttons="[
-                { label: '출고등록', icon: 'pi pi-check', onClick: editHandler },
+                { label: '출고등록', icon: 'pi pi-check', onClick: postRegistOut },
                 { label: '출고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"
         />
