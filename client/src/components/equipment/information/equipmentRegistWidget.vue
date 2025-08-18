@@ -1,130 +1,76 @@
 <script setup>
-import { ref, defineExpose } from 'vue';
+import { ref } from 'vue';
 import axios from 'axios';
 
-/**
- * ✅ 폼 키는 기존 템플릿과 정확히 맞춤
- *  - equipmentCode, equipmentName, manufacturer, serialNo,
- *    purchaseDate, startDate, equipmentType, location, status, note
- *  - 파일첨부(법적/매뉴얼)는 별도 구현으로 두고, 지금은 DB 컬럼만 처리
- */
+// 부모(View)로 이벤트 전달
+const emit = defineEmits(['reset', 'open:typePicker', 'open:locPicker']);
 
+// 폼 데이터
 const form = ref({
-    equipmentCode: '', // EQ-코드 (미입력 시 자동생성)
+    equipmentCode: '',
     equipmentName: '',
     manufacturer: '',
     serialNo: '',
-    purchaseDate: null, // YYYY-MM-DD 또는 Date
-    startDate: null, // YYYY-MM-DD 또는 Date
+    purchaseDate: '',
+    startDate: '',
     equipmentType: '',
     location: '',
     status: '사용',
     note: ''
 });
 
-/* ---------- 유틸: 날짜 포맷 ---------- */
-function toYMD(v) {
-    if (!v) return null;
-    if (typeof v === 'string') return v; // 이미 yyyy-mm-dd
-    // Date → yyyy-mm-dd
-    const d = new Date(v);
-    if (isNaN(d.getTime())) return null;
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${d.getFullYear()}-${mm}-${dd}`;
-}
+// 파일 관련
+const file1Name = ref('');
+const file2Name = ref('');
+const file1 = ref(null);
+const file2 = ref(null);
 
-/* ---------- 코드 생성: EQ-YYYYMM-#### ---------- */
-async function genCode() {
-    const { data } = await axios.get('/api/information/equipment/gencode');
-    form.value.equipmentCode = data.code;
-}
+const pickFile = (id) => document.getElementById(id)?.click();
+const onFile1 = (e) => {
+    file1.value = e.target.files[0];
+    file1Name.value = file1.value?.name || '';
+    console.log('[File1 선택됨]', file1Name.value);
+};
+const onFile2 = (e) => {
+    file2.value = e.target.files[0];
+    file2Name.value = file2.value?.name || '';
+    console.log('[File2 선택됨]', file2Name.value);
+};
 
-/* ---------- 단건 로드: eq_id로 조회 → 폼 채움 ---------- */
-async function load(eq_id) {
-    if (!eq_id) {
-        reset();
-        return;
+// 설비코드 자동 생성
+const genCode = () => {
+    const prefix = form.value.equipmentType || 'EQ';
+    const random = Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, '0');
+    form.value.equipmentCode = `${prefix}-${random}`;
+    console.log('[설비코드 생성됨]', form.value.equipmentCode);
+};
+
+// 등록 요청
+const registequipment = async () => {
+    try {
+        console.log('[등록 요청 데이터]', form.value);
+
+        const res = await axios.post('/api/equipment', form.value);
+
+        console.log('[서버 응답]', res.data);
+
+        alert(res.data?.message || '등록이 완료되었습니다.');
+        emit('reset');
+    } catch (err) {
+        console.error('[등록 실패]', err);
+        alert('등록 실패: ' + (err.response?.data?.message || err.message));
     }
-    const { data } = await axios.get(`/api/information/equipment/${encodeURIComponent(eq_id)}`);
-    const it = data?.item;
-    if (!it) {
-        reset();
-        return;
-    }
-
-    // 서버 → 폼 매핑 (DB 컬럼명 기준)
-    form.value = {
-        equipmentCode: it.eq_id || '',
-        equipmentName: it.eq_name || '',
-        manufacturer: it.manufacturer || '',
-        serialNo: it.serial_no || '',
-        purchaseDate: it.purchase_date || null,
-        startDate: it.start_date || null,
-        equipmentType: it.eq_type || '',
-        location: it.loc || '',
-        status: it.status || '사용',
-        note: it.note || ''
-    };
-}
-
-/* ---------- 저장: 신규(POST) / 수정(PUT) ---------- */
-async function save() {
-    const payload = {
-        eq_id: form.value.equipmentCode || null, // 없으면 서버가 생성
-        eq_name: form.value.equipmentName,
-        manufacturer: form.value.manufacturer || null,
-        serial_no: form.value.serialNo || null,
-        purchase_date: toYMD(form.value.purchaseDate),
-        start_date: toYMD(form.value.startDate),
-        eq_type: form.value.equipmentType || null,
-        loc: form.value.location || null,
-        status: form.value.status || '사용',
-        note: form.value.note || null
-    };
-
-    if (!payload.eq_id) {
-        // 신규: 코드 미입력 → 서버에서 코드 생성 후 저장
-        const { data } = await axios.post('/api/information/equipment', payload);
-        await load(data.item.eq_id);
-    } else {
-        // 수정
-        const { data } = await axios.put(`/api/information/equipment/${encodeURIComponent(payload.eq_id)}`, payload);
-        await load(data.item.eq_id);
-    }
-}
-
-/* ---------- 초기화 ---------- */
-function reset() {
-    form.value = {
-        equipmentCode: '',
-        equipmentName: '',
-        manufacturer: '',
-        serialNo: '',
-        purchaseDate: null,
-        startDate: null,
-        equipmentType: '',
-        location: '',
-        status: '사용',
-        note: ''
-    };
-}
-
-/* ---------- 외부(View/템플릿에서 호출할 메서드 노출) ---------- */
-defineExpose({
-    form, // v-model 접근 필요 시
-    genCode, // "생성" 버튼
-    save, // "저장" 버튼
-    reset, // "초기화" 버튼
-    load // Search 결과로 eq_id 주입 시 사용
-});
+};
 </script>
+
 <template>
     <div class="mt-8 space-y-4">
         <div class="flex items-center justify-between">
             <div class="font-bold text-[18.5px]">등록/수정</div>
             <div class="flex items-center gap-2">
-                <Button label="저장" rounded @click="emit('save')" />
+                <Button label="저장" rounded @click="registequipment()" />
                 <Button label="초기화" severity="info" rounded @click="emit('reset')" />
             </div>
         </div>
@@ -135,7 +81,7 @@ defineExpose({
                 <div class="bg-gray-50 border-r border-b px-2 py-4 text-[14px] font-medium flex items-center justify-center whitespace-nowrap"><span class="text-red-500 mr-1">*</span>설비코드</div>
                 <div class="border-r border-b px-3 py-4 flex items-center gap-2">
                     <InputText v-model="form.equipmentCode" placeholder="설비유형별 자동생성" class="w-[calc(100%-70px)]" />
-                    <Button label="생성" class="shrink-0 text-xs px-3 py-2" />
+                    <Button label="생성" class="shrink-0 text-xs px-3 py-2" @click="genCode" />
                 </div>
                 <div class="bg-gray-50 border-r border-b px-2 py-4 text-[14px] font-medium flex items-center justify-center whitespace-nowrap"><span class="text-red-500 mr-1">*</span>설비명</div>
                 <div class="border-b px-3 py-4 flex items-center">

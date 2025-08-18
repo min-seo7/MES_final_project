@@ -7,6 +7,11 @@ SELECT employee_id,
        status
 FROM employee`;
 
+// 거래처명 모달 조회
+const selectPartnerName = `
+SELECT distinct partner_name
+FROM partner`;
+
 // 창고조회
 const selectWarehouse = `
  SELECT warehouse_id,
@@ -132,6 +137,25 @@ SET  material_name = ?
      , safety_stock_unit = ?
      , status = ?
 WHERE material_id = ?`;
+
+// 거래처 전체조회
+const selectPartnerList = `
+SELECT partner_id
+       , partner_type
+       , partner_name
+       , manager
+       , main_tel
+       , email
+       , address
+       , business_no
+       , status
+FROM partner
+WHERE 1=1
+  AND partner_id = COALESCE(?, partner_id)
+  AND partner_name = COALESCE(?, partner_name)
+  AND partner_type = COALESCE(?, partner_type)
+  AND status = COALESCE(?, status)
+`;
 
 // 거래처 조회
 const selectPartner = `
@@ -442,4 +466,6 @@ module.exports = {
   insertWarehouse,
   updateWarehouse,
   selectEmployeeIdModal,
+  selectPartnerName,
+  selectPartnerList,
 };

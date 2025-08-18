@@ -5,6 +5,7 @@ const stocks = require("./sqls/stock_sql.js");
 const productions = require("./sqls/production_sql.js");
 const equipments = require("./sqls/equipment_sql.js");
 const tests = require("./sqls/test_sql.js");
+const modals = require("./sqls/modal_sql.js");
 //펼침 연산자
 module.exports = {
   ...informations,
@@ -13,4 +14,5 @@ module.exports = {
   ...productions,
   ...equipments,
   ...tests,
+  ...modals,
 };

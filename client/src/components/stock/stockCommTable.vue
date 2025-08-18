@@ -16,7 +16,7 @@ export default {
         selection: {
             type: [Object, Array], // 단일 선택 or 다중 선택
             default: null
-        }
+        },
     },
     emits: ['update:dataRows', 'update:selection']
 };
@@ -24,7 +24,7 @@ export default {
 
 <template>
     <div class="card w-full">
-        <DataTable :value="dataRows" dataKey="id" tableStyle="min-width: 50rem" :selection="selection" @update:selection="$emit('update:selection', $event)">
+        <DataTable :value="dataRows" dataKey="id" scrollable scrollHeight="400px" tableStyle="min-width: 50rem" :selection="selection" @update:selection="$emit('update:selection', $event)">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--채크박스영역-->
 
@@ -38,6 +38,7 @@ export default {
                     <InputText v-model="slotProps.data[col.field]" type="text" style="width: 100%" v-if="col.inputText" />
                     <InputText v-model="slotProps.data[col.field]" type="text" style="width: 100%" @click="col.onClick(slotProps.index)" v-else-if="col.inputTextWM" />
                     <InputText v-model="slotProps.data[col.field]" :min="0" type="number" style="width: 80%" v-else-if="col.inputNumber" />
+                    
                     <!-- 기본 출력 -->
                     <span v-else>{{ slotProps.data[col.field] }}</span>
                 </template>
