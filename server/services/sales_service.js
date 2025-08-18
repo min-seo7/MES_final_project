@@ -214,9 +214,24 @@ const insertShipment = async (shipmentItems) => {
   }
 };
 
-//출하등록조회
-const shipList = () => {
-  let list = query("shipList");
+//출하내역조회
+const shipList = (filter) => {
+  const params = [
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.productId,
+    filter.productId,
+    filter.productId,
+    filter.startDate,
+    filter.startDate,
+    filter.startDate,
+    filter.endDate,
+    filter.endDate,
+    filter.endDate,
+  ];
+  console.log("출하조회 필터링 파라미터:", params);
+  let list = query("shipList", params);
   return list;
 };
 

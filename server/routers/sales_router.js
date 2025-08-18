@@ -139,14 +139,21 @@ router.post("/shipReqRegist", async (req, res) => {
     res.status(500).json({ message: "출하 등록 실패", error: error.message });
   }
 });
-//출하조회
+
+//출하조회 (필터링 적용)
 router.get("/shipReqSearch", async (req, res) => {
   try {
-    let list = await salesService.shipList();
-    res.json({ list });
+    const filters = {
+      partnerId: req.query.partnerId || null,
+      productId: req.query.productId || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.shipList(filters);
+    res.json({ list: filteredData });
   } catch (err) {
-    console.error("주문조회내역조회" + err);
-    res.status(500).json({ message: "서버오류" });
+    console.error("출하조회 실패:", err);
+    res.status(500).json({ message: "서버 오류" });
   }
 });
 // 납기일 수정 및 이력 등록 라우터 추가

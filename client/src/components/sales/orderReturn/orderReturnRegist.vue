@@ -284,8 +284,8 @@ const saveOrderUpdate = async () => {
     try {
         const updatePayload = {
             orderId: selectedOrder.value.orderId,
-            orderDate: selectedOrder.value.orderDate, // ✅ 추가: 원본 주문 날짜
-            orderDetailId: selectedOrder.value.orderDetailId, // ✅ 추가: order_detail_id
+            orderDate: selectedOrder.value.orderDate,
+            orderDetailId: selectedOrder.value.orderDetailId,
             changeDeliveryDate: orderUpdate.value.changeDeliveryDate?.toISOString().slice(0, 10),
             changeReason: orderUpdate.value.changeReason
         };

@@ -139,7 +139,6 @@ WHERE
 GROUP BY o.order_id, o.partner_id, o.partner_name, o.manager, o.delivery_addr, o.order_date, o.order_manager
 `;
 
-
 const insertShip = `
 INSERT INTO shipment(
     shipment_id,
@@ -165,17 +164,27 @@ SELECT MAX(order_detail_id) AS max_order_detail_id FROM order_items
 
 //출하등록조회
 const shipList = `
- SELECT  s.shipment_id,
-         i.product_id,
-         i.product_name,
-         o.partner_name,
-         i.quantity,
-         o.delivery_addr,
-         i.del_date,
-         s.shipment_date,
-         s.ship_status,
-         o.order_manager
-FROM     orders o INNER JOIN order_items i INNER JOIN shipment s
+SELECT  s.shipment_id,
+        o.order_id,
+        i.product_id,
+        i.product_name,
+        o.partner_name,
+        i.quantity,
+        o.order_date,
+        o.manager,
+        o.delivery_addr,
+        DATE_FORMAT(i.del_date, '%Y-%m-%d') as del_date,
+        DATE_FORMAT(s.shipment_date, '%Y-%m-%d') as shipment_date,
+        s.ship_status,
+        o.order_manager
+FROM    orders o
+JOIN    order_items i ON i.order_id = o.order_id  
+JOIN    shipment s    ON i.order_detail_id = s.order_detail_id
+WHERE
+    (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR i.del_date >= ?)
+    AND (? IS NULL OR i.del_date <= ?)
 `;
 
 //주문수정조회
