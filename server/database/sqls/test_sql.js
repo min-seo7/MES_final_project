@@ -34,69 +34,73 @@ VALUES(?,?,?,?,?,?,?)
 // 자재 입고검사 대기목록
 const selectInspecWaitList = `
 SELECT
-    MI.materialOrder_num AS 자재검수번호,
-    PD.pur_no AS 발주번호,      
+    P.seq AS 자재검수번호, 
+    PD.pur_no AS 발주번호,
+    PD.purch_id AS 구매번호,      
     PD.material_id AS 자재코드,  
     PD.pur_qty AS 수량_EA,         
-    MI.inspStatus AS 상태,
     PD.comm AS 메모,
     P.manager AS 담당자,
     mat.material_name AS 자재명,
-    DATE_FORMAT(MI.createdAt, '%Y-%m-%d') AS 등록날짜            
+    DATE_FORMAT(P.due_date, '%Y-%m-%d') AS 등록날짜,
+    PD.inspStatus AS 상태     
 FROM
     tbl_purchase_detail AS PD
-INNER JOIN
-    material_Inspection AS MI
-ON
-    PD.purch_id = MI.purch_id
 INNER JOIN
     tbl_purchase AS P
 ON
     PD.pur_no = P.pur_no
 INNER JOIN material as mat
 ON PD.material_id = mat.material_id
+WHERE PD.inspStatus= '대기' 
+ORDER BY P.due_date DESC`;
 ORDER BY MI.createdAt DESC`;
 // WHERE
 // 	MI.inspStatus = '대기'`;;
 
 // 자재 입고검사 완료목록
 const selectInspecFinList = `
-SELECT
-    MI.materialOrder_num AS 자재검수번호,
-    PD.pur_no AS 발주번호,      
-    PD.material_id AS 자재코드,  
-    PD.pur_qty AS 수량_EA,         
-    MI.inspStatus AS 상태,
-    PD.comm AS 메모,
-    P.manager AS 담당자,
+SELECT 
+    materialOrder_num AS 검수번호,
+    purch_id AS 구매번호,
+    material_code AS 자재코드,
     mat.material_name AS 자재명,
-    DATE_FORMAT(MI.createdAt, '%Y-%m-%d') AS 등록날짜,
-    MI.result AS 검사결과,
-    DATE_FORMAT(MI.inspection_date, '%Y-%m-%d') AS 검사완료날짜           
-FROM
-    tbl_purchase_detail AS PD
-INNER JOIN
-    material_Inspection AS MI
-ON
-    PD.purch_id = MI.purch_id
-INNER JOIN
-    tbl_purchase AS P
-ON
-    PD.pur_no = P.pur_no
-INNER JOIN material as mat
-ON PD.material_id = mat.material_id
-WHERE inspStatus = '완료'
-ORDER BY MI.inspection_date DESC;`;
+    insertquantity AS 수량_EA,
+    DATE_FORMAT(createdAt,'%Y-%m-%d') AS 등록날짜,
+    result AS 검사결과,
+    DATE_FORMAT(inspection_date, '%Y-%m-%d') AS 검사완료날짜
+FROM material_Inspection MI
+LEFT JOIN material mat ON MI.material_code = mat.material_id
+ORDER BY MI.purch_id DESC`;
+
+// 검사등록
+const insertInsp = `
+INSERT INTO material_Inspection (
+  material_code,
+  inspection_date,
+  inspector_id,
+  result,
+  remark,
+  createdAt,
+  purch_id,
+  insertquantity,
+  qty,
+  inspStatus
+) VALUES (?, NOW(), ?, ?, ?, NOW(), ?, ?, ?, ?)`;
+
+// tbl_purchase_detail테이블 조회
+const selectPD = `
+SELECT *
+FROM tbl_purchase_detail`;
 
 // 합불판정update
 const defUpdate = `
-UPDATE material_Inspection
+UPDATE tbl_purchase_detail
 SET
-  result = ?,
-  inspStatus = '완료',
-  inspection_date = DATE_FORMAT(NOW(), '%Y-%m-%d')
+  inspStatus = '완료'
 WHERE
-  materialOrder_num = ?`;
+  pro_status = '입고대기' AND
+  pur_no = ?`;
 
 module.exports = {
   selectItem,
@@ -105,4 +109,6 @@ module.exports = {
   selectInspecWaitList,
   defUpdate,
   selectInspecFinList,
+  insertInsp,
+  selectPD,
 };

@@ -1,29 +1,28 @@
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref, defineEmits } from 'vue';
+
+const emits = defineEmits(['lineDetail']);
 
 const form = ref({
-    equipmentId: '',
     processId: '',
+    processName: '',
+    equipmentId: '',
+    equipmentName: '',
     useOrder: '',
     status: ''
 });
 
-const registDetailLine = async () => {
-    try {
-        const res = await axios.post('/api/information/line/detail', form.value);
-        alert(res.data.message);
-    } catch (err) {
-        console.log('detail line등록실패');
-    }
+const addLinedetail = () => {
+    emits('lineDetail', form.value);
 };
+
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registDetailLine()" />
+            <Button label=" 등록 " rounded @click="addLinedetail()" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
@@ -54,10 +53,10 @@ const registDetailLine = async () => {
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">상태</label>
                     <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2">비활성</label>
+                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">사용</label>
+                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
+                        <label for="status2" class="ml-2">미사용</label>
                     </label>
                 </div>
             </div>

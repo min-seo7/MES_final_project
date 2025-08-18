@@ -1,41 +1,80 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, computed, defineProps, defineEmits } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 
-const items = ref([]);
-
-// API 호출 함수
-const fetchProcess = async () => {
-    try {
-        const response = await axios.get('/api/information/process');
-        items.value = response.data.list.map((item, index) => ({
-            num: index + 1,
-            processId: item.process_id,
-            processName: item.process_name,
-            isInspection: item.is_inspection,
-            status: item.status
-        }));
-    } catch (error) {
-        console.log(items.value);
-        console.error('실패:', error);
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
     }
+});
+
+const emit = defineEmits(['processSelected']);
+
+// row 클릭 시
+const onRowClick = (event) => {
+    emit('processSelected', event.data);
 };
 
-onMounted(() => {
-    fetchProcess();
+// 페이지당 표시할 행 수
+const rowsPerPage = 5;
+
+// 현재 페이지 (PrimeVue paginator는 0부터 시작)
+const currentPage = ref(1);
+
+// 페이지 변경 시
+const onPage = (event) => {
+    currentPage.value = event.page + 1;
+};
+
+const tableData = computed(() => {
+    const totalPages = Math.ceil(props.items.length / rowsPerPage);
+    const pages = [];
+
+    for (let page = 0; page < totalPages; page++) {
+        const start = page * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageItems = props.items.slice(start, end);
+
+        // 각 페이지마다 최소 5행 유지
+        while (pageItems.length < rowsPerPage) {
+            pageItems.push({
+                num: '\u00A0',
+                processId: '\u00A0',
+                processName: '\u00A0',
+                isInspection: '\u00A0',
+                status: '\u00A0'
+            });
+        }
+        pages.push(...pageItems);
+    }
+    return pages;
 });
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">목록</h2>
-    </div>
-
-    <DataTable :value="items" :rows="5" :paginator="true" showGridlines>
-        <Column field="num" header="" />
-        <Column field="processId" header="공정코드" />
-        <Column field="processName" header="공정명" />
-        <Column field="isInspection" header="검사유무" />
-        <Column field="status" header="상태" />
+    <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
+        <Column field="num" header="" style="width: 50px" />
+        <Column field="processId" header="공정코드" style="width: 150px" />
+        <Column field="processName" header="공정명" style="width: 150px" />
+        <Column field="isInspection" header="검사유무" style="width: 150px" />
+        <Column field="status" header="상태" style="width: 100px" />
     </DataTable>
 </template>
+
+<style scoped>
+.p-datatable .p-datatable-tbody > tr {
+    height: 50px !important;
+}
+.p-datatable .p-datatable-thead > tr {
+    height: 50px !important;
+}
+.p-datatable .p-datatable-tbody > tr > td {
+    padding: 0 10px !important;
+    line-height: 50px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>
