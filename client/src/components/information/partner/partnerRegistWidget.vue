@@ -1,6 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = ref({
     partnerType: '',
@@ -13,6 +20,28 @@ const form = ref({
     mainTel: '',
     status: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], partnerId: newVal[0].partnerId?.trim() || '' };
+        } else {
+            form.value = {
+                partnerType: '',
+                partnerId: '',
+                partnerName: '',
+                businessNo: '',
+                manager: '',
+                address: '',
+                email: '',
+                mainTel: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registPartner = async () => {
     try {
@@ -28,7 +57,8 @@ const registPartner = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록/수정</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registPartner()" />
+            <Button label=" 등록 " rounded @click="registPartner()" :disabled="form.partnerId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.partnerId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>

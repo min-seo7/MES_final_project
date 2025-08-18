@@ -1,6 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = ref({
     productType: '',
@@ -18,6 +25,32 @@ const form = ref({
     storageCondition: ''
 });
 
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], productId: newVal[0].productId?.trim() || '' };
+        } else {
+            form.value = {
+                productType: '',
+                productId: '',
+                productForm: '',
+                productName: '',
+                specification: '',
+                unit: '',
+                safetyStock: '',
+                safetyStockUnit: '',
+                expiration: '',
+                expirationUnit: '',
+                status: '',
+                manual: '',
+                storageCondition: ''
+            };
+        }
+    },
+    { immediate: true }
+);
+
 const registProduct = async () => {
     try {
         const res = await axios.post('/api/information/product', form.value);
@@ -32,7 +65,8 @@ const registProduct = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록/수정</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registProduct()" />
+            <Button label=" 등록 " rounded @click="registProduct()" :disabled="form.productId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.productId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>

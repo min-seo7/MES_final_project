@@ -103,7 +103,8 @@ declare module 'vue' {
     OrderReturnList: typeof import('./src/components/sales/orderReturn/orderReturnList.vue')['default']
     OrderReturnRegist: typeof import('./src/components/sales/orderReturn/orderReturnRegist.vue')['default']
     OrderShipList: typeof import('./src/components/sales/orderShip/orderShipList.vue')['default']
-    OrderShipRegist: typeof import('./src/components/sales/orderShip/orderShipRegist.vue')['default']<<<<<<< order
+    OrderShipRegist: typeof import('./src/components/sales/orderShip/orderShipRegist.vue')['default']
+    OrderShipRegist: typeof import('./src/components/sales/orderShip/orderShipRegist.vue')['default']
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
     Panel: typeof import('primevue/panel')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']

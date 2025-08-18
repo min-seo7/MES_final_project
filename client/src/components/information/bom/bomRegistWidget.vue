@@ -1,9 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
     detailData: {
+        type: Array,
+        default: () => []
+    },
+    items: {
         type: Array,
         default: () => []
     }
@@ -12,10 +16,26 @@ const props = defineProps({
 const form = ref({
     bomId: '',
     prodId: '',
-    prodName: '',
     prodType: '',
     status: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], bomId: newVal[0].bomId?.trim() || '' };
+        } else {
+            form.value = {
+                bomId: '',
+                prodId: '',
+                prodType: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registBom = async () => {
     if (!form.value.prodId) {
@@ -60,7 +80,8 @@ const registBom = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registBom()" />
+            <Button label=" 등록 " rounded @click="registBom()" :disabled="form.bomId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.bomId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>

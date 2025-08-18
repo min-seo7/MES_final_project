@@ -1,6 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = ref({
     processId: '',
@@ -8,6 +15,23 @@ const form = ref({
     isInspection: '',
     status: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], processId: newVal[0].processId?.trim() || '' };
+        } else {
+            form.value = {
+                processId: '',
+                processName: '',
+                isInspection: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registProcess = async () => {
     try {
@@ -17,22 +41,22 @@ const registProcess = async () => {
         console.log('공정등록실패');
     }
 };
-const modifyProcess = async () => {
-    try {
-        const res = await axios.post('/api/information/process/modify', form.value);
-        alert(res.data.message);
-    } catch (err) {
-        console.log('공정수정실패');
-    }
-};
+// const modifyProcess = async () => {
+//     try {
+//         const res = await axios.post('/api/information/process/modify', form.value);
+//         alert(res.data.message);
+//     } catch (err) {
+//         console.log('공정수정실패');
+//     }
+// };
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록/수정</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registProcess()" />
-            <Button label=" 수정 " rounded @click="modifyProcess()" />
+            <Button label=" 등록 " rounded @click="registProcess()" :disabled="form.processId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.processId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>

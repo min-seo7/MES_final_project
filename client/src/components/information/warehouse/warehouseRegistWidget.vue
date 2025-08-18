@@ -1,6 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = ref({
     warehouseId: '',
@@ -12,6 +19,27 @@ const form = ref({
     warehouseType: '',
     status: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], warehouseId: newVal[0].warehouseId?.trim() || '' };
+        } else {
+            form.value = {
+                warehouseId: '',
+                warehouse: '',
+                zone: '',
+                subZone: '',
+                floor: '',
+                location: '',
+                warehouseType: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registWarehouse = async () => {
     try {
@@ -27,7 +55,8 @@ const registWarehouse = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록/수정</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registWarehouse()" />
+            <Button label=" 등록 " rounded @click="registWarehouse()" :disabled="form.warehouseId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.warehouseId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>

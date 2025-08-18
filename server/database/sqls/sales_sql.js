@@ -138,11 +138,6 @@ WHERE
 GROUP BY o.order_id, o.partner_id, o.partner_name, o.manager, o.delivery_addr, o.order_date, o.order_manager
 `;
 
-// //주문번호 순차적으로 증가
-// const SelectMaxShipId = `
-//   SELECT MAX(order_id) AS max_order_id FROM orders
-// `;
-// const selectShipDetails = `
 
 const insertShip = `
 INSERT INTO shipment(
@@ -155,12 +150,6 @@ INSERT INTO shipment(
     product_name,
     order_detail_id
 ) VALUES(?,?,?,?,?,?,?,?)
-`;
-
-// 출하등록번호 순차적으로 증가
-const SelectMaxShipId = `
-  SELECT MAX(shipment_id) AS max_shipment_id FROM shipment
-// `;
 `;
 
 //주문상세번호 순차적으로 증가
