@@ -17,7 +17,7 @@
     "express": "^5.1.0",
     "mariadb": "^3.4.5",
     "nodemailer": "^7.0.5",
-    "pdfkit": "^0.17.1"
+    "pdfkit": "^0.17.1",
     "multer": "^2.0.2"
   },
   "devDependencies": {

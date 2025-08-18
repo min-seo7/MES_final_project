@@ -83,18 +83,74 @@ const selectSupplierFromDialog = (supplier) => {
 
 // 모달 및 제품 데이터
 const showProductDialog = ref(false);
-const products = ref([
-    { productId: 'P001', productName: '분말형', specification: '20KG', productPrice: 5000 },
-    { productId: 'P002', productName: '분말형', specification: '40KG', productPrice: 9500 },
-    { productId: 'P003', productName: '액상형', specification: '10L', productPrice: 12000 },
-    { productId: 'P004', productName: '액상형', specification: '20L', productPrice: 23000 }
-]);
+const allProducts = ref([]); // 전체 제품 데이터
+const filteredProducts = ref([]); // 필터링된 제품 데이터
+
+// 제품 모달 검색 폼
+const productSearch = ref({
+    prodCode: '',
+    prodName: ''
+});
+
+// 제품 데이터 로드 함수 (실제 API 호출)
+const fetchProducts = async () => {
+    try {
+        // 백엔드 API가 있다고 가정하고 호출
+        // 실제 데이터와 구조가 다를 수 있으므로 필요에 따라 수정
+        const response = await axios.get('/api/products/search', {
+            params: {
+                prodCode: productSearch.value.prodCode,
+                prodName: productSearch.value.prodName
+            }
+        });
+        allProducts.value = response.data.list.map((item) => ({
+            productId: item.prod_id,
+            productType: item.prod_type, // '반제품', '완제품'
+            productName: item.prod_name,
+            specification: item.spec,
+            productPrice: item.price
+        }));
+        filteredProducts.value = allProducts.value;
+    } catch (error) {
+        console.error('제품 데이터 로드 실패:', error);
+        // 예시 데이터로 대체
+        allProducts.value = [
+            { productId: 'P001', productType: '반제품', productName: '반제품_분말형', specification: null, productPrice: null },
+            { productId: 'P001-20', productType: '완제품', productName: '분말형비료', specification: '20KG', productPrice: 5000 },
+            { productId: 'P001-40', productType: '완제품', productName: '분말형비료', specification: '40KG', productPrice: 9500 },
+            { productId: 'P002', productType: '완제품', productName: '완제품_과립형', specification: null, productPrice: null },
+            { productId: 'P002-20', productType: '완제품', productName: '과립형비료', specification: '20KG', productPrice: 12000 },
+            { productId: 'P002-40', productType: '완제품', productName: '과립형비료', specification: '40KG', productPrice: 23000 },
+            { productId: 'P003-05', productType: '완제품', productName: '액상형비료', specification: '5L', productPrice: 7000 },
+            { productId: 'P003-10', productType: '완제품', productName: '액상형비료', specification: '10L', productPrice: 13000 },
+            { productId: 'P005', productType: '완제품', productName: '연습', specification: null, productPrice: null },
+            { productId: 'P007', productType: '완제품', productName: '연습', specification: null, productPrice: null },
+            { productId: 'P008', productType: '완제품', productName: '연습', specification: null, productPrice: null }
+        ];
+        filteredProducts.value = allProducts.value;
+    }
+};
+
+// 제품 모달 열기
+const openProductModal = async () => {
+    await fetchProducts();
+    showProductDialog.value = true;
+};
+
+// 제품 검색 필터링
+const searchProducts = () => {
+    filteredProducts.value = allProducts.value.filter((product) => {
+        const matchesCode = !productSearch.value.prodCode || product.productId.includes(productSearch.value.prodCode);
+        const matchesName = !productSearch.value.prodName || product.productName.includes(productSearch.value.prodName);
+        return matchesCode && matchesName;
+    });
+};
 
 const selectProduct = (event) => {
     const product = event.data;
+    search.value.prodCode = product.productId;
     search.value.productName = product.productName;
     search.value.spec = product.specification;
-    search.value.prodCode = product.productId;
     showProductDialog.value = false;
 };
 
@@ -282,6 +338,13 @@ onMounted(() => {
                     </InputGroup>
                 </div>
                 <div class="flex flex-col space-y-1">
+                    <label class="font-semibold text-sm">제품코드</label>
+                    <InputGroup>
+                        <InputText v-model="search.prodCode" placeholder="P001" readonly />
+                        <Button icon="pi pi-search" class="p-button-secondary" @click="openProductModal" />
+                    </InputGroup>
+                </div>
+                <div class="flex flex-col space-y-1">
                     <label class="font-semibold text-sm">품명</label>
                     <div class="flex flex-wrap gap-3">
                         <div v-for="item in productList" :key="item" class="flex items-center gap-2">
@@ -392,18 +455,41 @@ onMounted(() => {
             </div>
         </Dialog>
 
-        <Dialog v-model:visible="showProductDialog" modal header="제품 검색" :style="{ width: '50vw' }">
-            <DataTable :value="products" selectionMode="single" dataKey="productId" @rowSelect="selectProduct">
-                <Column field="productId" header="제품코드"></Column>
-                <Column field="productName" header="제품명"></Column>
-                <Column field="specification" header="규격"></Column>
-                <Column field="productPrice" header="단가"></Column>
-            </DataTable>
+        <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
+            <div class="p-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <label class="font-semibold">제품코드</label>
+                    <InputText v-model="productSearch.prodCode" @keyup.enter="searchProducts" />
+                    <label class="font-semibold">제품명</label>
+                    <InputText v-model="productSearch.prodName" @keyup.enter="searchProducts" />
+                    <Button label="검색" icon="pi pi-search" class="p-button-success" @click="searchProducts" />
+                </div>
+                <DataTable :value="filteredProducts" selectionMode="single" dataKey="productId" @rowSelect="selectProduct">
+                    <Column field="productType" header="제품유형"></Column>
+                    <Column field="productId" header="제품코드"></Column>
+                    <Column field="productName" header="제품명"></Column>
+                </DataTable>
+            </div>
+            <template #footer>
+                <div class="flex justify-center">
+                    <Button label="선택 완료" severity="success" @click="showProductDialog = false" />
+                </div>
+            </template>
         </Dialog>
     </div>
 </template>
 
 <style scoped>
+/* PrimeVue 모달창 가운데 정렬 스타일 */
+:deep(.centered-dialog .p-dialog) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    z-index: 1000;
+}
+
 /* PrimeVue DataTable 선택된 행 포커스 스타일 */
 :deep(.p-datatable .p-datatable-tbody > tr.p-highlight) {
     background-color: #e3f2fd !important; /* light blue background */

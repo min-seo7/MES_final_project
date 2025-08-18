@@ -109,7 +109,8 @@ router.get("/shipReqRegist/:orderId", async (req, res) => {
   try {
     const orderId = req.params.orderId;
     const list = await salesService.selectOrderDetails(orderId);
-    res.status(200).json({ message: "주문서등록성공", list });
+    console.log("프론트엔드에서 주문 상세 내역 조회 요청 받음:", orderId);
+    res.status(200).json({ message: "주문목록불러오기 성공", list });
   } catch (err) {
     console.error("주문상세내역조회실패:", err);
     res
@@ -117,16 +118,19 @@ router.get("/shipReqRegist/:orderId", async (req, res) => {
       .json({ error: "주문상세 데이터를 가져오는 데 실패했습니다." });
   }
 });
-//출하등록
+// 출하 등록
 router.post("/shipReqRegist", async (req, res) => {
   try {
-    const shipmentItems = req.body.shipmentItems; // 요청 본문에서 출하 아이템 목록을 받음
+    const shipmentItems = req.body.shipmentItems;
     if (!shipmentItems || shipmentItems.length === 0) {
       return res.status(400).json({ message: "출하할 항목이 없습니다." });
     }
     const result = await salesService.insertShipment(shipmentItems);
     if (result.success) {
-      res.status(200).json({ message: "출하 등록 성공" });
+      res.status(200).json({
+        message: "출하 등록 성공",
+        createdCount: result.createdCount,
+      });
     } else {
       res.status(500).json({ message: "출하 등록 실패", error: result.error });
     }
@@ -134,16 +138,16 @@ router.post("/shipReqRegist", async (req, res) => {
     console.error("출하 등록 실패:", error);
     res.status(500).json({ message: "출하 등록 실패", error: error.message });
   }
-  //출하조회
-  router.get("/shipReqSearch", async (req, res) => {
-    try {
-      let list = await salesService.shipList();
-      res.json({ list });
-    } catch (err) {
-      console.error("주문조회내역조회" + err);
-      res.status(500).json({ message: "서버오류" });
-    }
-  });
+});
+//출하조회
+router.get("/shipReqSearch", async (req, res) => {
+  try {
+    let list = await salesService.shipList();
+    res.json({ list });
+  } catch (err) {
+    console.error("주문조회내역조회" + err);
+    res.status(500).json({ message: "서버오류" });
+  }
 });
 // 납기일 수정 및 이력 등록 라우터 추가
 router.put("/updateOrderDelivery", async (req, res) => {

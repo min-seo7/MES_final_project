@@ -3,16 +3,16 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import InputGroup from 'primevue/inputgroup';
+// import InputGroup from 'primevue/inputgroup';
 import Calendar from 'primevue/calendar';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import RadioButton from 'primevue/radiobutton';
-import Panel from 'primevue/panel'; // Dialog 대신 Panel 사용
+import Panel from 'primevue/panel';
 import Textarea from 'primevue/textarea';
-import Dropdown from 'primevue/dropdown';
+import { useToast } from 'primevue/usetoast';
 
-// --- 주문 조회 및 필터링 관련 ---
+// --- 상태 및 옵션 ---
 const orderStateMap = { 1: '주문서등록', 2: '생산대기', 3: '생산중', 4: '품질검수완료', 5: '제품입고' };
 const search = ref({ partnerId: '', productName: '', spec: '', deliveryDate: null });
 const orders = ref([]);
@@ -22,6 +22,9 @@ const productList = ['분말형', '과립형', '액상형'];
 const productSpecs = { 분말형: ['20KG', '40KG'], 과립형: ['20KG', '40KG'], 액상형: ['5L', '10L', '20L'] };
 const specOptions = computed(() => productSpecs[search.value.productName] || []);
 
+const toast = useToast();
+
+// --- 주문 조회 ---
 const fetchOrders = async () => {
     try {
         const delDateValue = search.value.deliveryDate;
@@ -57,49 +60,47 @@ const fetchOrders = async () => {
         }
     } catch (error) {
         console.error('데이터 로드 실패:', error);
+        toast.add({ severity: 'error', summary: '실패', detail: '데이터 로드 실패', life: 3000 });
     }
 };
 
+// --- Reset ---
 const resetFilters = () => {
     search.value = { partnerId: '', productName: '', spec: '', deliveryDate: null };
     selectedOrder.value = null;
-    isPdfGenerated.value = false;
-    pdfForm.value = { fileName: '', partnerName: '', deliveryAddr: '', quantity: '', productName: '', delDate: '' };
-    emailForm.value = { partnerEmail: '', managerEmail: '', subject: '', body: '' };
-    fetchOrders();
 };
 
-const onRowSelect = (event) => {
-    selectedOrder.value = event.data;
-    isPdfGenerated.value = false;
-
-    // PDF 폼 자동 채우기
-    const data = event.data;
-    pdfForm.value.fileName = `${data.orderDate.replace(/-/g, '')}_${data.partnerName}_${data.orderId}_주문서.pdf`;
-    pdfForm.value.partnerName = data.partnerName;
-    pdfForm.value.deliveryAddr = data.deliveryAddr;
-    pdfForm.value.quantity = data.quantity;
-    pdfForm.value.productName = data.productName;
-    pdfForm.value.delDate = data.delDate;
-
-    // 이메일 폼 초기화 (PDF 생성 후 채워짐)
-    emailForm.value = {
-        partnerEmail: data.partnerEmail,
-        managerEmail: data.orderManagerEmail,
-        subject: `[주문서] ${data.partnerName}_${data.orderDate}_주문서`,
-        body: `거래처: ${data.partnerName}\n배송지: ${data.deliveryAddr}\n수량: ${data.quantity}\n제품명: ${data.productName}\n납기일: ${data.delDate}\n\n[파일 첨부: ${pdfForm.value.fileName}]`
+// --- Computed Forms ---
+const pdfForm = computed(() => {
+    if (!selectedOrder.value) return {};
+    const d = selectedOrder.value;
+    return {
+        fileName: `${d.orderDate.replace(/-/g, '')}_${d.partnerName}_${d.orderId}_주문서.pdf`,
+        partnerName: d.partnerName,
+        deliveryAddr: d.deliveryAddr,
+        quantity: d.quantity,
+        productName: d.productName,
+        delDate: d.delDate
     };
-};
+});
 
-// --- PDF 생성 및 이메일 전송 제어 관련 ---
+const emailForm = computed(() => {
+    if (!selectedOrder.value) return {};
+    const d = selectedOrder.value;
+    return {
+        partnerEmail: d.partnerEmail,
+        managerEmail: d.orderManagerEmail,
+        subject: `[주문서] ${d.partnerName}_${d.orderDate}_주문서`,
+        body: `거래처: ${d.partnerName}\n배송지: ${d.deliveryAddr}\n수량: ${d.quantity}\n제품명: ${d.productName}\n납기일: ${d.delDate}\n\n[파일 첨부: ${pdfForm.value.fileName}]`
+    };
+});
+
 const isPdfGenerated = ref(false);
 
-const pdfForm = ref({ fileName: '', partnerName: '', deliveryAddr: '', quantity: '', productName: '', delDate: '' });
-const emailForm = ref({ partnerEmail: '', managerEmail: '', subject: '', body: '' });
-
+// --- PDF 생성 ---
 const savePdf = async () => {
     if (!selectedOrder.value) {
-        alert('주문 내역이 선택되지 않았습니다.');
+        toast.add({ severity: 'warn', summary: '알림', detail: '주문 내역이 선택되지 않았습니다.', life: 3000 });
         return;
     }
     try {
@@ -112,21 +113,22 @@ const savePdf = async () => {
         link.click();
         link.remove();
 
-        alert('PDF 파일이 성공적으로 다운로드되었습니다.');
+        toast.add({ severity: 'success', summary: '완료', detail: 'PDF 다운로드 성공', life: 3000 });
         isPdfGenerated.value = true;
     } catch (error) {
         console.error('PDF 생성 실패:', error);
-        alert('PDF 파일 생성에 실패했습니다.');
+        toast.add({ severity: 'error', summary: '실패', detail: 'PDF 생성 실패', life: 3000 });
     }
 };
 
+// --- 이메일 발송 ---
 const sendEmail = async () => {
     if (!selectedOrder.value) {
-        alert('주문 내역이 선택되지 않았습니다.');
+        toast.add({ severity: 'warn', summary: '알림', detail: '주문 내역이 선택되지 않았습니다.', life: 3000 });
         return;
     }
     if (!isPdfGenerated.value) {
-        alert('먼저 PDF를 생성해야 이메일을 보낼 수 있습니다.');
+        toast.add({ severity: 'warn', summary: '알림', detail: '먼저 PDF를 생성하세요.', life: 3000 });
         return;
     }
     try {
@@ -137,12 +139,11 @@ const sendEmail = async () => {
             text: emailForm.value.body
         };
         await axios.post('/api/email/send', payload);
-        alert('이메일이 성공적으로 전송되었습니다.');
+        toast.add({ severity: 'success', summary: '완료', detail: '이메일 전송 성공', life: 3000 });
         isPdfGenerated.value = false;
-        selectedOrder.value = null;
     } catch (error) {
         console.error('이메일 전송 실패:', error);
-        alert('이메일 전송에 실패했습니다.');
+        toast.add({ severity: 'error', summary: '실패', detail: '이메일 전송 실패', life: 3000 });
     }
 };
 
@@ -152,7 +153,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="p-6">
+    <div>
+        <Toast />
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">주문서 관리</h1>
             <div class="flex space-x-2">
@@ -160,44 +162,48 @@ onMounted(() => {
                 <Button label="초기화" severity="info" rounded @click="resetFilters" />
             </div>
         </div>
-        <div class="mb-6 p-4 border rounded-md bg-gray-100">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-5 items-center">
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">거래처코드</label>
-                    <InputGroup>
-                        <InputText v-model="search.partnerId" placeholder="SUP002" />
-                        <Button icon="pi pi-search" class="p-button-secondary" @click="fetchOrders" />
-                    </InputGroup>
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">품명</label>
-                    <div class="flex space-x-4">
-                        <div v-for="product in productList" :key="product" class="flex items-center">
-                            <RadioButton v-model="search.productName" :inputId="product" :value="product" name="productName" class="mr-2" />
-                            <label :for="product">{{ product }}</label>
+        <!-- 검색 조건 -->
+        <Toolbar class="mb-4">
+            <template #center>
+                <div class="flex flex-wrap gap-6 p-4">
+                    <div class="flex flex-col">
+                        <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="partnerId" type="text" class="w-60" v-model="search.partnerId" readonly />
+                            <InputIcon class="pi pi-search" @click.stop="fetchOrders" />
+                        </IconField>
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">품명</label>
+                        <div class="flex space-x-4">
+                            <div v-for="product in productList" :key="product" class="flex items-center">
+                                <RadioButton v-model="search.productName" :inputId="product" :value="product" name="productName" class="mr-2" />
+                                <label :for="product">{{ product }}</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">규격</label>
-                    <div class="flex space-x-4">
-                        <div v-for="spec in specOptions" :key="spec" class="flex items-center">
-                            <RadioButton v-model="search.spec" :inputId="spec" :value="spec" name="spec" class="mr-2" />
-                            <label :for="spec">{{ spec }}</label>
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">규격</label>
+                        <div class="flex space-x-4">
+                            <div v-for="spec in specOptions" :key="spec" class="flex items-center">
+                                <RadioButton v-model="search.spec" :inputId="spec" :value="spec" name="spec" class="mr-2" />
+                                <label :for="spec">{{ spec }}</label>
+                            </div>
                         </div>
                     </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">납기</label>
+                        <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon iconDisplay="input" :manualInput="false" />
+                    </div>
                 </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">납기</label>
-                    <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon iconDisplay="input" :manualInput="false" />
-                </div>
-            </div>
-        </div>
+            </template>
+        </Toolbar>
 
+        <!-- 주문내역 -->
         <div class="font-semibold text-xl mb-4 mt-7 flex justify-between items-center">
             <span>주문내역</span>
         </div>
-        <DataTable :value="orders" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrder" @rowSelect="onRowSelect" :rowHover="true">
+        <DataTable :value="orders" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrder" :rowHover="true">
             <Column field="orderId" header="주문번호" frozen class="font-bold" />
             <Column field="productId" header="제품코드" />
             <Column field="partnerEmail" header="거래처이메일" />
@@ -211,9 +217,10 @@ onMounted(() => {
             <Column field="orderManagerEmail" header="담당자이메일" />
         </DataTable>
 
+        <!-- 이메일 / PDF -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <Panel header="이메일">
-                <div class="flex flex-col space-y-4">
+                <div v-if="selectedOrder" class="flex flex-col space-y-4">
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">거래처이메일</label>
                         <InputText v-model="emailForm.partnerEmail" readonly class="flex-grow" />
@@ -224,30 +231,27 @@ onMounted(() => {
                     </div>
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">제목</label>
-                        <InputText v-model="emailForm.subject" placeholder="제목을 입력하세요" class="flex-grow" />
+                        <InputText v-model="emailForm.subject" class="flex-grow" />
                     </div>
                     <div class="flex items-start space-x-2">
                         <label class="font-semibold text-sm w-32 pt-2">본문</label>
-                        <Textarea v-model="emailForm.body" rows="5" placeholder="내용을 입력하세요" class="flex-grow" />
+                        <Textarea v-model="emailForm.body" rows="5" class="flex-grow" />
                     </div>
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">주문서 파일</label>
-                        <div class="flex items-center flex-grow space-x-2">
-                            <span class="text-sm">파일</span>
-                            <InputText v-model="pdfForm.fileName" readonly class="flex-grow" />
-                        </div>
+                        <InputText v-model="pdfForm.fileName" readonly class="flex-grow" />
                     </div>
                 </div>
                 <template #footer>
                     <div class="flex justify-end space-x-2">
-                        <Button label="저장" rounded @click="sendEmail" class="p-button-success" :disabled="!isPdfGenerated" />
+                        <Button label="전송" rounded @click="sendEmail" :disabled="!isPdfGenerated || !selectedOrder" />
                         <Button label="취소" rounded severity="secondary" @click="resetFilters" />
                     </div>
                 </template>
             </Panel>
 
             <Panel header="PDF">
-                <div class="flex flex-col space-y-4">
+                <div v-if="selectedOrder" class="flex flex-col space-y-4">
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">파일이름</label>
                         <InputText v-model="pdfForm.fileName" readonly class="flex-grow" />
@@ -275,7 +279,7 @@ onMounted(() => {
                 </div>
                 <template #footer>
                     <div class="flex justify-end space-x-2">
-                        <Button label="저장" rounded @click="savePdf" class="p-button-success" :disabled="!selectedOrder" />
+                        <Button label="저장" rounded @click="savePdf" :disabled="!selectedOrder" />
                         <Button label="취소" rounded severity="secondary" @click="resetFilters" />
                     </div>
                 </template>
