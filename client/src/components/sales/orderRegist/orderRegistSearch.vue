@@ -81,7 +81,8 @@ const form = ref({
     orderManager: '',
     deliveryAddr: '',
     supplyPrice: '',
-    manager: ''
+    manager: '',
+    totalQty: 0 // totoalQty 오타 수정 및 초기값 0으로 설정
 });
 
 // 주문내역 리스트
@@ -154,6 +155,7 @@ const resetOrders = () => {
         orderManager: '',
         deliveryAddr: '',
         supplyPrice: '',
+        totalQty: 0, // 수정된 변수명 사용
         manager: ''
     };
     selectedSupplierCode.value = '';
@@ -171,9 +173,12 @@ watch(
 );
 
 // 총합 계산
-const totalUnitPrice = computed(() => {
-    return orders.value.reduce((sum, order) => sum + order.productPrice, 0);
+// totalUnitPrice를 totalQuantity로 변경하여 총수량을 계산하도록 수정
+const totalQuantity = computed(() => {
+    return orders.value.reduce((sum, order) => sum + order.quantity, 0);
 });
+
+// 총공급가액은 이미 올바르게 계산되고 있으므로 그대로 유지
 const totalSupplyAmount = computed(() => {
     return orders.value.reduce((sum, order) => sum + order.supplyPrice, 0);
 });
@@ -234,7 +239,8 @@ const registEmployee = async () => {
         const payload = {
             ...form.value,
             orders: ordersForServer,
-            supplyPrice: totalSupplyAmount.value
+            supplyPrice: totalSupplyAmount.value,
+            totalQty: totalQuantity.value // 새로 계산된 총수량을 페이로드에 추가
         };
         //payloat를 전송
         const res = await axios.post('/api/sales/orderRegist', payload);
@@ -276,8 +282,8 @@ onMounted(() => {
                             <InputText type="text" v-model="form.deliveryAddr" />
                         </div>
                         <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">총제품단가</label>
-                            <InputText :value="totalUnitPrice.toLocaleString()" disabled />
+                            <label class="font-semibold text-sm mb-1">총수량</label>
+                            <InputText :value="totalQuantity.toLocaleString()" disabled />
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">총공급가액</label>
@@ -299,7 +305,6 @@ onMounted(() => {
                 </IconField>
             </template>
         </Toolbar>
-        <!-- icon="pi pi-plus" -->
         <br />
         <div class="flex gap-3 mt-4 justify-end">
             <Button label="추가" @click="addOrder" rounded />
@@ -347,7 +352,6 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-        <!-- ESLint 설정에서 발생한 에러 -->
         <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="closeModal">
             <div class="p-4">
                 <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
@@ -368,7 +372,6 @@ onMounted(() => {
                 <Button label="다음" @click="currentPage++" :disabled="currentPage === totalPages" size="small" />
             </div>
         </Dialog>
-        <!-- ESLint 설정에서 발생한 에러 -->
         <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="showProductModal = false">
             <div class="p-4">
                 <p class="font-bold mb-3 text-lg">🔍 제품을 선택하세요</p>

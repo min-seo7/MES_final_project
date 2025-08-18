@@ -94,6 +94,7 @@ declare module 'vue' {
     Modal: typeof import('./src/components/common/modal.vue')['default']
     MultiSelect: typeof import('primevue/multiselect')['default']
     NotificationsWidget: typeof import('./src/components/dashboard/NotificationsWidget.vue')['default']
+    OrderEmail: typeof import('./src/components/sales/orderEmailPdf/orderEmail.vue')['default']
     OrderList: typeof import('primevue/orderlist')['default']
     OrderModfiyList: typeof import('./src/components/sales/orderModify/orderModfiyList.vue')['default']
     OrderModifyRegist: typeof import('./src/components/sales/orderModify/orderModifyRegist.vue')['default']
@@ -102,7 +103,7 @@ declare module 'vue' {
     OrderReturnList: typeof import('./src/components/sales/orderReturn/orderReturnList.vue')['default']
     OrderReturnRegist: typeof import('./src/components/sales/orderReturn/orderReturnRegist.vue')['default']
     OrderShipList: typeof import('./src/components/sales/orderShip/orderShipList.vue')['default']
-    OrderShipRegist: typeof import('./src/components/sales/orderShip/orderShipRegist.vue')['default']
+    OrderShipRegist: typeof import('./src/components/sales/orderShip/orderShipRegist.vue')['default']<<<<<<< order
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
     Panel: typeof import('primevue/panel')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']
