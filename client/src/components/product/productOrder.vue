@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed} from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
@@ -11,16 +11,19 @@ import Dialog from 'primevue/dialog';
 //const dateValue = ref({});
 const search = ref({
     productPlanCode: '',
-    productname: '',
-    productType: '',
-    planEndDate: '',
-    line: '',
-    specification: '',
-    unit: '',
-    form: '',
-    code: ''
-});
 
+});
+const productInstance = ref(
+    { 
+        productname: '',
+        productType: '',    
+        line_id: '',
+        specification: '',  
+        unit: '',
+        prd_form: '',
+        line_name: '',
+});
+const currentEditRow = ref(null);
 const showModal = ref(false);
 const modalType = ref('');
 
@@ -33,17 +36,78 @@ const closeModal = () => {
     showModal.value = false;
 };
 
+// const selectModalValue = (value) => {
+//     if (modalType.value === 'productPlanCode') {
+//     search.value.productPlanCode = value.code;
+//     }
+//     else if (modalType.value === 'productNameInputModal') {
+//         search.value.productname = value.name;
+//         search.value.productType = value.type;
+//         search.value.line_id = value.line_id;
+//         search.value.specification = value.specification;
+//         search.value.unit = value.unit;
+//         search.value.prd_form = value.prd_form;
+//     // }
+    
+//      if (currentEditRow.value) {
+//             // 저장된 행의 필드 값을 모달에서 선택한 값으로 덮어씁니다.
+//             currentEditRow.value.productname = value.name;
+//             currentEditRow.value.productType = value.type;
+//             currentEditRow.value.line_id = value.line_id;
+//             currentEditRow.value.specification = value.specification;
+//             currentEditRow.value.unit = value.unit;
+//             currentEditRow.value.prd_form = value.prd_form;
+
+//             // 작업이 끝났으므로 편집 중인 행 상태를 초기화합니다.
+//             currentEditRow.value = null;
+//         }
+//     }
+//     showModal.value = false;
+// };
 const selectModalValue = (value) => {
-    if (modalType.value === 'productPlanCode') search.value.productPlanCode = value.code;
+    // 생산계획코드 모달 처리
+    if (modalType.value === 'productPlanCode') {
+        search.value.productPlanCode = value.code;
+    } 
+    // 제품명 모달 처리
     else if (modalType.value === 'productNameInputModal') {
-        search.value.productname = value.name;
-        search.value.productType = value.type;
-        search.value.line = value.line;
-        search.value.specification = value.specification;
-        search.value.unit = value.unit;
-        search.value.form = value.form;
+        productInstance.value.productname = value.name;
+        productInstance.value.productType = value.type;
+        productInstance.value.line_id = value.line_id;
+        productInstance.value.line_name = value.line_name;
+        productInstance.value.specification = value.specification;
+        productInstance.value.unit = value.unit;
+        productInstance.value.prd_form = value.prd_form;
+        
+        // currentEditRow에 값이 있어야만 DataTable의 행을 업데이트합니다.
+        if (currentEditRow.value) {
+            // 이전에 선택했던 행 데이터를 저장해둡니다.
+            
+            currentEditRow.value.productname = value.name;
+            currentEditRow.value.productType = value.type;
+            currentEditRow.value.line_id = value.line_id;
+            currentEditRow.value.line_name = value.line_name;
+            currentEditRow.value.specification = value.specification;
+            currentEditRow.value.unit = value.unit;
+            currentEditRow.value.prd_form = value.prd_form;
+            
+          
+            // onCellEditComplete 이벤트를 인위적으로 발생시켜 데이터테이블 업데이트 강제
+            const syntheticEvent = {
+                data: currentEditRow.value, // 업데이트된 행 데이터
+                // 여기를 수정:
+                // newValue에 변경된 '제품명(name)' 문자열 값만 할당
+                newValue: value.name, 
+                field: 'productname',
+                originalEvent: null,
+                preventDefault: () => {}
+            };
+            // 작업이 끝났으므로 편집 중인 행 상태를 초기화합니다.
+            currentEditRow.value = null;
+        }
+        productInstance.value = null;
     }
-    showModal.value = false;
+   showModal.value = false;
 };
 
 const productPlanCodeList = ref([
@@ -54,17 +118,21 @@ const productPlanCodeList = ref([
     { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김관리' }
 ]);
 const productNameList = ref([
-    { code: 'P001', name: '분말형비료', type: '분말형', specification: 20, unit: 'kg', line: 'A01', form: '완제품' },
-    { code: 'P001', name: '분말형비료', type: '분말형', specification: 40, unit: 'kg', line: 'A01', form: '완제품' },
-    { code: 'P002', name: '과립형비료', type: '과립형', specification: 20, unit: 'kg', line: 'B01', form: '완제품' },
-    { code: 'P002', name: '과립형비료', type: '과립형', specification: 40, unit: 'kg', line: 'B01', form: '완제품' },
-    { code: 'P003', name: '액체형비료', type: '액체형', specification: 5, unit: 'L', line: 'C01', form: '완제품' },
-    { code: 'P003', name: '액체형비료', type: '액체형', specification: 10, unit: 'L', line: 'C01', form: '완제품' },
-    { code: 'HFP001', name: '분말형비료', type: '분말형', specification: null, unit: null, line: 'A01', form: '반제품' },
-    { code: 'HFP002', name: '과립형비료', type: '과립형', specification: null, unit: null, line: 'B01', form: '반제품' },
-    { code: 'HFP003', name: '액체형비료', type: '액체형', specification: null, unit: null, line: 'C01', form: '반제품' }
+    { code: 'P001', name: '분말형비료', type: '분말형', specification: 20, unit: 'kg', line_id: 'line001',line_name:'라인A', prd_form: '완제품' },
+    { code: 'P001', name: '분말형비료', type: '분말형', specification: 40, unit: 'kg', line_id: 'line001',line_name:'라인A', prd_form: '완제품' },
+    { code: 'P002', name: '과립형비료', type: '과립형', specification: 20, unit: 'kg', line_id: 'line002',line_name:'라인B', prd_form: '완제품' },
+    { code: 'P002', name: '과립형비료', type: '과립형', specification: 40, unit: 'kg', line_id: 'line002',line_name:'라인B', prd_form: '완제품' },
+    { code: 'P003', name: '액체형비료', type: '액체형', specification: 5, unit: 'L', line_id: 'line003',line_name:'라인C', prd_form: '완제품' },
+    { code: 'P003', name: '액체형비료', type: '액체형', specification: 10, unit: 'L', line_id: 'line003',line_name:'라인C', prd_form: '완제품' },
+    { code: 'P001', name: '분말형비료', type: '분말형', specification: null, unit: null, line_id: 'line001',line_name:'라인A', prd_form: '반제품' },
+    { code: 'P002', name: '과립형비료', type: '과립형', specification: null, unit: null, line_id: 'line002',line_name:'라인B', prd_form: '반제품' },
+    { code: 'P003', name: '액체형비료', type: '액체형', specification: null, unit: null, line_id: 'line003',line_name:'라인C', prd_form: '반제품' }
 ]);
-
+const lineInfoList = ref([
+    { line_id: 'line001', line_name: '라인A', productname: '분말형비료'},
+    { line_id: 'line002', line_name: '라인B', productname: '과립형비료'},
+    { line_id: 'line003', line_name: '라인C', productname: '액체형비료'}
+]);
 const products = ref([
     {
         id: 1,
@@ -75,10 +143,11 @@ const products = ref([
         productType: '과립형',
         specification: 20,
         unit: 'kg',
-        form: '완제품',
+        prd_form: '완제품',
         undefinedQty: 9000,
         currentQty: 1000,
-        line: 'B01',
+        line_id: 'line002',
+        line_name: '라인B',
         lastname: '김관리'
     },
     {
@@ -90,10 +159,11 @@ const products = ref([
         productType: '과립형',
         specification: 20,
         unit: 'kg',
-        form: '완제품',
+        prd_form: '완제품',
         undefinedQty: 9000,
         currentQty: 1000,
-        line: 'B01',
+        line_id: 'line002',
+        line_name: '라인B',
         lastname: '김관리'
     }
 ]);
@@ -120,10 +190,11 @@ const columns = ref([
     { field: 'productType', header: '제품형태' },
     { field: 'specification', header: '제품규격' },
     { field: 'unit', header: '단위' },
-    { field: 'form', header: '제품구분' },
+    { field: 'prd_form', header: '제품구분' },
     { field: 'undefinedQty', header: '미지시수량' },
     { field: 'currentQty', header: '현지시수량' },
-    { field: 'line', header: '라인' },
+    { field: 'line_id', header: '라인코드' },
+    { field: 'line_name', header: '라인명' },
     { field: 'lastname', header: '생산지시자' }
 ]);
 
@@ -131,10 +202,6 @@ const formatDate = (value) => {
     if (!value) return '';
     return new Date(value).toLocaleString('ko-KR');
 };
-
-// const onDateTimeUpdate = (data, field, value) => {
-//     data[field] = value;
-// };
 
 const startProduction = async () => {
     //선택된 행을 하나하나 넣어서 들어간다
@@ -148,12 +215,47 @@ const startProduction = async () => {
     //     plan_detail_no: search.value.productPlanCode || null,
     //     details: selectedProducts.value
     // };
+    const formatForDB = (date) => {
+        if (!date instanceof Date) {
+            return null;
+        }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+    // console.log('sdt: ',selectedProducts.value.startDatetime);
+    // console.log('edt: ',selectedProducts.value.endDatetime);
+      const mappedDetails = selectedProducts.value.map(product => {
+        // console.log('시작일시:', product.startDatetime.toLocaleString('ko-KR'));
+        // console.log('종료일시:', product.endDatetime.toLocaleString('ko-KR'));
+        return {
+            p_st_date: formatForDB(product.startDatetime),
+            p_ed_date: formatForDB(product.endDatetime),
+            prd_noworder_qty: product.currentQty,
+            line_id: product.line_id,
+            ord_no:null,
+            product_name: product.productname,
+            plan_detail_no: search.value.productPlanCode || null,
+            specification: product.specification,
+            unit: product.unit,
+            prd_form: product.prd_form
+        };
+    });
+   console.log('p_st_date:', mappedDetails.p_st_date);
+    // console.log('맵핑된 제품들:', mappedDetails);
     const payload = {
         director: '김지시',
         plan_detail_no: search.value.productPlanCode || null,
-        details: selectedProducts.value
+        // details: selectedProducts.value
+        details: mappedDetails
     };
     try {
+        console.log('전송할 데이터:', payload.details);
+        // 서버에 POST 요청을 보내기
         await axios.post('/api/production/productionOrder', payload);
         console.log('성공:');
     } catch (err) {
@@ -161,89 +263,54 @@ const startProduction = async () => {
     }
 };
 const onSelectionChange = (event) => {
-    //console.log('선택된 행들:', event.value);
     selectedProducts.value = event.value;
-    selectedProducts.value.forEach((product) => {
-        if (product.endDatetime) {
-            product.endDatetime = formatDate(product.endDatetime);
-        }
-        if (product.startDatetime) {
-            product.startDatetime = formatDate(product.startDatetime);
-        }
-    });
+    console.log('선택된 행들:', event.value);
+    alert('선택된 행들: ' + event.value.length + '개');
+    // selectedProducts.value.forEach((product) => {
+    //     if (product.endDatetime) {
+    //         product.endDatetime = formatDate(product.endDatetime);
+    //     }
+    //     if (product.startDatetime) {
+    //         product.startDatetime = formatDate(product.startDatetime);
+    //     }
+    // });
 };
-// const autoUpdateProductInfo = (data) => {
-//     if (data.productname && data.productname.length >= 3) {
-//         const productType = data.productname.slice(0, 3);
-//         data.productType = productType;
-//         if (productType === '분말형') {
-//             data.line = 'A01';
-//         } else if (productType === '과립형') {
-//             data.line = 'B01';
-//         } else {
-//             data.line = 'C01';
-//         }
-//     }
-// };
 
 const onCellEditComplete = (event) => {
     let { data, newValue, field } = event;
     if (['startDatetime', 'endDatetime'].includes(field)) {
         // console.log(newValue, newValue instanceof Date);
         if (newValue instanceof Date || newValue === null) {
+             
             data[field] = newValue;
             // console.log(data, field, data[field]);
         } else {
             data[field] = null;
         }
+       event.preventDefault();
     } else if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
         if (isNaN(newValue) || newValue < 0) {
             console.warn('음수는 허용되지 않습니다.');
+            
             return;
         }
         data[field] = newValue;
         if (field == 'productPlanQty' || field == 'currentQty') {
             data.undefinedQty = (data.productPlanQty || 0) - (data.currentQty || 0);
         }
-    } else {
-        data[field] = newValue;
-    }
-    if (['productname'].includes(field)) {
-        if (field == 'productname' && newValue && newValue.length >= 3) {
-            //data.productType = data.productname.slice(0, 3);
-            if (!newValue.includes('분말형') && !newValue.includes('과립형') && !newValue.includes('액체형')) {
-                alert('제품명에는 "분말형", "과립형", "액체형" 중 하나가 포함되어야 합니다.');
-                // 변경된 값을 되돌립니다.
-                data[field] = null;
-                // DataTable이 편집을 취소하도록 합니다.
-                event.preventDefault();
-                return;
-            } else if (!newValue.includes(' 20kg') && !newValue.includes(' 40kg') && !newValue.includes(' 5L') && !newValue.includes(' 10L') && !newValue.includes('반제품')) {
-                alert('제품명에는 "20kg", "40kg", "5L", "10L", "반제품" 중 하나가 포함되어야 합니다.');
-                // 변경된 값을 되돌립니다.
-                data[field] = null;
-                // DataTable이 편집을 취소하도록 합니다.
-                event.preventDefault();
-                return;
-            }
-            if (newValue.slice(0, 3) === '분말형') {
-                data.productType = '분말형';
-                data.line = 'A01';
-            } else if (newValue.slice(0, 3) === '과립형') {
-                data.productType = '과립형';
-                data.line = 'B01';
-            } else {
-                data.productType = '액체형';
-                data.line = 'C01';
-            }
-        }
-        // else {
-        //     alert('제품명은 3글자 이상이어야 합니다.');
-        //     data.productType = '';
-        //     data.line = '';
-        //     data.productname = '';
-        //     return;
+        
+    // } else if (['productname'].includes(field)) {
+    //     if (field == 'productname') {
+            
+            // currentEditRow.value = data; // 현재 편집 중인 행을 저장
+            // console.log('현재 편집 중인 행:', currentEditRow.value);
+            // openModal('productNameInputModal'); // 모달 열기
+            // event.preventDefault();
         // }
+       
+    }else {
+        data[field] = newValue;
+       
     }
     event.preventDefault();
 
@@ -260,9 +327,13 @@ const addNewRow = () => {
         productname: '',
         productPlanQty: 0,
         productType: '',
+        unit:'',
+        specification: '',
+        prd_form: '',
         undefinedQty: 0,
         currentQty: 0,
-        line: '',
+        line_id: '',
+        line_name: '',
         lastname: '김지시'
     };
     newProduct.undefinedQty = (newProduct.productPlanQty || 0) - (newProduct.currentQty || 0);
@@ -313,6 +384,7 @@ const dropContent = () => {
                         {{ formatDate(data[field]) }}
                     </span>
                     <span v-else>{{ data[field] }}</span>
+                    <!-- <span>{{ data[field].toISOString() }}</span> -->
                 </template>
 
                 <template #editor="{ data, field }">
@@ -326,7 +398,12 @@ const dropContent = () => {
                     </template>
                     <!--  -->
                     <template v-else-if="['productname'].includes(field)">
-                        <InputText v-model="search.productname" @click="openModal('productNameInputModal')" readonly />
+                        <InputText 
+                        v-model="data[field]"
+                        @click="() => { 
+                            productInstance = data; 
+                            openModal('productNameInputModal'); }"
+                        readonly />
                     </template>
                     <!--  -->
                     <template v-else>
@@ -343,7 +420,8 @@ const dropContent = () => {
             {{
                 {
                     productPlanCode: '생산계획코드',
-                    productNameInputModal: '제품명'
+                    productNameInputModal: '제품명',
+                    lineInfoModal: '생산라인 정보',
                 }[modalType]
             }}
         </p>
@@ -372,9 +450,11 @@ const dropContent = () => {
                     </template>
                 </Column>
                 <Column field="type" header="제품형태"></Column>
-                <Column field="line" header="생산라인"></Column>
-                <Column field="form" header="제품구분"></Column>
+                <Column field="line_id" header="생산라인"></Column>
+                <Column field="line_name" header="라인명"></Column>
+                <Column field="prd_form" header="제품구분"></Column>
             </DataTable>
         </div>
+        
     </Dialog>
 </template>

@@ -31,8 +31,14 @@ const searchForm = ref({
     endDate: null
 });
 
-// 조회된 데이터를 저장할 변수
+// 조회된 주문서 목록 (상단 테이블)
 const filteredShipmentOrders = ref([]);
+// 선택된 주문서 (상단 테이블에서 선택)
+const selectedOrder = ref(null);
+// 조회된 주문 상세 내역 (하단 테이블)
+const shipmentDetails = ref([]);
+// 여러 개의 주문 상세 내역 선택 (하단 테이블)
+const selectedOrderDetails = ref([]);
 
 // 거래처 모달 관련
 const showSupplierModal = ref(false);
@@ -42,7 +48,6 @@ const supplierList = [
     { code: 'SUP003', name: '팜스코', address: '부산', manager: '박선우' },
     { code: 'SUP004', name: '아그로케미컬', address: '대구', manager: '최영희' }
 ];
-const selectedOrders = ref([]);
 const openSupplierModal = () => {
     showSupplierModal.value = true;
 };
@@ -74,7 +79,8 @@ const selectProduct = (product) => {
     searchForm.value.productName = product.name;
     showProductModal.value = false;
 };
-//날짜 UTC기준 하루 전날 데이터 전송문제
+
+// 날짜 UTC기준 하루 전날 데이터 전송문제
 const formatDate = (date) => {
     if (!date) return null;
     const year = date.getFullYear();
@@ -83,35 +89,28 @@ const formatDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-// 조회 버튼 기능: API 호출
+// 조회 버튼 기능: 상단 주문서 목록 API 호출
 const searchOrders = async () => {
     try {
         const queryParams = {
             partnerId: searchForm.value.partnerId || null,
             productId: searchForm.value.productId || null,
-            // delDateStart: searchForm.value.startDate ? new Date(searchForm.value.startDate).toISOString().split('T')[0] : null,
-            // delDateEnd: searchForm.value.endDate ? new Date(searchForm.value.endDate).toISOString().split('T')[0] : null
             startDate: formatDate(searchForm.value.startDate),
             endDate: formatDate(searchForm.value.endDate)
         };
-        const response = await axios.get('/api/sales/shipReqRegist', { params: queryParams });
+        const response = await axios.get('/api/sales/shipReqOrders', { params: queryParams });
 
         if (response.data?.list && Array.isArray(response.data.list)) {
-            // API 응답 데이터로 테이블 업데이트
             filteredShipmentOrders.value = response.data.list.map((item) => ({
                 orderId: item.order_id,
                 partnerId: item.partner_id,
                 partnerName: item.partner_name,
-                productId: item.product_id,
-                productName: item.product_name,
                 manager: item.manager,
-                quantity: item.quantity,
+                totalQty: item.total_qty,
                 deliveryAddr: item.delivery_addr,
                 orderDate: item.order_date,
-                delDate: item.del_date,
                 ordState: getStatusText(item.ord_status),
-                orderManager: item.order_manager,
-                stock: item.stock || 0
+                orderManager: item.order_manager
             }));
         } else {
             filteredShipmentOrders.value = [];
@@ -119,6 +118,36 @@ const searchOrders = async () => {
     } catch (error) {
         console.error('데이터 로드 실패:', error);
         filteredShipmentOrders.value = [];
+    }
+    resetShipmentForm(); // 상단 조회시 하단 폼 초기화
+};
+
+// 상단 테이블 행 선택 시, 하단에 주문 상세 내역을 불러오는 함수
+const loadOrderDetails = async (event) => {
+    const order = event.data;
+    selectedOrder.value = order;
+
+    // 이전에 선택된 상세 내역과 폼을 초기화 (새로운 주문서 선택 시)
+    resetShipmentForm();
+
+    try {
+        const response = await axios.get(`/api/sales/shipReqRegist/${order.orderId}`);
+        if (response.data?.list && Array.isArray(response.data.list)) {
+            shipmentDetails.value = response.data.list.map((item) => ({
+                ...item,
+                // 백엔드 API에서 제공하는 올바른 필드명을 사용
+                item_seq: item.item_seq,
+                order_detail_id: item.order_detail_id,
+                quantity: item.quantity,
+                shippedQuantity: item.shipped_qty || 0,
+                stock: item.stock || null
+            }));
+        } else {
+            shipmentDetails.value = [];
+        }
+    } catch (error) {
+        console.error('주문 상세 내역 로드 실패:', error);
+        shipmentDetails.value = [];
     }
 };
 
@@ -151,39 +180,57 @@ const resetSearch = () => {
         endDate: null
     };
     filteredShipmentOrders.value = [];
+    resetShipmentForm(); // 검색 초기화 시 하단 폼도 초기화
 };
 
 // 출하 등록 폼
-const selectedOrder = ref(null);
 const shipmentForm = ref({
     tradeName: '',
-    orderQuantity: 0,
-    remainingQuantity: 0,
-    shipmentDate: null,
-    shipmentQuantity: 0
+    shipmentDate: new Date()
 });
 
-// 행 선택 시 출하 등록 폼 업데이트
-const onRowSelect = (event) => {
-    const data = event.data;
-    shipmentForm.value.tradeName = data.partnerName;
-    shipmentForm.value.orderQuantity = data.quantity;
-};
+const computedTotalOrderQuantity = computed(() => selectedOrderDetails.value.reduce((sum, item) => sum + item.quantity, 0));
+const computedTotalRemainingQuantity = computed(() => selectedOrderDetails.value.reduce((sum, item) => sum + (item.quantity - (item.shippedQuantity || 0)), 0));
+const computedShipmentQuantity = ref(0);
+
+// 하단 테이블에서 체크박스 선택 변경 시, 폼 필드 업데이트
+watch(computedTotalRemainingQuantity, (newValue) => {
+    computedShipmentQuantity.value = newValue;
+});
+watch(selectedOrderDetails, (newSelection) => {
+    if (newSelection.length > 0) {
+        shipmentForm.value.tradeName = newSelection[0].partner_name;
+    } else {
+        shipmentForm.value.tradeName = '';
+    }
+});
 
 // 저장 버튼 (출하 등록)
 const saveShipment = async () => {
-    if (!selectedOrder.value || shipmentForm.value.shipmentQuantity <= 0) {
-        alert('출하할 주문을 선택하고, 출하 수량을 확인해주세요.');
+    if (selectedOrderDetails.value.length === 0) {
+        alert('출하할 주문 상세 내역을 1건 이상 선택해주세요.');
+        return;
+    }
+    if (computedShipmentQuantity.value > computedTotalRemainingQuantity.value) {
+        alert('출하 수량은 총 잔여 수량을 초과할 수 없습니다.');
         return;
     }
     try {
-        const shipmentData = {
-            orderDetailId: selectedOrder.value.order_detail_id,
-            shipment_qty: shipmentForm.value.shipmentQuantity,
-            shipment_date: shipmentForm.value.shipmentDate ? new Date(shipmentForm.value.shipmentDate).toISOString().split('T')[0] : null
-        };
-        await axios.post('/api/shipment/register', shipmentData);
-        alert(`출하 등록 완료: 거래처 ${shipmentForm.value.tradeName}, 수량 ${shipmentForm.value.shipmentQuantity}`);
+        const shipmentItems = selectedOrderDetails.value.map((detail) => ({
+            product_code: detail.product_id,
+            shipment_qty: detail.quantity,
+            shipment_date: formatDate(shipmentForm.value.shipmentDate),
+            ship_status: 1,
+            order_manager: detail.manager,
+            product_name: detail.product_name,
+            item_seq: detail.item_seq,
+            order_detail_id: detail.order_detail_id
+        }));
+
+        await axios.post('/api/sales/shipReqRegist', { shipmentItems });
+        alert(`총 ${selectedOrderDetails.value.length}건의 출하가 등록되었습니다.`);
+
+        // 출하 등록 후 화면을 최신 데이터로 업데이트
         resetShipmentForm();
         searchOrders();
     } catch (error) {
@@ -193,14 +240,14 @@ const saveShipment = async () => {
 };
 
 const resetShipmentForm = () => {
+    shipmentDetails.value = []; // 하단 테이블 데이터 초기화
+    selectedOrder.value = null; // 상단 테이블 선택 해제
+    selectedOrderDetails.value = []; // 체크박스 선택 초기화
     shipmentForm.value = {
         tradeName: '',
-        orderQuantity: 0,
-        remainingQuantity: 0,
-        shipmentDate: null,
-        shipmentQuantity: 0
+        shipmentDate: null
     };
-    selectedOrder.value = null;
+    computedShipmentQuantity.value = 0;
 };
 
 // Watcher for partnerId
@@ -221,12 +268,10 @@ watch(
     }
 );
 
-// 컴포넌트가 마운트될 때 초기 데이터 조회
 onMounted(() => {
     searchOrders();
 });
 </script>
-
 <template>
     <div>
         <div class="flex justify-end mb-4 space-x-2">
@@ -270,21 +315,20 @@ onMounted(() => {
         </div>
 
         <div class="font-semibold text-xl mb-4">출하요청내역</div>
-        <DataTable :value="filteredShipmentOrders" scrollable scrollHeight="200px" selectionMode="single" v-model:selection="selectedOrder" @row-select="onRowSelect" class="mt-4">
-            <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
+        <DataTable :value="filteredShipmentOrders" scrollable scrollHeight="200px" selectionMode="single" v-model:selection="selectedOrder" @row-select="loadOrderDetails" class="mt-4">
+            <Column field="orderId" header="주문번호" style="min-width: 120px" />
+            <Column field="partnerId" header="거래처번호" style="min-width: 120px" />
             <Column field="partnerName" header="거래처명" style="min-width: 120px" />
-            <Column field="productId" header="제품코드" style="min-width: 120px" />
-            <Column field="productName" header="제품명" style="min-width: 120px" />
             <Column field="manager" header="거래담당자" style="min-width: 120px" />
-            <Column field="quantity" header="수량" style="min-width: 80px" />
+            <Column field="totalQty" header="총수량" style="min-width: 80px" />
             <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
             <Column field="orderDate" header="등록일자" style="min-width: 100px" />
-            <Column field="delDate" header="납기일자" style="min-width: 100px" />
             <Column field="ordState" header="주문상태" style="min-width: 120px">
                 <template #body="slotProps">
                     <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
                 </template>
             </Column>
+            <Column field="orderManager" header="영업담당자" style="min-width: 120px" />
         </DataTable>
 
         <div class="font-semibold text-xl mb-4 mt-8 flex justify-between items-center">
@@ -301,12 +345,12 @@ onMounted(() => {
                     <InputText v-model="shipmentForm.tradeName" disabled />
                 </div>
                 <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">요청수량</label>
-                    <InputText :value="shipmentForm.orderQuantity" disabled />
+                    <label class="font-semibold text-sm mb-1">총 요청수량</label>
+                    <InputText :value="computedTotalOrderQuantity" disabled />
                 </div>
                 <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">잔여수량</label>
-                    <InputText :value="shipmentForm.remainingQuantity" disabled />
+                    <label class="font-semibold text-sm mb-1">총 잔여수량</label>
+                    <InputText :value="computedTotalRemainingQuantity" disabled />
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">출하일정</label>
@@ -314,27 +358,27 @@ onMounted(() => {
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">출하수량</label>
-                    <InputNumber v-model="shipmentForm.shipmentQuantity" disabled />
+                    <InputNumber v-model="computedShipmentQuantity" />
                 </div>
             </div>
 
-            <DataTable :value="filteredShipmentOrders" scrollable scrollHeight="200px" class="mt-4">
-                <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
-                <Column field="partnerName" header="거래처명" style="min-width: 120px" />
-                <Column field="productId" header="제품코드" style="min-width: 120px" />
-                <Column field="productName" header="제품명" style="min-width: 120px" />
+            <DataTable :value="shipmentDetails" scrollable scrollHeight="200px" selectionMode="multiple" v-model:selection="selectedOrderDetails" class="mt-4">
+                <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                <Column field="partner_id" header="거래처코드" style="min-width: 120px" />
+                <Column field="partner_name" header="거래처명" style="min-width: 120px" />
+                <Column field="product_id" header="제품코드" style="min-width: 120px" />
+                <Column field="product_name" header="제품명" style="min-width: 120px" />
                 <Column field="manager" header="거래담당자" style="min-width: 120px" />
                 <Column field="quantity" header="수량" style="min-width: 80px" />
-                <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
-                <Column field="orderDate" header="등록일자" style="min-width: 100px" />
-                <Column field="delDate" header="납기일자" style="min-width: 100px" />
-                <Column field="ordState" header="주문상태" style="min-width: 120px">
+                <Column field="delivery_addr" header="배송지" style="min-width: 100px" />
+                <Column field="order_date" header="등록일자" style="min-width: 100px" />
+                <Column field="del_date" header="납기일자" style="min-width: 100px" />
+                <Column field="ord_status" header="주문상태" style="min-width: 120px">
                     <template #body="slotProps">
-                        <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
+                        <Tag :value="getStatusText(slotProps.data.ord_status)" :severity="getSeverity(getStatusText(slotProps.data.ord_status))" :rounded="true" class="px-3 py-1 text-sm" />
                     </template>
                 </Column>
                 <Column field="stock" header="재고" style="min-width: 100px" />
-                <Column header="출하대상" style="min-width: 80px"> </Column>
             </DataTable>
         </div>
 
