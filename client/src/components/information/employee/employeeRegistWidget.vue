@@ -1,6 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = ref({
     name: '',
@@ -8,10 +15,36 @@ const form = ref({
     email: '',
     hireDate: '',
     leaveDate: '',
-    empId: '',
+    employeeId: '',
     auth: '',
-    dept: ''
+    department: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            // 공백이면 빈 문자열로 변환
+            form.value = {
+                ...newVal[0],
+                employeeId: newVal[0].employeeId?.trim() || ''
+            };
+        } else {
+            form.value = {
+                employeeId: '',
+                name: '',
+                phone: '',
+                email: '',
+                hireDate: '',
+                leaveDate: '',
+                auth: '',
+                department: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registEmployee = async () => {
     try {
@@ -27,7 +60,8 @@ const registEmployee = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록/수정</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registEmployee()" />
+            <Button label=" 등록 " rounded @click="registEmployee()" :disabled="form.employeeId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.employeeId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
@@ -80,7 +114,7 @@ const registEmployee = async () => {
                 <div>
                     <label class="block mb-1">사원번호</label>
                     <div class="flex gap-2 items-center">
-                        <InputText v-model="form.empId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
+                        <InputText v-model="form.employeeId" :readonly="true" :placeholder="!form.employeeId?.trim() ? '자동생성' : ''" class="w-full" :style="{ backgroundColor: 'lightgrey' }" />
                     </div>
                 </div>
                 <div>
@@ -94,17 +128,17 @@ const registEmployee = async () => {
                 <div>
                     <label class="block mb-1">부서</label>
                     <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="dep1" name="department" value="기준정보관리" v-model="form.dept" />
+                        <RadioButton id="dep1" name="department" value="기준정보관리부" v-model="form.department" />
                         <label for="dep1" class="ml-2 mr-4">기준정보관리</label>
-                        <RadioButton id="dep2" name="department" value="영업부" v-model="form.dept" />
+                        <RadioButton id="dep2" name="department" value="영업부" v-model="form.department" />
                         <label for="dep2" class="ml-2 mr-4">영업부</label>
-                        <RadioButton id="dep3" name="department" value="재고관리부" v-model="form.dept" />
+                        <RadioButton id="dep3" name="department" value="재고관리부" v-model="form.department" />
                         <label for="dep3" class="ml-2 mr-4">재고관리부</label>
-                        <RadioButton id="dep4" name="department" value="생산부" v-model="form.dept" />
+                        <RadioButton id="dep4" name="department" value="생산부" v-model="form.department" />
                         <label for="dep4" class="ml-2 mr-4">생산부</label>
-                        <RadioButton id="dep5" name="department" value="품질관리부" v-model="form.dept" />
+                        <RadioButton id="dep5" name="department" value="품질관리부" v-model="form.department" />
                         <label for="dep5" class="ml-2 mr-4">품질관리부</label>
-                        <RadioButton id="dep6" name="department" value="설비부" v-model="form.dept" />
+                        <RadioButton id="dep6" name="department" value="설비부" v-model="form.department" />
                         <label for="dep6" class="ml-2">설비부</label>
                     </label>
                 </div>

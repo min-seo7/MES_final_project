@@ -15,15 +15,58 @@ function formatDateToYMD(isoDate) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
-//주문목록조회
-// const selectRegisList = () => {
-//   let list = query("SelectOrders");
-//   return list;
-// };
 
-// 주문 내역 조회 필터링
-const selectFilteredOrders = (filter) => {
-  // 쿼리 파라미터 배열을 필터 객체를 기반으로 생성
+// 납기일 변경 및 이력 등록
+const modifyUpdate = async (delDateInfo) => {
+  const conn = await getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // history_id 순차적으로 생성
+    const [lastHistoryRow] = await conn.query(sqlList.SelectMaxHistoryId);
+    let newHistoryId;
+    if (lastHistoryRow && lastHistoryRow.max_history_id) {
+      const lastNum = parseInt(
+        lastHistoryRow.max_history_id.replace("HIST", ""),
+        10
+      );
+      const newNum = lastNum + 1;
+      const formattedNum = String(newNum).padStart(3, "0");
+      newHistoryId = `HIST${formattedNum}`;
+    } else {
+      newHistoryId = "HIST001";
+    }
+
+    // 주문상세 테이블 납기일 업데이트
+    const updateParams = [
+      formatDateToYMD(delDateInfo.changeDeliveryDate),
+      delDateInfo.orderDetailId,
+    ];
+    await conn.query(sqlList["modifyDelDate"], updateParams);
+
+    // order_history 테이블에 변경 이력 삽입
+    const insertHistoryParams = [
+      newHistoryId,
+      formatDateToYMD(delDateInfo.orderDate),
+      formatDateToYMD(delDateInfo.changeDeliveryDate),
+      delDateInfo.changeReason,
+      delDateInfo.orderDetailId,
+    ];
+    await conn.query(sqlList["modifyInsert"], insertHistoryParams);
+
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("Modify Update Error:", err);
+    return { success: false, error: err.message };
+  } finally {
+    conn.release();
+  }
+};
+
+//주문수정내역 조회 필터링
+const modifyList = (filter) => {
   const params = [
     filter.orderId,
     filter.orderId,
@@ -37,13 +80,55 @@ const selectFilteredOrders = (filter) => {
     filter.partnerId,
     filter.partnerId,
     filter.partnerId,
-    // productType은 현재 사용되지 않아 제외하거나 필요시 추가
     filter.delDate,
     filter.delDate,
   ];
+  console.log("필터링 파라미터:", params);
+  let list = query("modifyNextList", params);
+  return list;
+};
 
-  // selectOrderDetail 쿼리를 실행
+// 주문 내역 조회 필터링
+const selectFilteredOrders = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
   let list = query("selectOrderDetail", params);
+  return list;
+};
+
+//이메일 포함된 주문내역 조회
+const selectFilterInfoEmail = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
+  let list = query("mailPdfOrderList", params);
   return list;
 };
 
@@ -63,9 +148,75 @@ const selectFilteredShips = (filters) => {
     filters.endDate,
     filters.endDate,
   ];
-  // selectShipDetail 쿼리를 실행
   console.log("필터링 파라미터:", params);
   let list = query("selectShipOrders", params);
+  return list;
+};
+
+// 주문서 클릭 시 주문 상세 내역 조회
+const selectOrderDetails = async (orderId) => {
+  const list = await query("selectShipDetail", [orderId]);
+  return list;
+};
+
+// 출하 등록
+const insertShipment = async (shipmentItems) => {
+  const conn = await getConnection();
+  let createdCount = 0;
+
+  try {
+    await conn.beginTransaction();
+
+    const [lastShipmentRow] = await conn.query(sqlList.SelectMaxShipId);
+    let lastNum = 0;
+    if (lastShipmentRow && lastShipmentRow.max_shipment_id) {
+      lastNum = parseInt(
+        lastShipmentRow.max_shipment_id.replace("SHIP", ""),
+        10
+      );
+    }
+
+    for (const item of shipmentItems) {
+      lastNum += 1;
+      const newShipmentId = `SHIP${String(lastNum).padStart(3, "0")}`;
+
+      const params = [
+        newShipmentId,
+        item.item_seq,
+        item.product_code,
+        item.shipment_qty,
+        item.shipment_date,
+        item.ship_status,
+        item.order_manager,
+        item.product_name,
+        item.order_detail_id,
+      ];
+      await conn.query(sqlList["insertShip"], params);
+      createdCount++;
+    }
+
+    await conn.commit();
+    return { success: true, createdCount };
+  } catch (err) {
+    await conn.rollback();
+    if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
+      console.error("Duplicate entry detected. (order_detail_id)");
+      return {
+        success: false,
+        error: "선택된 항목 중 이미 출하 등록된 내역이 있습니다.",
+      };
+    } else {
+      console.error("InsertShipment Error:", err);
+      return { success: false, error: err.message };
+    }
+  } finally {
+    conn.release();
+  }
+};
+
+//출하등록조회
+const shipList = () => {
+  let list = query("shipList");
   return list;
 };
 
@@ -80,17 +231,17 @@ const selectOrderProductModal = () => {
   let list = query("selectOrderProduct");
   return list;
 };
+
 // 주문 1: 주문상세 N
 const InsertOrder = async (orderInfo, orderItems) => {
   const conn = await getConnection();
 
   try {
     await conn.beginTransaction();
-    //데이터베이스에서 마지막 주문번호 조회
+    // 데이터베이스에서 마지막 주문번호 조회
     const [lastOrderRow] = await conn.query(sqlList.SelectMaxOrderId);
     let newOrderId;
     if (lastOrderRow && lastOrderRow.max_order_id) {
-      // 'ORD005' -> '005' -> 5 -> 6 -> '006' -> 'ORD006'
       const lastNum = parseInt(
         lastOrderRow.max_order_id.replace("ORD", ""),
         10
@@ -99,10 +250,8 @@ const InsertOrder = async (orderInfo, orderItems) => {
       const formattedNum = String(newNum).padStart(3, "0");
       newOrderId = `ORD${formattedNum}`;
     } else {
-      // 주문이 없을 경우 'ORD001'로 시작
       newOrderId = "ORD001";
     }
-    //프론트엔드에서 받은 orderInfo객체에 새로운 주문번호 할당
     orderInfo.orderId = newOrderId;
 
     // 주문 날짜 형식 맞추기
@@ -118,20 +267,35 @@ const InsertOrder = async (orderInfo, orderItems) => {
       "supplyPrice",
       "manager",
       "partnerName",
+      "totalQty",
     ]);
-    //
     await conn.query(sqlList["InsertOrders"], insertOrderData);
+
+    // 주문 상세 번호 순차적으로 증가
+    const [lastDetailRow] = await conn.query(sqlList.orderDetailId);
+    let lastDetailIdNum = 0;
+    if (lastDetailRow && lastDetailRow.max_order_detail_id) {
+      lastDetailIdNum = parseInt(
+        lastDetailRow.max_order_detail_id.replace("DET", ""),
+        10
+      );
+    }
 
     // order_items 테이블에 insert
     for (const item of orderItems) {
       item.delDate = formatDateToYMD(item.delDate);
-      //주문상세내역에도 새로운 주문번호 할당
       item.orderId = newOrderId;
-      // item.orderId = orderInfo.orderId;
+
+      // 새로운 order_detail_id 생성 및 할당
+      lastDetailIdNum += 1;
+      const newDetailId = `DET${String(lastDetailIdNum).padStart(3, "0")}`;
+      item.orderDetailId = newDetailId;
 
       const insertItemData = convertToArray(item, [
+        "orderDetailId",
         "itemSeq",
         "quantity",
+        "specification",
         "delDate",
         "ordStatus",
         "productId",
@@ -144,9 +308,7 @@ const InsertOrder = async (orderInfo, orderItems) => {
     }
 
     await conn.commit();
-    //프론트엔드에 성공 응답 함께 새로 생성된 주문번호 반환
     return { success: true, newOrderId: newOrderId };
-    // return { success: true };
   } catch (err) {
     await conn.rollback();
     console.error("InsertOrder Error:", err);
@@ -161,6 +323,11 @@ module.exports = {
   selectFilteredOrders,
   selectOrdRegistModal,
   selectOrderProductModal,
-  // selectRegisList,
+  selectOrderDetails,
   selectFilteredShips,
+  insertShipment,
+  shipList,
+  modifyUpdate,
+  modifyList,
+  selectFilterInfoEmail,
 };

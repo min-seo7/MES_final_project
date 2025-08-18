@@ -1,6 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = ref({
     materialType: '',
@@ -13,6 +20,28 @@ const form = ref({
     safetyStockUnit: '',
     status: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], materialId: newVal[0].materialId?.trim() || '' };
+        } else {
+            form.value = {
+                materialType: '',
+                materialId: '',
+                materialName: '',
+                storageCondition: '',
+                specification: '',
+                unit: '',
+                safetyStock: '',
+                safetyStockUnit: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registMaterial = async () => {
     try {
@@ -28,7 +57,8 @@ const registMaterial = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록/수정</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registMaterial()" />
+            <Button label=" 등록 " rounded @click="registMaterial()" :disabled="form.materialId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.materialId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
@@ -74,7 +104,6 @@ const registMaterial = async () => {
                     <label class="block mb-1">자재코드</label>
                     <div class="flex gap-2 items-center">
                         <InputText v-model="form.materialId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
-                        <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
                 <div>

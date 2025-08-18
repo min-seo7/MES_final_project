@@ -176,7 +176,7 @@ function genCode() {
                         </div>
 
                         <!-- 시트지 줄 반복 -->
-                        <div v-for="n in 7" :key="n" class="grid" style="grid-template-columns: 1fr 1fr minmax(var(--action-w), 2fr)">
+                        <div v-for="n in 12" :key="n" class="grid" style="grid-template-columns: 1fr 1fr minmax(var(--action-w), 2fr)">
                             <div class="border-t border-r h-[var(--row-h)]"></div>
                             <div class="border-t border-r h-[var(--row-h)]"></div>
                             <div class="border-t h-[var(--row-h)]"></div>

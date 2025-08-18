@@ -2,15 +2,13 @@ const mariadb = require("../database/mapper.js");
 
 // 전체 검사항목 목록 조회 (필터링 기능 포함)
 const findAllItemsWithFilter = async (productType, inspPurpose) => {
-  // ⭐ 6개의 파라미터를 정확하게 구성
-  // SQL 쿼리의 WHERE 조건에 맞게 productType과 inspPurpose를 각각 3번씩 전달
   const params = [
-    productType || null, // 첫 번째 ?
-    productType || null, // 두 번째 ?
-    productType || null, // 세 번째 ?
-    inspPurpose || null, // 네 번째 ?
-    inspPurpose || null, // 다섯 번째 ?
-    inspPurpose || null, // 여섯 번째 ?
+    productType || null,
+    productType || null,
+    productType || null,
+    inspPurpose || null,
+    inspPurpose || null,
+    inspPurpose || null,
   ];
 
   let list = await mariadb.query("selectItemdetail", params);
@@ -29,9 +27,14 @@ const findInspFin = async () => {
   return list;
 };
 
+// tbl_purchase_detail 조회
+const findPD = async () => {
+  let list = await mariadb.query("selectPD");
+  return list;
+};
+
 // 검사항목 등록
 const insertItem = async (ItemInfo) => {
-  // 등록에 필요한 모든 필드를 배열로 변환하도록 수정
   const insertData = convertToArray(ItemInfo, [
     "productType",
     "inspItem",
@@ -51,19 +54,39 @@ const insertItem = async (ItemInfo) => {
   }
 };
 
-//자재검수결과 업데이트
-const updateInspectionResult = async (자재검수번호, 최종판정) => {
+// 자재검사등록 (INSERT + UPDATE)
+const insertInsp = async (inspInfo) => {
+  // 발주아이디 확보
+  const purch_id = inspInfo.purch_id || inspInfo.발주아이디;
+  if (!purch_id) throw new Error("발주번호가 없습니다.");
+
+  const insertData = [
+    inspInfo.material_code,
+    inspInfo.inspector_id,
+    inspInfo.result,
+    inspInfo.remark,
+    purch_id,
+    inspInfo.insertquantity,
+    inspInfo.qty,
+    inspInfo.inspStatus,
+  ];
+
   try {
-    const result = await mariadb.query("defUpdate", [최종판정, 자재검수번호]);
-    console.log("DB 업데이트 결과:", result);
-    return result;
-  } catch (err) {
-    console.error("material_Inspection 업데이트 실패:", err);
-    throw err;
+    // 1) INSERT 실행
+    const result = await mariadb.query("insertInsp", insertData);
+
+    // 2) UPDATE tbl_purchase_detail의 inspStatus를 '완료'로
+    const updateResult = await mariadb.query("defUpdate", [purch_id]);
+    console.log("업데이트:", updateResult);
+
+    return { insertId: result?.insertId || null, raw: result };
+  } catch (error) {
+    console.error("검사 등록 실패:", error);
+    throw error;
   }
 };
 
-// 객체를 배열로 변환하는 메서드 (기존 코드 그대로 사용)
+// 객체를 배열로 변환하는 메서드
 function convertToArray(obj, columns) {
   return columns.map((col) => obj[col]);
 }
@@ -72,6 +95,8 @@ module.exports = {
   findAllItemsWithFilter,
   insertItem,
   findInspWait,
-  updateInspectionResult,
+  // updateInspectionResult,
   findInspFin,
+  findPD,
+  insertInsp,
 };
