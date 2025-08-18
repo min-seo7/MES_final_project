@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -72,6 +72,8 @@ const resetSearch = () => {
     search.value.auth = '';
     search.value.status = '';
     selectedItem.value = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -91,6 +93,10 @@ const selectSearch = async () => {
         console.log('사원검색실패');
     }
 };
+
+onMounted(() => {
+    selectSearch();
+});
 </script>
 
 <template>
@@ -110,7 +116,6 @@ const selectSearch = async () => {
                     <label for="employeeId" class="whitespace-nowrap">사원번호</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="employeeId" type="text" class="w-60" v-model="search.employeeId" />
-                        <InputIcon class="pi pi-search" @click="openModal('employeeId')" />
                     </IconField>
                 </div>
 

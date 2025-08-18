@@ -132,11 +132,11 @@ const model = ref([
                         ]
                     },
                     {
-                        label: '폐기물관리',
+                        label: '재고조회',
                         icon: 'pi pi-fw pi-bookmark',
                         items: [
-                            { label: '폐기물조회', icon: 'pi pi-fw pi-bookmark', to: '/stock/wasteSearch' },
-                            { label: '폐기물출고', icon: 'pi pi-fw pi-bookmark', to: '/stock/wasteOut' }
+                            { label: '제품조회', icon: 'pi pi-fw pi-bookmark', to: '/stock/wasteSearch' },
+                            { label: '자재조회', icon: 'pi pi-fw pi-bookmark', to: '/stock/wasteOut' }
                         ]
                     },
                     {
@@ -145,7 +145,7 @@ const model = ref([
                         to: '/stock/return'
                     },
                     {
-                        label: '재고조회',
+                        label: '폐기물반출',
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/stock/stockSearch'
                     }

@@ -36,7 +36,6 @@ function onFileSelected(event, row, type) {
 <template>
     <section class="p-6 space-y-6">
         <!-- 조회 타이틀 추가 -->
-        <div class="font-bold text-[18.5px]">조회</div>
 
         <!-- 조회 폼 -->
         <EquipmentMenuWidge :pickerData="pickerData" @submit="handleSearch" @clear="handleClear" />
