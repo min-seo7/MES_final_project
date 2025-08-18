@@ -4,6 +4,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import 'primeicons/primeicons.css'
 import axios from 'axios';
 
 export default {
@@ -47,10 +48,27 @@ export default {
                 }
             ],
             //안전재고수량 미달
-            lowMat: [{ id: '1', matCode: 'm001', matName: '왕겨', safeStock: '50', nowStock: '30', shortage: '20', unit: 'KG' }]
+            lowMat: [],
         };
     },
     methods: {
+        //안전재고미달
+        async getLessMatList() {
+            try {
+                const res = await axios.get('/api/stock/lessMatList');
+
+                this.lowMat = res.data.map((item) => ({
+                    low_matCode: item.material_id,
+                    low_matName: item.material_name,
+                    low_safeStock: item.safety_stock,
+                    low_nowStock: item.total_curr_qty,
+                    low_shortage: item.less,
+                    low_unit: item.unit
+                }));
+            } catch (error) {
+                console.error('부족목록 불러오기 실패:', error);
+            }
+        },
         //모달 ==========================================================================
         //거래처
         async getPartnerList() {
@@ -71,15 +89,13 @@ export default {
             this.getPartnerList();
         },
         onSelectPartner() {
-            //(모달)거래처선택시 반영.
             this.partnerId = this.selectPartner.partnerId;
             this.partnerName = this.selectPartner.partnerName;
 
             this.purshaseList.forEach((row) => {
-                //배열의 각 행을 순환하면서 거래처명.
                 row.patner = this.partnerName;
             });
-
+            this.selectPartner = null
             this.partnerModal = false;
         },
         //자재용 모달
@@ -104,11 +120,22 @@ export default {
             this.materialModal = true;
         },
         onSelectMat() {
+             // 행 중복 체크
+            let selectedMatCode = this.selectMat.matCode;
+            const isDuplicate = this.purshaseList.some((item, index) => 
+                item.mat_id === selectedMatCode && index !== this.selectRow
+            );
+            if (isDuplicate) {
+                alert('이미 선택된 자재입니다.');
+                return;
+            }
+
             //(모달)자재선택시 반영
             this.purshaseList[this.selectRow].mat_id = this.selectMat.matCode;
             this.purshaseList[this.selectRow].mat_name = this.selectMat.matName;
             this.purshaseList[this.selectRow].unit = this.selectMat.unit;
 
+            this.selectMat = null;
             this.materialModal = false;
         },
         //=============================================================================================
@@ -123,6 +150,12 @@ export default {
                 patner: this.partnerName,
                 comm: ''
             });
+        },
+        removeRow(){
+           if (this.purshaseList.length > 1) {
+                this.purshaseList.pop(); 
+                this.count--;
+            }
         },
         reset() {
             //초기화버튼
@@ -154,6 +187,10 @@ export default {
         async insertPurse() {
             try {
                 //마스터T 정보
+                if(!this.dueDate || !this.partnerId || !this.empName){
+                    alert('필수정보입력');
+                    return;
+                }
                 let masterInfo = {
                     re_date: this.reDate,
                     due_date: this.dateFormat(this.dueDate),
@@ -180,6 +217,9 @@ export default {
 
                 //서브 DB저장
                 await axios.post('/api/stock/purDetail', subInfo);
+
+                //등록 알람
+                alert('발주등록 완료');
                 //초기화
                 this.reset();
             } catch (error) {
@@ -197,6 +237,7 @@ export default {
         //등록일 자동입력
         let today = new Date();
         this.reDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        this.getLessMatList();
     }
 };
 </script>
@@ -206,7 +247,6 @@ export default {
         <div class="font-semibold text-2xl mb-4">발주등록페이지</div>
     </div>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" + 추 가 " rounded @click="addEmptyRow()" />
         <Button label=" 등 록 " rounded @click="insertPurse()" />
         <Button label=" 초기화 " severity="info" rounded @click="reset()" />
     </div>
@@ -217,12 +257,12 @@ export default {
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
                 <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
-                    <Column field="matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
-                    <Column field="matName" header="자재명" style="min-width: 100px"></Column>
-                    <Column field="safeStock" header="안전재고" style="min-width: 80px"></Column>
-                    <Column field="nowStock" header="현재고" style="min-width: 80px"></Column>
-                    <Column field="shortage" header="부족" style="min-width: 80px"></Column>
-                    <Column field="unit" header="단위" style="min-width: 80px"></Column>
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
+                    <Column field="low_matName" header="자재명" style="min-width: 100px"></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px"></Column>
+                    <Column field="low_nowStock" header="현재고" style="min-width: 80px"></Column>
+                    <Column field="low_shortage" header="부족" style="min-width: 80px"></Column>
+                    <Column field="low_unit" header="단위" style="min-width: 80px"></Column>
                 </DataTable>
             </div>
         </div>
@@ -268,6 +308,10 @@ export default {
                     </div>
                 </div>
                 <!--입력 input박스끝-->
+                <div class ="flex justify-end mt-0 space-x-2">
+                        <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addEmptyRow()" />
+                        <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow()" />
+                </div>
                 <div>
                     <DataTable :value="purshaseList" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
                         <Column field="id" header="" style="min-width: 30px" frozen class="font-bold"></Column>
@@ -297,11 +341,11 @@ export default {
 
     <!--모달영역-->
     <!--공급처모달-->
-    <commModal v-model="partnerModal" header="공급처목록">
+    <commModal v-model="partnerModal" header="거래처목록">
         <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">공급처코드</label>
+            <label for="partnerId">거래처코드</label>
             <InputText id="partnerId" type="text" />
-            <label for="partnerName">공급처명</label>
+            <label for="partnerName">거래처명</label>
             <InputText id="partnerName" type="text" />
             <Button label="검색" />
         </div>

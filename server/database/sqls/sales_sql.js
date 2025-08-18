@@ -27,12 +27,14 @@ const InsertOrders = `
                       delivery_addr,
                       supply_price,
                       manager,
-                      partner_name)
-  VALUES (?,?,?,?,?,?,?,?)`;
+                      partner_name,
+                      total_qty)
+  VALUES (?,?,?,?,?,?,?,?,?)`;
 
 //2.주문상세
 const InsertOrderItems = `
-  INSERT INTO order_items (item_seq,
+  INSERT INTO order_items (order_detail_id,
+                           item_seq,
                            quantity,
                            del_date,
                            ord_status,
@@ -41,7 +43,7 @@ const InsertOrderItems = `
                            product_price,
                            supply_price,
                            order_id)
-  VALUES (?,?,?,?,?,?,?,?,?);
+  VALUES (?,?,?,?,?,?,?,?,?,?);
 `;
 
 //주문번호 순차적으로 증가
@@ -80,7 +82,8 @@ SELECT
     DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
     DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
     i.ord_status,
-    o.order_manager
+    o.order_manager,
+    i.order_detail_id
 FROM orders o
 JOIN order_items i
     ON o.order_id = i.order_id
@@ -91,9 +94,8 @@ WHERE
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
 `;
-
-//출하요청등록대상 조회,(납기일의 처음과 끝을 별칭으로 구분)
-const selectShipOrders = `
+//주문서클릭시 하단(주문상세)
+const selectShipDetail = `
   SELECT
       o.order_id,
       o.partner_id,
@@ -105,32 +107,162 @@ const selectShipOrders = `
       o.delivery_addr,
       DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
       DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
-      DATE_FORMAT( i.del_date, '%Y-%m-%d') as start_date,
-      DATE_FORMAT( i.del_date, '%Y-%m-%d') as end_date,
       i.ord_status,
-      o.order_manager
+      o.order_manager,
+      i.order_detail_id,
+      i.item_seq
   FROM orders o
   JOIN order_items i
       ON o.order_id = i.order_id
-  WHERE
-     (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
-      AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
-      AND (? IS NULL OR i.del_date >= ?)
-      AND (? IS NULL OR i.del_date <= ?)
-    `;
-
-const selectShipDetails = `
-
+   WHERE o.order_id = ?
+ `;
+//출하요청등록대상(주문서)조회,(등록일의 처음과 끝을 별칭으로 구분)
+const selectShipOrders = `
+SELECT
+    o.order_id,
+    o.partner_id,
+    o.partner_name,
+    o.manager,
+    o.delivery_addr,
+    o.total_qty,
+    DATE_FORMAT(o.order_date, '%Y-%m-%d') as order_date,
+    MAX(i.ord_status) as ord_status,
+    o.order_manager
+FROM orders o
+JOIN order_items i ON o.order_id = i.order_id
+WHERE
+    (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR o.order_date >= ?)
+    AND (? IS NULL OR o.order_date <= ?)
+GROUP BY o.order_id, o.partner_id, o.partner_name, o.manager, o.delivery_addr, o.order_date, o.order_manager
 `;
 
+
 const insertShip = `
-  INSERT INTO (product_code,
-               shipment_qty,
-               shipement_date,
-               ship_status,
-               order_manager,
-               product_name)
-  VALUES(?,?,?,?,?,?)
+INSERT INTO shipment(
+    item_seq,
+    product_code,
+    shipment_qty,
+    shipment_date, 
+    ship_status,
+    order_manager,
+    product_name,
+    order_detail_id
+) VALUES(?,?,?,?,?,?,?,?)
+`;
+
+//주문상세번호 순차적으로 증가
+const orderDetailId = `
+  SELECT MAX(order_detail_id) AS max_order_detail_id FROM order_items`;
+//출하등록조회
+const shipList = `
+ SELECT  s.shipment_id,
+         i.product_id,
+         i.product_name,
+         o.partner_name,
+         i.quantity,
+         o.delivery_addr,
+         i.del_date,
+         s.shipment_date,
+         o.order_manager,
+         s.ship_status,
+         o.order_manager
+FROM     orders o INNER JOIN order_items i INNER JOIN shipment s;
+`;
+
+//주문수정조회
+const modifypreList = `
+    SELECT o.order_id,
+           o.partner_id,
+           i.product_name,
+           o.manager,
+           i.quantity,
+           o.delivery_addr,
+           DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
+           DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
+           i.ord_status,
+           o.order_manager,
+          i.order_detail_id
+    FROM   orders o  INNER JOIN  order_items i
+                      ON  o.order_id = i.order_id
+`;
+
+//납기일수정
+const modifyDelDate = `
+      UPDATE order_items SET
+      del_date = ?
+      WHERE
+      order_detail_id = ?`;
+
+// history_id 순차적으로 증가
+const SelectMaxHistoryId = `
+  SELECT MAX(history_id) AS max_history_id FROM order_history`;
+
+//변경이력등록
+const modifyInsert = `
+  INSERT INTO order_history (history_id,order_date,new_due_date,change_reason,order_detail_id) 
+  VALUES (?,?,?,?,?)`;
+
+//변경내역
+const modifyNextList = `
+SELECT
+    o.order_id,
+    o.partner_id,
+    o.partner_name,
+    i.product_id,
+    i.product_name,
+    o.manager,
+    i.quantity,
+    o.delivery_addr,
+    DATE_FORMAT(o.order_date, '%Y-%m-%d') as order_date,
+    DATE_FORMAT(i.del_date, '%Y-%m-%d') as del_date,
+    DATE_FORMAT(h.change_date, '%Y-%m-%d') as change_date,
+    o.order_manager,
+    h.change_reason  
+FROM orders o
+INNER JOIN order_items i
+    ON o.order_id = i.order_id
+INNER JOIN order_history h  
+    ON i.order_detail_id = h.order_detail_id
+WHERE
+    (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.ord_status = ?)
+    AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR DATE(i.del_date) = ?)
+`;
+
+//이메일+pdf관련 주문내역
+const mailPdfOrderList = `
+  SELECT
+    o.order_id,
+    o.partner_id,
+    o.partner_name,
+    i.product_id,
+    i.product_name,
+    o.order_manager,
+    i.quantity,
+    o.delivery_addr,
+    DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
+    DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
+    i.ord_status,
+    p.email AS partner_email,
+    e.email AS order_manager_email
+FROM
+    orders o
+JOIN
+    order_items i ON o.order_id = i.order_id
+JOIN
+    partner p ON o.partner_id = p.partner_id
+ LEFT JOIN
+    employee e ON o.order_manager = e.employee_id
+WHERE
+    (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.ord_status = ?)
+    AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR DATE(i.del_date) = ?)
 `;
 
 module.exports = {
@@ -144,4 +276,13 @@ module.exports = {
   // selectShipDetail,
   selectShipOrders,
   insertShip,
+  shipList,
+  modifyDelDate,
+  modifyInsert,
+  SelectMaxHistoryId,
+  modifypreList,
+  orderDetailId,
+  SelectMaxShipId,
+  modifyNextList,
+  mailPdfOrderList,
 };

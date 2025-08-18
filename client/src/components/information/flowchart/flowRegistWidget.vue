@@ -1,9 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
     detailData: {
+        type: Array,
+        default: () => []
+    },
+    items: {
         type: Array,
         default: () => []
     }
@@ -18,6 +22,26 @@ const form = ref({
     status: '',
     flowchart: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], flowId: newVal[0].flowId?.trim() || '' };
+        } else {
+            form.value = {
+                flowId: '',
+                flowName: '',
+                productId: '',
+                productName: '',
+                note: '',
+                status: '',
+                flowchart: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registFlowchart = async () => {
     if (!form.value.productId) {
@@ -63,7 +87,8 @@ const registFlowchart = async () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registFlowchart()" />
+            <Button label=" 등록 " rounded @click="registFlowchart()" :disabled="form.flowId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.flowId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>

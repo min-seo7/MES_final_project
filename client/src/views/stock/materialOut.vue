@@ -26,10 +26,12 @@ export default {
             materialModal: false,
             //(모달)선택된 자재
             selectMat: null,
-
+            //선택
+            selectOutWaitMats: [],
+            selectOutgMats: [],
             //자재출고대기컬럼
-            outPandingCol: [
-                { field: 'dueDate', header: '출고예정일', headerStyle: 'width: 20rem' },
+            outWaitgCol: [
+                { field: 'dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
                 { field: 'purNo', header: '지시번호', headerStyle: 'width: 18rem' },
                 { field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem' },
                 { field: 'matName', header: '자재명', headerStyle: 'width: 13rem' },
@@ -38,6 +40,7 @@ export default {
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],
+            matOutWait: [],
             outCol: [
                 { field: 'dueDate', header: '출고일', headerStyle: 'width: 20rem' },
                 { field: 'purNo', header: '지시번호', headerStyle: 'width: 18rem' },
@@ -48,7 +51,8 @@ export default {
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
                 { field: 'receiptQty', header: '담당자', headerStyle: 'width: 15rem' },
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem' }
-            ]
+            ],
+            matOut: [],
         };
     },
     methods: {
@@ -103,7 +107,6 @@ export default {
         <stockCommButton @search="onSearch()" @reset="onReset()" />
 
         <div class="card w-full">
-            <!--검색1열-->
             <div class="flex flex-wrap justify-center gap-6 my-6">
                 <!-- 출고예정일 -->
                 <div class="flex items-center gap-2">
@@ -132,44 +135,13 @@ export default {
                     <InputText id="materialName" type="text" class="w-60" v-model="materialName" />
                 </div>
             </div>
-            <!--end 검색1열-->
-
-            <!--검색2열-->
-            <div class="flex flex-wrap justify-center gap-6 my-6">
-                <!-- 출고일 -->
-                <div class="flex items-center gap-2">
-                    <label for="MatInDate" class="whitespace-nowrap">출 고 일</label>
-                    <DatePicker :showIcon="true" :showButtonBar="true" v-model="MatInDate" dateFormat="yy-mm-dd"></DatePicker>
-                </div>
-
-                <!-- 선택된 재고?????? -->
-                <div class="flex items-center gap-2">
-                    <label for="MatLotNo" class="whitespace-nowrap">??????</label>
-                    <InputText id="MatLotNo" type="text" class="w-60" v-model="MatLotNo" />
-                </div>
-
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialCode" class="whitespace-nowrap">====</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                        <InputIcon class="pi pi-search" />
-                    </IconField>
-                </div>
-                <!-- 간격맞춤 -->
-                <div class="flex items-center gap-2 invisible">
-                    <label for="materialName" class="whitespace-nowrap">====</label>
-                    <InputText id="materialName" type="text" class="w-60" v-model="materialName" />
-                </div>
-            </div>
         </div>
         <!--검색박스end-->
         <!--중간버튼-->
         <stockCommRowBtn
             :buttons="[
                 { label: '출고등록', icon: 'pi pi-check', onClick: editHandler },
-                { label: '신규', icon: 'pi pi-plus', onClick: deleteHandler },
-                { label: '수정', icon: 'pi pi-pencil', onClick: deleteHandler }
+                 { label: '출고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"
         />
 
@@ -182,12 +154,16 @@ export default {
                 </TabList>
                 <TabPanels>
                     <TabPanel value="0">
+                        <div class ="flex justify-end mt-0 space-x-2">
+                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addNewRow" />
+                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow" />
+                        </div>
                         <!--0번탭 컨텐츠영역-->
-                        <stockCommTable v-model="MatOutPanding" :columns="outPandingCol" />
+                        <stockCommTable v-model:selection="selectOutWaitMats" :columns="outWaitgCol" :dataRows="matOutWait"/>
                     </TabPanel>
                     <TabPanel value="1">
                         <!--1번탭 컨텐츠영역-->
-                        <stockCommTable v-model="MatOut" :columns="outCol" />
+                        <stockCommTable v-model:selection="selectOutgMats" :columns="outCol" :dataRows="matOut"/>
                     </TabPanel>
                 </TabPanels>
             </Tabs>
