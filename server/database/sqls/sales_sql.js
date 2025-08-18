@@ -119,8 +119,10 @@ const selectShipOrders = `
       AND (? IS NULL OR i.del_date <= ?)
     `;
 
-const selectShipDetails = `
+// const selectShipDetails = `
 
+
+// `;
 `;
 
 const insertShip = `
