@@ -5,7 +5,7 @@ import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import InputGroup from 'primevue/inputgroup';
+// import InputGroup from 'primevue/inputgroup';
 import Toolbar from 'primevue/toolbar';
 import IconField from 'primevue/iconfield';
 import Dialog from 'primevue/dialog';
@@ -271,11 +271,11 @@ onMounted(() => {
                 <IconField>
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
                         <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처코드</label>
-                            <InputGroup>
-                                <InputText v-model="selectedSupplierCode" placeholder="거래처코드 선택" readonly />
-                                <Button icon="pi pi-search" @click="openModal('supplier')" />
-                            </InputGroup>
+                            <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                            <IconField iconPosition="left" class="w-full">
+                                <InputText id="partnerId" type="text" class="w-60" v-model="form.partnerId" readonly />
+                                <InputIcon class="pi pi-search" @click="openModal('supplier')" />
+                            </IconField>
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">* 배송지</label>
@@ -324,12 +324,13 @@ onMounted(() => {
                     <div class="text-sm font-medium text-center">{{ order.itemSeq }}</div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">제품명</label>
-                    <InputGroup>
-                        <InputText v-model="order.productName" placeholder="제품선택" readonly />
-                        <Button icon="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
-                    </InputGroup>
+                    <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="productName" type="text" class="w-60" v-model="order.productName" readonly />
+                        <InputIcon class="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
+                    </IconField>
                 </div>
+
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">* 수량</label>
                     <InputNumber v-model="order.quantity" :min="1" showButtons class="w-full" />

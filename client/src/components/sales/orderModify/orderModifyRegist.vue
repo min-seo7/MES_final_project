@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import InputGroup from 'primevue/inputgroup';
+// import InputGroup from 'primevue/inputgroup';
 import Calendar from 'primevue/calendar';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -263,152 +263,150 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
-        <div class="flex justify-between items-center mb-6">
-            <div class="font-semibold text-xl mb-4 mt-6">검색</div>
-            <div class="flex space-x-2">
-                <Button label="조회" rounded @click="searchOrders" class="p-button-success" />
-                <Button label="초기화" severity="info" rounded @click="resetFilters" />
-            </div>
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">검색</h1>
+        <div class="flex space-x-2">
+            <Button label="조회" rounded @click="searchOrders" class="p-button-success" />
+            <Button label="초기화" severity="info" rounded @click="resetFilters" />
         </div>
-
-        <div class="mb-6 p-4 border rounded-md bg-gray-100">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-5 items-center">
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">거래처코드</label>
-                    <InputGroup>
-                        <InputText v-model="search.partCode" placeholder="SUP002" readonly />
-                        <Button icon="pi pi-search" class="p-button-secondary" @click="openSupplierModal" />
-                    </InputGroup>
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">품명</label>
-                    <div class="flex flex-wrap gap-3">
-                        <div v-for="item in productList" :key="item" class="flex items-center gap-2">
-                            <RadioButton v-model="search.productName" :inputId="item" :value="item" />
-                            <label :for="item">{{ item }}</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">규격</label>
-                    <div class="flex flex-wrap gap-3">
-                        <div v-for="item in specOptions" :key="item" class="flex items-center gap-2">
-                            <RadioButton v-model="search.spec" :inputId="`spec-${item}`" :value="item" />
-                            <label :for="`spec-${item}`">{{ item }}</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">납기</label>
-                    <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">주문상태</label>
-                    <div class="flex flex-wrap gap-3">
-                        <div class="flex items-center gap-2" v-for="state in Object.values(orderStateMap)" :key="state">
-                            <RadioButton v-model="search.orderStatus" :inputId="`orderState-${state}`" name="orderStatus" :value="state" />
-                            <label :for="`orderState-${state}`">{{ state }}</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex space-x-6">
-            <div class="w-2/3">
-                <div class="font-semibold text-xl mb-4 mt-7">검색내역</div>
-                <DataTable :value="orders" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true">
-                    <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
-                    <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
-                    <Column field="partnerName" header="거래처명" style="min-width: 120px" />
-                    <Column field="productId" header="제품코드" style="min-width: 120px" />
-                    <Column field="productName" header="제품명" style="min-width: 120px" />
-                    <Column field="spec" header="규격" style="min-width: 80px" />
-                    <Column field="manager" header="거래담당자" style="min-width: 120px" />
-                    <Column field="quantity" header="수량" style="min-width: 80px" />
-                    <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
-                    <Column field="orderDate" header="등록일자" style="min-width: 100px" />
-                    <Column field="delDate" header="납기일자" style="min-width: 100px" />
-                    <Column field="ordState" header="주문상태" style="min-width: 120px">
-                        <template #body="slotProps">
-                            <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
-                        </template>
-                    </Column>
-                    <Column field="orderManager" header="담당자" style="min-width: 100px" />
-                </DataTable>
-                <Paginator :rows="10" :totalRecords="orders.length" :rowsPerPageOptions="[10, 20, 30]" />
-            </div>
-
-            <div class="w-1/3">
-                <div class="flex justify-end space-x-2 mb-4">
-                    <Button label="저장" rounded @click="saveOrderUpdate" class="p-button-success" />
-                    <Button
-                        label="초기화"
-                        severity="info"
-                        rounded
-                        @click="
-                            () => {
-                                orderUpdate.value = { originDeliveryDate: '', changeDeliveryDate: null, changeReason: '', manager: '' };
-                                selectedOrder = null; // Reset selection on update form clear
-                            }
-                        "
-                    />
-                </div>
-                <div class="font-semibold text-xl mb-4 mt-6">수정</div>
-                <div class="bg-gray-100 p-4 rounded-lg border border-gray-300">
-                    <div class="grid grid-cols-1 gap-5">
-                        <div class="flex flex-col space-y-1">
-                            <label class="font-semibold text-sm">기존납기일</label>
-                            <InputText v-model="orderUpdate.originDeliveryDate" readonly />
-                        </div>
-                        <div class="flex flex-col space-y-1">
-                            <label class="font-semibold text-sm">변경납기일</label>
-                            <Calendar v-model="orderUpdate.changeDeliveryDate" dateFormat="yy-mm-dd" showIcon />
-                        </div>
-                        <div class="flex flex-col space-y-1">
-                            <label class="font-semibold text-sm">변경사유</label>
-                            <InputText v-model="orderUpdate.changeReason" placeholder="자연재해 예정" />
-                        </div>
-                        <div class="flex flex-col space-y-1">
-                            <label class="font-semibold text-sm">담당자</label>
-                            <InputText v-model="orderUpdate.manager" readonly />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog">
-            <div class="p-4">
-                <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
-                <ul class="mb-3">
-                    <li
-                        v-for="supplier in pagedSupplierList"
-                        :key="supplier.partnerId"
-                        :class="['cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded', search.partCode === supplier.partnerId ? 'bg-blue-100 text-blue-700 font-semibold' : '']"
-                        @click="selectSupplierFromDialog(supplier)"
-                    >
-                        • {{ supplier.partnerId }} - {{ supplier.partnerName }} - {{ supplier.address }} - {{ supplier.ceo }} - {{ supplier.manager }} - {{ supplier.mainTel }}
-                    </li>
-                </ul>
-            </div>
-            <div class="flex justify-center gap-2 pb-4">
-                <Button label="이전" @click="supplierCurrentPage--" :disabled="supplierCurrentPage === 1" size="small" />
-                <span class="px-2">페이지 {{ supplierCurrentPage }} / {{ supplierTotalPages }}</span>
-                <Button label="다음" @click="supplierCurrentPage++" :disabled="supplierCurrentPage === supplierTotalPages" size="small" />
-            </div>
-        </Dialog>
-
-        <Dialog v-model:visible="showProductDialog" modal header="제품 검색" :style="{ width: '50vw' }">
-            <DataTable :value="products" selectionMode="single" dataKey="productId" @rowSelect="selectProduct">
-                <Column field="productId" header="제품코드"></Column>
-                <Column field="productName" header="제품명"></Column>
-                <Column field="specification" header="규격"></Column>
-                <Column field="productPrice" header="단가"></Column>
-            </DataTable>
-        </Dialog>
     </div>
+    <Toolbar class="mb-4">
+        <template #center>
+            <div class="flex flex-wrap gap-6 p-4">
+                <div class="flex flex-col">
+                    <label for="partCode" class="font-semibold text-sm mb-1">거래처코드</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="partCode" type="text" class="w-60" v-model="search.partCode" readonly />
+                        <InputIcon class="pi pi-search" @click="openSupplierModal(partCode)" />
+                    </IconField>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <label class="font-semibold text-sm">제품명</label>
+                <div class="flex flex-wrap gap-3">
+                    <div v-for="item in productList" :key="item" class="flex items-center gap-2">
+                        <RadioButton v-model="search.productName" :inputId="item" :value="item" />
+                        <label :for="item">{{ item }}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <label class="font-semibold text-sm">규격</label>
+                <div class="flex flex-wrap gap-3">
+                    <div v-for="item in specOptions" :key="item" class="flex items-center gap-2">
+                        <RadioButton v-model="search.spec" :inputId="`spec-${item}`" :value="item" />
+                        <label :for="`spec-${item}`">{{ item }}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <label class="font-semibold text-sm">납기일</label>
+                <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
+            </div>
+            <div class="flex flex-col">
+                <label class="font-semibold text-sm">주문상태</label>
+                <div class="flex flex-wrap gap-3">
+                    <div class="flex items-center gap-2" v-for="state in Object.values(orderStateMap)" :key="state">
+                        <RadioButton v-model="search.orderStatus" :inputId="`orderState-${state}`" name="orderStatus" :value="state" />
+                        <label :for="`orderState-${state}`">{{ state }}</label>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </Toolbar>
+    <div class="flex space-x-6">
+        <div class="w-2/3">
+            <div class="font-semibold text-xl mb-4 mt-7">검색내역</div>
+            <DataTable :value="orders" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true">
+                <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
+                <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
+                <Column field="partnerName" header="거래처명" style="min-width: 120px" />
+                <Column field="productId" header="제품코드" style="min-width: 120px" />
+                <Column field="productName" header="제품명" style="min-width: 120px" />
+                <Column field="spec" header="규격" style="min-width: 80px" />
+                <Column field="manager" header="거래담당자" style="min-width: 120px" />
+                <Column field="quantity" header="수량" style="min-width: 80px" />
+                <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
+                <Column field="orderDate" header="등록일자" style="min-width: 100px" />
+                <Column field="delDate" header="납기일자" style="min-width: 100px" />
+                <Column field="ordState" header="주문상태" style="min-width: 120px">
+                    <template #body="slotProps">
+                        <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
+                    </template>
+                </Column>
+                <Column field="orderManager" header="담당자" style="min-width: 100px" />
+            </DataTable>
+            <Paginator :rows="10" :totalRecords="orders.length" :rowsPerPageOptions="[10, 20, 30]" />
+        </div>
+
+        <div class="w-1/3">
+            <div class="flex justify-end space-x-2 mb-4">
+                <Button label="저장" rounded @click="saveOrderUpdate" class="p-button-success" />
+                <Button
+                    label="초기화"
+                    severity="info"
+                    rounded
+                    @click="
+                        () => {
+                            orderUpdate.value = { originDeliveryDate: '', changeDeliveryDate: null, changeReason: '', manager: '' };
+                            selectedOrder = null; // Reset selection on update form clear
+                        }
+                    "
+                />
+            </div>
+            <div class="font-semibold text-xl mb-4 mt-6">수정</div>
+            <div class="bg-gray-100 p-4 rounded-lg border border-gray-300">
+                <div class="grid grid-cols-1 gap-5">
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">기존납기일</label>
+                        <InputText v-model="orderUpdate.originDeliveryDate" readonly />
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">변경납기일</label>
+                        <Calendar v-model="orderUpdate.changeDeliveryDate" dateFormat="yy-mm-dd" showIcon />
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">변경사유</label>
+                        <InputText v-model="orderUpdate.changeReason" placeholder="자연재해 예정" />
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="font-semibold text-sm">담당자</label>
+                        <InputText v-model="orderUpdate.manager" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog">
+        <div class="p-4">
+            <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
+            <ul class="mb-3">
+                <li
+                    v-for="supplier in pagedSupplierList"
+                    :key="supplier.partnerId"
+                    :class="['cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded', search.partCode === supplier.partnerId ? 'bg-blue-100 text-blue-700 font-semibold' : '']"
+                    @click="selectSupplierFromDialog(supplier)"
+                >
+                    • {{ supplier.partnerId }} - {{ supplier.partnerName }} - {{ supplier.address }} - {{ supplier.ceo }} - {{ supplier.manager }} - {{ supplier.mainTel }}
+                </li>
+            </ul>
+        </div>
+        <div class="flex justify-center gap-2 pb-4">
+            <Button label="이전" @click="supplierCurrentPage--" :disabled="supplierCurrentPage === 1" size="small" />
+            <span class="px-2">페이지 {{ supplierCurrentPage }} / {{ supplierTotalPages }}</span>
+            <Button label="다음" @click="supplierCurrentPage++" :disabled="supplierCurrentPage === supplierTotalPages" size="small" />
+        </div>
+    </Dialog>
+
+    <Dialog v-model:visible="showProductDialog" modal header="제품 검색" :style="{ width: '50vw' }">
+        <DataTable :value="products" selectionMode="single" dataKey="productId" @rowSelect="selectProduct">
+            <Column field="productId" header="제품코드"></Column>
+            <Column field="productName" header="제품명"></Column>
+            <Column field="specification" header="규격"></Column>
+            <Column field="productPrice" header="단가"></Column>
+        </DataTable>
+    </Dialog>
 </template>
 
 <style scoped>

@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import RadioButton from 'primevue/radiobutton';
-import Tag from 'primevue/tag';
+// import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import Toolbar from 'primevue/toolbar';
 import InputText from 'primevue/inputtext';
-import InputGroup from 'primevue/inputgroup';
+// import InputGroup from 'primevue/inputgroup';
 import DatePicker from 'primevue/datepicker';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -13,11 +13,9 @@ import axios from 'axios';
 
 // 상태코드(int) → 상태명 매핑
 const orderStateMap = {
-    1: '주문서등록',
-    2: '생산대기',
-    3: '생산중',
-    4: '품질검수완료',
-    5: '제품입고'
+    1: '출하대기',
+    2: '출하진행',
+    3: '출하완료'
 };
 
 // 상태명(string) → 상태코드 매핑 (필터링에 필요)
@@ -25,7 +23,7 @@ const orderStateMapReverse = computed(() => {
     return Object.fromEntries(Object.entries(orderStateMap).map(([key, value]) => [value, key]));
 });
 
-const getStatusText = (code) => orderStateMap[code] ?? '알수없음';
+// const getStatusText = (code) => orderStateMap[code] ?? '알수없음';
 
 // 검색 필터 상태
 const searchFilters = ref({
@@ -84,23 +82,23 @@ const fetchOrders = async () => {
     }
 };
 
-// 상태별 severity
-const getSeverity = (status) => {
-    switch (status) {
-        case '주문서등록':
-            return 'contrast';
-        case '생산대기':
-            return 'warn';
-        case '생산중':
-            return 'danger';
-        case '품질검수완료':
-            return 'success';
-        case '제품입고':
-            return 'info';
-        default:
-            return null;
-    }
-};
+// // 상태별 severity
+// const getSeverity = (status) => {
+//     switch (status) {
+//         case '주문서등록':
+//             return 'contrast';
+//         case '생산대기':
+//             return 'warn';
+//         case '생산중':
+//             return 'danger';
+//         case '품질검수완료':
+//             return 'success';
+//         case '제품입고':
+//             return 'info';
+//         default:
+//             return null;
+//     }
+// };
 
 // 필터 초기화
 const resetFilters = () => {
@@ -132,27 +130,27 @@ onMounted(() => {
             <template #center>
                 <div class="flex flex-wrap gap-6 p-4">
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">주문번호</label>
-                        <InputGroup>
-                            <InputText placeholder="ORD001" v-model="searchFilters.orderId" />
-                            <Button icon="pi pi-search" @click.stop="() => {}" />
-                        </InputGroup>
+                        <label for="orderId" class="font-semibold text-sm mb-1">주문번호</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="orderId" type="text" class="w-60" v-model="searchFilters.orderId" readonly />
+                            <InputIcon class="pi pi-search" @click="openModal('supplier')" />
+                        </IconField>
                     </div>
 
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">거래처코드</label>
-                        <InputGroup>
-                            <InputText placeholder="SUP002" v-model="searchFilters.partnerId" />
-                            <Button icon="pi pi-search" @click.stop="() => {}" />
-                        </InputGroup>
+                        <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="partnerId" type="text" class="w-60" v-model="searchFilters.partnerId" readonly />
+                            <InputIcon class="pi pi-search" @@click.stop="openModal('supplier')" />
+                        </IconField>
                     </div>
 
                     <div class="flex flex-col">
-                        <label class="font-semibold text-sm mb-1">제품명</label>
-                        <InputGroup>
-                            <InputText placeholder="제품명" v-model="searchFilters.productName" />
-                            <Button icon="pi pi-search" @click.stop="() => {}" />
-                        </InputGroup>
+                        <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="productName" type="text" class="w-60" v-model="searchFilters.productName" readonly />
+                            <InputIcon class="pi pi-search" @@click.stop="openModal('supplier')" />
+                        </IconField>
                     </div>
 
                     <div class="flex flex-col">

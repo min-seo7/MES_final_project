@@ -77,12 +77,14 @@ const resetFilters = () => {
 </script>
 
 <template>
-    <div class="flex justify-end mb-4 space-x-2">
-        <Button label="조회" rounded @click="searchOrders" />
-        <Button label="초기화" severity="info" rounded @click="resetFilters" />
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">검색</h1>
+        <div class="flex space-x-2">
+            <Button label="조회" rounded @click="searchOrders" />
+            <Button label="초기화" severity="info" rounded @click="resetFilters" />
+        </div>
     </div>
 
-    <div class="font-semibold text-xl mb-4">검색</div>
     <Toolbar>
         <template #center>
             <IconField>

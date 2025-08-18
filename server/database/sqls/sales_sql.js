@@ -36,6 +36,7 @@ const InsertOrderItems = `
   INSERT INTO order_items (order_detail_id,
                            item_seq,
                            quantity,
+                           specification,
                            del_date,
                            ord_status,
                            product_id,
@@ -43,7 +44,7 @@ const InsertOrderItems = `
                            product_price,
                            supply_price,
                            order_id)
-  VALUES (?,?,?,?,?,?,?,?,?,?);
+  VALUES (?,?,?,?,?,?,?,?,?,?,?);
 `;
 
 //주문번호 순차적으로 증가
@@ -146,6 +147,7 @@ GROUP BY o.order_id, o.partner_id, o.partner_name, o.manager, o.delivery_addr, o
 
 const insertShip = `
 INSERT INTO shipment(
+    shipment_id,
     item_seq,
     product_code,
     shipment_qty,
@@ -154,18 +156,18 @@ INSERT INTO shipment(
     order_manager,
     product_name,
     order_detail_id
-) VALUES(?,?,?,?,?,?,?,?)
+) VALUES(?,?,?,?,?,?,?,?,?)
 `;
 
 // 출하등록번호 순차적으로 증가
 const SelectMaxShipId = `
-  SELECT MAX(shipment_id) AS max_shipment_id FROM shipment
-// `;
-`;
+  SELECT MAX(shipment_id) AS max_shipment_id FROM shipment`;
 
 //주문상세번호 순차적으로 증가
-const orderDetailId = `
-  SELECT MAX(order_detail_id) AS max_order_detail_id FROM order_items`;
+const orderDetailId = ` 
+SELECT MAX(order_detail_id) AS max_order_detail_id FROM order_items
+`;
+
 //출하등록조회
 const shipList = `
  SELECT  s.shipment_id,
@@ -176,10 +178,9 @@ const shipList = `
          o.delivery_addr,
          i.del_date,
          s.shipment_date,
-         o.order_manager,
          s.ship_status,
          o.order_manager
-FROM     orders o INNER JOIN order_items i INNER JOIN shipment s;
+FROM     orders o INNER JOIN order_items i INNER JOIN shipment s
 `;
 
 //주문수정조회
@@ -276,6 +277,33 @@ WHERE
     AND (? IS NULL OR DATE(i.del_date) = ?)
 `;
 
+//반품내역
+const returnList = `
+  SELECT r.return_id,
+        i.product_id,
+        i.quantity,
+        r.return_date,
+        r.return_reason,
+        r.re_status,
+        o.order_manager
+  FROM   order_items i 
+  INNER JOIN returns r ON i.order_detail_id = r.order_detail_id
+  INNER JOIN orders o ON i.order_id = o.order_id`;
+
+//반품등록
+const returnRegist = `
+  INSERT INTO returns(
+    return_id,
+    order_detail_id,
+    product_code,
+    quantity,
+    return_date,
+    return_reason,
+    re_status,
+    prd_id
+  ) VALUES (?,?,?,?,?,?,?,?)
+`;
+
 module.exports = {
   selectOrdPartnerModal,
   selectOrderProduct,
@@ -284,7 +312,7 @@ module.exports = {
   SelectOrders,
   SelectMaxOrderId,
   selectOrderDetail,
-  // selectShipDetail,
+  selectShipDetail,
   selectShipOrders,
   insertShip,
   shipList,
@@ -296,4 +324,6 @@ module.exports = {
   SelectMaxShipId,
   modifyNextList,
   mailPdfOrderList,
+  returnList,
+  returnRegist,
 };
