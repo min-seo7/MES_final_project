@@ -199,108 +199,108 @@ const registItem = async () => {
 </script>
 
 <template>
-    <div class="p-6">
-        <div class="flex justify-end space-x-2 mb-4">
-            <Button label="조회" rounded @click="fetchtestitems()" />
-            <Button label="초기화" severity="info" rounded @click="onReset" />
-        </div>
-
-        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-            <div class="font-semibold text-xl mb-4">검사 항목 조회</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="flex flex-col">
-                    <label class="mb-2 font-medium">제품유형</label>
-                    <div class="flex flex-col space-y-2 p-2 rounded-md border border-gray-300">
-                        <div v-for="item in productCodeList" :key="item.code" class="flex items-center gap-2">
-                            <RadioButton v-model="search.productType" :inputId="'search_productType_' + item.code" name="searchProductType" :value="item.Type" />
-                            <label :for="'search_productType_' + item.code">{{ item.Type }}</label>
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="card flex flex-col gap-4 md:w-1/3">
+            <div class="flex flex-col gap-4">
+                <div class="font-semibold text-xl mb-4">검사 항목 조회</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col">
+                        <label class="mb-2 font-medium">제품유형</label>
+                        <div class="flex flex-col space-y-2 p-2 rounded-md border border-gray-300">
+                            <div v-for="item in productCodeList" :key="item.code" class="flex items-center gap-2">
+                                <RadioButton v-model="search.productType" :inputId="'search_productType_' + item.code" name="searchProductType" :value="item.Type" />
+                                <label :for="'search_productType_' + item.code">{{ item.Type }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="mb-2 font-medium">검사목적</label>
+                        <div class="flex flex-col space-y-2 p-2 rounded-md border border-gray-300">
+                            <div v-for="item in inspTypeList" :key="item.code" class="flex items-center gap-2">
+                                <RadioButton v-model="search.inspPurpose" :inputId="'search_inspPurpose_' + item.code" name="searchInspPurpose" :value="item.Type" />
+                                <label :for="'search_inspPurpose_' + item.code">{{ item.Type }}</label>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-2 font-medium">검사목적</label>
-                    <div class="flex flex-col space-y-2 p-2 rounded-md border border-gray-300">
-                        <div v-for="item in inspTypeList" :key="item.code" class="flex items-center gap-2">
-                            <RadioButton v-model="search.inspPurpose" :inputId="'search_inspPurpose_' + item.code" name="searchInspPurpose" :value="item.Type" />
-                            <label :for="'search_inspPurpose_' + item.code">{{ item.Type }}</label>
-                        </div>
-                    </div>
+                <div class="flex justify-end space-x-2 mb-4">
+                    <Button label="조회" rounded @click="fetchtestitems()" />
+                    <Button label="초기화" severity="info" rounded @click="onReset" />
                 </div>
             </div>
         </div>
-
-        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-            <div class="font-semibold text-xl my-4">검사 항목 리스트</div>
-            <DataTable :value="items" scrollable scrollHeight="400px" tableStyle="min-width: 50rem" :paginator="true" :rows="4" selectionMode="single" :selection="selectItem" @selection-change="onRowSelect" dataKey="testitem_code">
-                <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header">
-                    <template v-if="col.field === 'writeAt'" #body="{ data }">
-                        {{ formatDate(data.writeAt) }}
-                    </template>
-                </Column>
-            </DataTable>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-md p-4">
-            <div class="font-semibold text-xl my-4">품질검사 항목 등록</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="flex flex-col">
-                    <label for="testitem_code">항목코드</label>
-                    <InputText id="testitem_code" v-model="selectItem.testitem_code" readonly style="background-color: #f0f0f0" />
-                </div>
-                <div class="flex flex-col">
-                    <label for="writer">작성자</label>
-                    <InputText id="writer" v-model="selectItem.writer" readonly style="background-color: #f0f0f0" />
-                </div>
-                <div class="flex flex-col">
-                    <label class="mb-2">제품유형</label>
-                    <div class="flex flex-col space-y-2">
-                        <div v-for="item in productCodeList" :key="item.code" class="flex items-center gap-2">
-                            <RadioButton v-model="selectItem.productType" :inputId="'reg_productType_' + item.code" name="regProductType" :value="item.Type" />
-                            <label :for="'reg_productType_' + item.code">{{ item.Type }}</label>
+        <div class="card flex flex-col gap-2 md:w-2/3">
+            <div class="flex flex-col gap-2">
+                <div class="font-semibold text-xl mb-4">품질검사 항목 등록</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="flex flex-col">
+                        <label for="testitem_code">항목코드</label>
+                        <InputText id="testitem_code" v-model="selectItem.testitem_code" readonly style="background-color: #f0f0f0" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="writer">작성자</label>
+                        <InputText id="writer" v-model="selectItem.writer" readonly style="background-color: #f0f0f0" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="mb-2">제품유형</label>
+                        <div class="flex flex-col space-y-2 p-2 rounded-md border border-gray-300">
+                            <div v-for="item in productCodeList" :key="item.code" class="flex items-center gap-2">
+                                <RadioButton v-model="selectItem.productType" :inputId="'reg_productType_' + item.code" name="regProductType" :value="item.Type" />
+                                <label :for="'reg_productType_' + item.code">{{ item.Type }}</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-col">
-                    <label class="mb-2">검사목적</label>
-                    <div class="flex flex-col space-y-2">
-                        <div v-for="item in inspTypeList" :key="item.code" class="flex items-center gap-2">
-                            <RadioButton v-model="selectItem.inspPurpose" :inputId="'reg_inspPurpose_' + item.code" name="regInspPurpose" :value="item.Type" />
-                            <label :for="'reg_inspPurpose_' + item.code">{{ item.Type }}</label>
+                    <div class="flex flex-col">
+                        <label class="mb-2">검사목적</label>
+                        <div class="flex flex-col space-y-2 p-2 rounded-md border border-gray-300">
+                            <div v-for="item in inspTypeList" :key="item.code" class="flex items-center gap-2">
+                                <RadioButton v-model="selectItem.inspPurpose" :inputId="'reg_inspPurpose_' + item.code" name="regInspPurpose" :value="item.Type" />
+                                <label :for="'reg_inspPurpose_' + item.code">{{ item.Type }}</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-col">
-                    <label for="regInspItem">검사항목</label>
-                    <IconField iconPosition="right" class="w-full">
-                        <InputText id="regInspItem" v-model="selectItem.inspItem" readonly @click="openModal('inspItem', selectItem)" class="w-full" />
-                        <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspItem', selectItem)" />
-                    </IconField>
-                </div>
-                <div class="flex flex-col">
-                    <label for="regUnit">단위</label>
-                    <IconField iconPosition="right" class="w-full">
-                        <InputText id="regUnit" v-model="selectItem.unit" readonly @click="openModal('unit', selectItem)" class="w-full" />
-                        <InputIcon class="pi pi-search cursor-pointer" @click="openModal('unit', selectItem)" />
-                    </IconField>
-                </div>
-                <div class="flex flex-col">
-                    <label for="range">허용범위</label>
-                    <div class="flex gap-2">
-                        <IconField iconPosition="right" class="w-1/3">
-                            <InputText id="rangeOperator" v-model="selectItem.rangeOperator" readonly class="w-full cursor-not-allowed" />
-                            <InputIcon class="pi pi-search cursor-pointer" @click="openModal('rangeOperator', selectItem)" />
+                    <div class="flex flex-col">
+                        <label for="regInspItem">검사항목</label>
+                        <IconField iconPosition="right" class="w-full">
+                            <InputText id="regInspItem" v-model="selectItem.inspItem" readonly @click="openModal('inspItem', selectItem)" class="w-full" />
+                            <InputIcon class="pi pi-search cursor-pointer" @click="openModal('inspItem', selectItem)" />
                         </IconField>
-                        <InputText id="rangeValue" v-model="selectItem.rangeValue" class="w-2/3" placeholder="예: 0.5" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="regUnit">단위</label>
+                        <IconField iconPosition="right" class="w-full">
+                            <InputText id="regUnit" v-model="selectItem.unit" readonly @click="openModal('unit', selectItem)" class="w-full" />
+                            <InputIcon class="pi pi-search cursor-pointer" @click="openModal('unit', selectItem)" />
+                        </IconField>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="range">허용범위</label>
+                        <div class="flex gap-2">
+                            <IconField iconPosition="right" class="w-1/3">
+                                <InputText id="rangeOperator" v-model="selectItem.rangeOperator" readonly class="w-full cursor-not-allowed" />
+                                <InputIcon class="pi pi-search cursor-pointer" @click="openModal('rangeOperator', selectItem)" />
+                            </IconField>
+                            <InputText id="rangeValue" v-model="selectItem.rangeValue" class="w-2/3" placeholder="예: 0.5" />
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="flex justify-end space-x-2 mb-4">
+                <Button label="등록" rounded @click="registItem()" />
+                <Button label="초기화" severity="info" rounded @click="onReset" />
+            </div>
         </div>
+    </div>
 
-        <div class="flex justify-end mt-4 space-x-2">
-            <Button label="등록" rounded @click="registItem()" />
-            <Button label="초기화" severity="info" rounded @click="onReset" />
-        </div>
+    <div class="card flex flex-col gap-4">
+        <div class="font-semibold text-xl my-4">검사 항목 리스트</div>
+        <DataTable :value="items" scrollable scrollHeight="400px" tableStyle="min-width: 50rem" :paginator="true" :rows="6" selectionMode="single" :selection="selectItem" @selection-change="onRowSelect" dataKey="testitem_code">
+            <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header">
+                <template v-if="col.field === 'writeAt'" #body="{ data }">
+                    {{ formatDate(data.writeAt) }}
+                </template>
+            </Column>
+        </DataTable>
     </div>
 
     <Dialog v-model:visible="showModal" modal header="선택 리스트" :style="{ width: '40vw' }" @hide="closeModal">
@@ -319,3 +319,11 @@ const registItem = async () => {
         </DataTable>
     </Dialog>
 </template>
+
+<style scoped>
+.card {
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+}
+</style>

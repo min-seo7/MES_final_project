@@ -19,7 +19,13 @@ const findAllItemsWithFilter = async (productType, inspPurpose) => {
 
 // 자재입고검사대기목록
 const findInspWait = async () => {
-  let list = await mariadb.query("selectWait");
+  let list = await mariadb.query("selectInspecWaitList");
+  return list;
+};
+
+// 자재입고검사완료목록
+const findInspFin = async () => {
+  let list = await mariadb.query("selectInspecFinList");
   return list;
 };
 
@@ -45,6 +51,18 @@ const insertItem = async (ItemInfo) => {
   }
 };
 
+//자재검수결과 업데이트
+const updateInspectionResult = async (자재검수번호, 최종판정) => {
+  try {
+    const result = await mariadb.query("defUpdate", [최종판정, 자재검수번호]);
+    console.log("DB 업데이트 결과:", result);
+    return result;
+  } catch (err) {
+    console.error("material_Inspection 업데이트 실패:", err);
+    throw err;
+  }
+};
+
 // 객체를 배열로 변환하는 메서드 (기존 코드 그대로 사용)
 function convertToArray(obj, columns) {
   return columns.map((col) => obj[col]);
@@ -54,4 +72,6 @@ module.exports = {
   findAllItemsWithFilter,
   insertItem,
   findInspWait,
+  updateInspectionResult,
+  findInspFin,
 };

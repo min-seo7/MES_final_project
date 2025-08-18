@@ -89,7 +89,49 @@ WHERE
     AND (? IS NULL OR ? = '' OR i.ord_status = ?)
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR i.del_date = ?)
+    AND (? IS NULL OR DATE(i.del_date) = ?)
+`;
+
+//출하요청등록대상 조회,(납기일의 처음과 끝을 별칭으로 구분)
+const selectShipOrders = `
+  SELECT
+      o.order_id,
+      o.partner_id,
+      o.partner_name,
+      i.product_id,
+      i.product_name,
+      o.manager,
+      i.quantity,
+      o.delivery_addr,
+      DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
+      DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
+      DATE_FORMAT( i.del_date, '%Y-%m-%d') as start_date,
+      DATE_FORMAT( i.del_date, '%Y-%m-%d') as end_date,
+      i.ord_status,
+      o.order_manager
+  FROM orders o
+  JOIN order_items i
+      ON o.order_id = i.order_id
+  WHERE
+     (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+      AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
+      AND (? IS NULL OR i.del_date >= ?)
+      AND (? IS NULL OR i.del_date <= ?)
+    `;
+
+// const selectShipDetails = `
+
+
+// `;
+
+const insertShip = `
+  INSERT INTO (product_code,
+               shipment_qty,
+               shipement_date,
+               ship_status,
+               order_manager,
+               product_name)
+  VALUES(?,?,?,?,?,?)
 `;
 
 module.exports = {
@@ -100,4 +142,7 @@ module.exports = {
   SelectOrders,
   SelectMaxOrderId,
   selectOrderDetail,
+  // selectShipDetail,
+  selectShipOrders,
+  insertShip,
 };

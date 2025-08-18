@@ -1,14 +1,16 @@
 <script setup>
 import { ref, defineEmits } from 'vue';
-import Dialog from 'primevue/dialog';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import axios from 'axios';
+import CommonModal from '@/components/common/modal.vue';
 
-const emits = defineEmits(['search']);
+const emits = defineEmits(['employeeFilterSearch']);
+
 const items = ref([]);
-const modalSearchName = ref('');
-const modalSearchDept = ref('');
+const columns = ref([]);
+const showModal = ref(false);
+const modalType = ref('');
+const selectedItem = ref(null);
+
 const search = ref({
     employeeId: '',
     department: '',
@@ -16,61 +18,16 @@ const search = ref({
     status: ''
 });
 
-// 모달 상태 관리
-const showModal = ref(false);
-const modalType = ref('');
-
-const openModal = (type) => {
+// 모달 열기
+const openModal = async (type) => {
     modalType.value = type;
     showModal.value = true;
+    selectedItem.value = null;
 
-    // 모달 초기화
-    selectedEmployee.value = null;
-    modalSearchName.value = '';
-    modalSearchDept.value = '';
-
-    getEmployeeForModal();
-};
-
-const closeModal = () => {
-    showModal.value = false;
-};
-
-const resetModalFilter = () => {};
-
-const selectedEmployee = ref(null);
-const selectModalValue = () => {
-    if (!selectedEmployee.value) {
-        alert('사원을 선택하세요.');
-        return;
-    }
-
-    // 검색창에 자동 채우기
-    search.value.employeeId = selectedEmployee.value.employeeId;
-    search.value.department = selectedEmployee.value.department;
-    search.value.auth = selectedEmployee.value.auth;
-    search.value.status = selectedEmployee.value.status;
-
-    closeModal();
-    selectSearch();
-};
-
-const resetSearch = () => {
-    search.value.employeeId = '';
-    search.value.department = '';
-    search.value.auth = '';
-    search.value.status = '';
-    selectedEmployee.value = null;
-};
-
-const selectSearch = async () => {
-    emits('search', search.value);
-};
-
-const getEmployeeForModal = async () => {
-    try {
-        const response = await axios.get('/api/information/employee/getEmployeeId');
-        items.value = response.data.map((item, index) => ({
+    if (type === 'employeeId') {
+        resetSearch();
+        const res = await axios.get('/api/information/employee/getEmployeeId');
+        items.value = res.data.map((item, index) => ({
             num: index + 1,
             employeeId: item.employee_id,
             name: item.name,
@@ -78,8 +35,60 @@ const getEmployeeForModal = async () => {
             status: item.status,
             auth: item.auth
         }));
-    } catch (error) {
-        console.error('실패:', error);
+        columns.value = [
+            { field: 'employeeId', header: '사원번호' },
+            { field: 'name', header: '사원명' },
+            { field: 'department', header: '부서명' },
+            { field: 'auth', header: '권한' },
+            { field: 'status', header: '상태' }
+        ];
+    } else if (type === 'department') {
+        resetSearch();
+        const departments = ['기준정보관리부', '영업부', '재고부', '생산부', '품질관리부', '설비부'];
+        items.value = departments.map((dept) => ({ deptName: dept }));
+        columns.value = [{ field: 'deptName', header: '부서명' }];
+    }
+};
+
+// 모달 선택 완료
+const selectModalValue = () => {
+    if (!selectedItem.value) {
+        alert('선택된 항목이 없습니다.');
+        return;
+    }
+
+    search.value.employeeId = selectedItem.value.employeeId;
+    search.value.department = selectedItem.value.department || selectedItem.value.deptName;
+    search.value.auth = selectedItem.value.auth;
+    search.value.status = selectedItem.value.status;
+
+    showModal.value = false;
+};
+
+// 선택필터초기화
+const resetSearch = () => {
+    search.value.employeeId = '';
+    search.value.department = '';
+    search.value.auth = '';
+    search.value.status = '';
+    selectedItem.value = null;
+};
+
+// 검색
+const selectSearch = async () => {
+    try {
+        const payload = {
+            employeeId: search.value.employeeId || null,
+            department: search.value.department || null,
+            auth: search.value.auth || null,
+            status: search.value.status || null
+        };
+
+        const res = await axios.post('/api/information/employee/search', payload);
+        console.log(res.data.result);
+        emits('employeeFilterSearch', res.data.result);
+    } catch (err) {
+        console.log('사원검색실패');
     }
 };
 </script>
@@ -110,7 +119,7 @@ const getEmployeeForModal = async () => {
                     <label for="department" class="whitespace-nowrap">부서명</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="department" type="text" class="w-60" v-model="search.department" />
-                        <InputIcon class="pi pi-search" />
+                        <InputIcon class="pi pi-search" @click="openModal('department')" />
                     </IconField>
                 </div>
 
@@ -148,41 +157,5 @@ const getEmployeeForModal = async () => {
         </template>
     </Toolbar>
 
-    <Dialog v-model:visible="showModal" modal header="사원번호찾기" :style="{ width: '40vw' }" @hide="closeModal">
-        <p class="font-bold mb-4 text-lg">
-            🔍
-            {{
-                {
-                    employeeId: '사원번호',
-                    employeeName: '사원명',
-                    department: '부서명',
-                    auth: '권한',
-                    status: '상태'
-                }[modalType]
-            }}
-        </p>
-        <div v-if="modalType === 'employeeId'">
-            <div class="mt-5 mb-4 space-x-2 flex justify-center">
-                <label for="employeeName">사원명</label>
-                <InputText id="employeeName" type="text" />
-                <label for="department">부서</label>
-                <InputText id="department" type="text" />
-                <Button label="검색" />
-                <Button label="초기화" @click="resetModalFilter()" />
-            </div>
-            <DataTable :value="items" tableStyle="min-width: 20rem" class="mb-3">
-                <Column header="">
-                    <template #body="slotProps"> <RadioButton :inputId="'employeeSelect' + slotProps.index" name="employeeSelect" :value="slotProps.data" v-model="selectedEmployee" /> </template>
-                </Column>
-                <Column field="employeeId" header="사원번호"> </Column>
-                <Column field="name" header="사원명"></Column>
-                <Column field="department" header="부서명"></Column>
-                <Column field="auth" header="권한"></Column>
-                <Column field="status" header="상태"></Column>
-            </DataTable>
-        </div>
-        <div class="mt-5 flex justify-center">
-            <Button label="선택 완료" @click="selectModalValue" />
-        </div>
-    </Dialog>
+    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" :showFilter="modalType === 'employeeId'" @confirm="selectModalValue" />
 </template>
