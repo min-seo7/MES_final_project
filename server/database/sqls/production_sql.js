@@ -88,14 +88,47 @@ ON ld.line_id = pod.line_id
 WHERE
     pod.wo_no IN (
         SELECT wo_no FROM prd_order_detail
-        WHERE ord_no = ? -- 방금 삽입된 ord_no
+        WHERE ord_no = ? -- 방금 삽입된 ord_no 지시가 생성될떄 newOrderId를 그대로 들고와서 넣는거라 의문
     );
 `;
 const insertPerform = `
 insert into performance(pf_code , wo_no , p_st_date , p_ed_date, eq_code, eq_name, prc_code , prc_name , in_qty , d_cty, qty , line_id, prd_name)
 values(?,?,?,?,?,?,?,?,?,?,?,?)
 `;
+const selectOrderList= `
+SELECT wo_no, product_name, specification, unit, prd_noworder_qty, line_id , ord_no
+FROM prd_order_detail
+WHERE ord_no = (SELECT MAX(ord_no) FROM production_order)
+ORDER BY p_st_date DESC;
+`; 
 
+const notRegistPrcList = 
+`select ld.use_order AS use_order,
+      ld.process_id AS process_id,
+      ld.equipment_id AS equipment_id,
+      pod.wo_no AS wo_no,
+    pod.line_id AS line_id,
+    pod.product_name AS product_name,
+    pod.specification AS specification,
+    pod.unit As unit,
+    pod.prd_form AS prd_form,
+    pod.prd_noworder_qty AS prd_noworder_qty,
+    flow.in_qty AS in_qty,
+    flow.def_qty AS def_qty,
+    flow.qty AS qty,
+    flow.status AS status
+    from line_detail ld 
+    JOIN prd_flow flow
+    ON ld.process_id = flow.process_id
+    JOIN prd_order_detail pod
+    ON ld.line_id = pod.line_id
+    AND pod.wo_no = flow.wo_no
+    LEFT JOIN
+    performance pf ON pf.wo_no = pod.wo_no AND pf.line_id = pod.line_id -- line_id와 wo_no를 함께 조인하여 정확도를 높입니다.
+   WHERE
+    pf.wo_no IS NULL
+    order by pod.wo_no desc, ld.use_order;
+`;
 module.exports = {
   insertPrdOrderDetail,
   insertPrdOrder,
@@ -104,4 +137,6 @@ module.exports = {
   insertPerform,
   // selectProcessList,
   insertPrdFlow,
+  selectOrderList,
+  notRegistPrcList
 };

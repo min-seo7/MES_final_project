@@ -78,7 +78,7 @@ const startWork = async (director, plan_detail_no, details) => {
 
       await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
     }
-    await conn.query(sqlList.insertPrdFlow, [newOrderId]);
+    await conn.query(sqlList.insertPrdFlow,[newOrderId]);
     // 7. 모든 작업이 성공하면 커밋
     await conn.commit();
     return { success: true, message: "작업 지시가 성공적으로 등록되었습니다." };
@@ -126,8 +126,43 @@ const selectPrcList = async () => {
     if (conn) conn.release();
   }
 };
+const selectOrderList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list= await conn.query(sqlList.selectOrderList);
+    // let list= await conn.query(sqlList.selectOrderList); 
+    // const했을땐 단일행만 반환하다가 let으로 변경하니 나왔는데 갑자기 또 const로 선언해도 리스트 잘나옴 버근가
+    console.log("생산 지시 목록 조회 결과:", list);
+    
+    
+    // 날짜 형식을 데이터베이스에 맞게 변환 
+    return list
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제 
+    if (conn) conn.release();
+  }
+}
+const notRegistPrcList = async () => {
+  let conn; 
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.notRegistPrcList);
+    console.log("등록되지 않은 공정 목록 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제
+    if (conn) conn.release();
+  }
+}
 
 module.exports = {
   startWork,
   //  insertProductionFlow
+  selectOrderList,
+  notRegistPrcList
 };

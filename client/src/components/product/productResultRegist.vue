@@ -8,6 +8,39 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import axios from 'axios';
 
+const search = ref({
+    productPlanCode: ''
+});
+const showModal = ref(false);
+const modalType = ref('');
+const openModal = (type) => {
+    modalType.value = type;
+    showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+};
+const selectModalValue = (value) => {
+    // 생산계획코드 모달 처리
+    if (modalType.value === 'productPlanCode') {
+        search.value.productPlanCode = value.code;
+    }
+    showModal.value = false;
+}
+const productionOrderList= ref([]);
+const loading = ref(true); // 로딩 상태를 관리하는 변수
+const columns = ref([
+    { field: 'use_order', header: '공정순서' },
+    { field: 'process', header: '공정' },
+    { field: 'line_id', header: '라인코드' },
+    { field: 'equipment_id', header: '설비코드' },
+    { field: 'prd_noworder_qty', header: '현지시수량' },
+    { field: 'in_qty', header: '투입량' },
+    { field: 'def_qty', header: '불량량' },
+    { field: 'qty', header: '생산량' },
+    { field: 'status', header: '상태' }
+]);
 const products = ref([
     {
         process: '분말형',
@@ -67,7 +100,7 @@ const onCellEditComplete = (event) => {
     // 셀 수정 완료 시 처리 로직을 여기에 구현
     console.log('셀 수정 완료:', event);
 };
-const worker = ref('박형식'); // 초기값
+const worker = ref(''); // 초기값
 const process = ref('');
 const startDate = ref('');
 const endDate = ref('');
@@ -112,23 +145,54 @@ const generateCode = () => {
 
     return newCode;
 };
+const fetchProductionOrderList = async () => {
+    try {
+        const response = await axios.get('/api/production/productionOrderList');
+        // Check if response.data exists and has a 'list' property that is an array
+        
+        if (response.data && Array.isArray(response.data.list)) {
+            productionOrderList.value = response.data.list.map((item) => ({
+                wo_no: item.wo_no,
+                ord_no: item.ord_no,
+                p_st_date: item.p_st_date,
+                p_ed_date: item.p_ed_date,
+                line_id: item.line_id,
+                product_name: item.product_name,
+                specification: item.specification,
+                unit: item.unit,
+                prd_noworder_qty: item.prd_noworder_qty
+            }));
+            console.log(response);
+        } else {
+            // This case handles when the server sends an unexpected format
+            console.error('서버 응답 형식이 올바르지 않습니다:', response.data);
+            productionOrderList.value = [];
+        }
+    } catch (error) {
+        // This handles network errors or server response status codes like 4xx, 5xx
+        console.error('실패:', error);
+    } finally {
+        loading.value = false;
+    }
+};
 
 // API 호출 함수
 const fetchProductionProcess = async () => {
     try {
         const response = await axios.get('/api/production/productionResultRegist');
         items.value = response.data.list.map((item) => ({
+            use_order: item.use_order,
             process: item.process_id,
-            line: item.line_id,
-            productId: item.product_id,
-            productName: item.product_name,
+            line_id: item.line_id,
+            product_id: item.product_id,
+            product_name: item.product_name,
             specification: item.specification,
             unit: item.unit,
             useOrder: item.use_order,
-            equipmentCode: item.equipment_id,
-            productionQuantity: item.prd_noworder_qty,
-            inQty: 0,
-            defQty: 0,
+            equipment_id: item.equipment_id,
+            prd_noworder_qty: item.prd_noworder_qty,
+            in_qty: 0,
+            def_qty: 0,
             qty: 0,
             status: item.status
         }));
@@ -139,27 +203,25 @@ const fetchProductionProcess = async () => {
     }
 };
 
-onMounted(() => {
-    fetchProductionProcess();
+onMounted(async () => {
+    await fetchProductionOrderList();
+    await fetchProductionProcess();
 });
 
 const performanceInsert = () => {
     // const performanceInsertDate = new Date();
     // console.log(performanceInsertDate);
     const payload = {
-        // performanceNumber: performanceNumber.value,
+        performanceNumber: performanceNumber.value,
         worker: worker.value,
         process: process.value,
-        startDate: startDate.value,
-        endDate: endDate.value,
         planQuantity: planQuantity.value,
         line: line.value,
         productName: productName.value,
         equipmentCode: equipmentCode.value,
-        equipmentName: equipmentName.value,
         productionQuantity: productionQuantity.value
-        // ,performanceInsStartDate: performanceInsStartDate.value
-        // ,performanceInsEndDate: performanceInsEndDate.value
+        ,performanceInsStartDate: performanceInsStartDate.value
+        ,performanceInsEndDate: performanceInsEndDate.value
     };
     console.log(payload);
     // if (!payload.performanceNumber) {
@@ -172,9 +234,9 @@ const performanceInsert = () => {
         resetData();
     });
 };
-// const performanceNumberInsert = () => {
-//     performanceNumber.value = generateCode();
-// };
+const performanceNumberInsert = () => {
+    performanceNumber.value = generateCode();
+};
 const registStartPerformance = () => {
     // console.log(now);
     // const year = now.getFullYear();
@@ -201,15 +263,18 @@ const resetData = () => {
     productionQuantity.value = 0;
     performanceNumber.value = '';
     status.value = '';
+    performanceInsStartDate.value = '';
+    performanceInsEndDate.value = '';
 };
 </script>
 <template>
     <div class="col-span-1 flex items-center gap-2">
         <div class="w-full flex justify-end gap-2">
             <Button label=" 실적등록 " rounded @click="performanceInsert" />
-            <!-- <Button label=" 실적번호부여 " rounded @click="performanceNumberInsert" /> -->
-            <!-- <Button label=" 실적시작 " rounded @click="registStartPerformance" /> -->
-            <!-- <Button label=" 실적종료 " rounded @click="registEndPerformance" /> -->
+            <Button label=" 실적번호부여 " rounded @click="performanceNumberInsert" />
+            <Button label=" 실적시작 " rounded @click="registStartPerformance" />
+            <Button label=" 실적종료 " rounded @click="registEndPerformance" />
+            <Button label=" 지시목록 " rounded @click="openModal('orderList')" />
             <Button label=" 초기화 " severity="info" rounded @click="resetData" />
         </div>
     </div>
@@ -221,20 +286,8 @@ const resetData = () => {
                     <InputText class="flex-1" v-model="worker" />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">작업시작일시</label>
-                    <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="startDate" disabled />
-                </div>
-                <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">작업종료일시</label>
-                    <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="endDate" disabled />
-                </div>
-                <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">공정</label>
                     <InputText class="flex-1" v-model="process" disabled />
-                </div>
-                <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">계획수량</label>
-                    <InputNumber class="flex-1" v-model="planQuantity" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">라인</label>
@@ -253,10 +306,6 @@ const resetData = () => {
                     <InputText class="flex-1" v-model="equipmentCode" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">설비명</label>
-                    <InputText class="flex-1" v-model="equipmentName" disabled />
-                </div>
-                <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">생산 수량</label>
                     <InputNumber class="flex-1" v-model="productionQuantity" disabled />
                 </div>
@@ -264,41 +313,54 @@ const resetData = () => {
                     <label class="w-24 text-right">공정 상태</label>
                     <InputText class="flex-1" v-model="status" disabled />
                 </div>
-                <!-- <div class="col-span-1 flex items-center gap-2">
+                <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">실적 시작 일시</label>
                     <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="performanceInsStartDate" />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">실적 종료 일시</label>
                     <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="performanceInsEndDate" />
-                </div> -->
+                </div>
             </div>
         </div>
 
         <div class="flex-grow overflow-y-auto">
             <DataTable :value="items" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
-                <Column field="process" header="공정"></Column>
-                <Column field="line" header="라인"></Column>
-                <Column field="productionQuantity" header="생산수량"></Column>
-                <Column field="productId" header="제품코드"></Column>
-                <Column field="productName" header="제품명"></Column>
-                <Column field="specification" header="규격"></Column>
-                <Column field="unit" header="단위"></Column>
-                <Column field="prd_form" header="제품구분"></Column>
-                <Column field="equipmentCode" header="설비코드"></Column>
-                <Column field="equipmentName" header="설비명"></Column>
-                <Column field="startDate" header="작업시작일시"
-                    ><template #body="{ data }">
-                        {{ formatDate(data.startDate) }}
-                    </template></Column
-                >
-                <Column field="endDate" header="작업종료일시"
-                    ><template #body="{ data }">
-                        {{ formatDate(data.endDate) }}
-                    </template></Column
-                >
-                <Column field="status" header="상태"></Column>
+               <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
+                <template #body="{ data }" v-if="col.field === 'startDate' || col.field === 'endDate'">
+                    {{ formatDate(data[col.field]) }}
+                </template>
+               </Column>
             </DataTable>
         </div>
     </div>
+     <Dialog v-model:visible="showModal" modal header="생산지시 리스트" :style="{ width: '40vw' }" @hide="closeModal">
+        <p class="font-bold mb-4 text-lg">
+            🔍
+            {{
+                {
+                    orderList: '지시목록'
+                }[modalType]
+            }}
+        </p>
+
+        <div v-if="modalType === 'orderList'">
+            <DataTable :value="productionOrderList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]">
+                <Column field="wo_no" header="생산지시코드">
+                    <template #body="{ data }">
+                        <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
+                            {{ data.wo_no }}
+                        </span>
+                    </template>
+                </Column>
+                <Column field="ord_no" header="작업지시번호"></Column>
+                <Column field="line_id" header="라인코드"></Column>
+                <Column field="product_name" header="제품명"></Column>
+                <Column field="specification" header="규격"></Column>
+                <Column field="unit" header="단위"></Column>
+                <Column field="prd_noworder_qty" header="현지시수량"></Column>
+            </DataTable>
+        </div>
+        
+    </Dialog>
 </template>
