@@ -121,7 +121,6 @@ const selectShipOrders = `
 
 const selectShipDetails = `
 
-
 `;
 
 const insertShip = `
@@ -142,7 +141,7 @@ module.exports = {
   SelectOrders,
   SelectMaxOrderId,
   selectOrderDetail,
-  selectShipDetail,
+  // selectShipDetail,
   selectShipOrders,
   insertShip,
 };

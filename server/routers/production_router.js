@@ -30,5 +30,13 @@ router.post("/productionOrder", async (req, res) => {
     res.status(500).json({ message: "작업지시등록실패", error: error.message });
   }
 });
-
+router.get("/productionResultRegist", async (req, res) => {
+  try {
+    let list = await productionService.selectProcessList();
+    res.json({ list });
+  } catch (err) {
+    console.err(err);
+    res.status(500).json({ message: "서버오류" });
+  }
+});
 module.exports = router;
