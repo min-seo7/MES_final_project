@@ -48,8 +48,17 @@ function onClear() {
 </script>
 
 <template>
-    <!-- 한 줄 검색 폼 (줄바꿈 방지) -->
-    <div class="flex items-center gap-6 border rounded-md p-4 bg-white mt-2 flex-nowrap overflow-x-auto">
+    <!-- 상단 타이틀 + 버튼 -->
+    <div class="flex items-center justify-between mb-2">
+        <div class="font-bold text-[18.5px]">조회</div>
+        <div class="flex gap-2">
+            <Button label="조회" rounded @click="onSubmit" />
+            <Button label="초기화" severity="info" rounded @click="onClear" />
+        </div>
+    </div>
+
+    <!-- 검색 폼 -->
+    <div class="flex items-center gap-6 border rounded-md p-4 bg-white flex-nowrap overflow-x-auto">
         <!-- 설비코드 -->
         <div class="flex items-center gap-2 shrink-0">
             <label class="whitespace-nowrap flex items-center h-10">설비코드</label>
@@ -72,8 +81,7 @@ function onClear() {
         <div class="flex items-center gap-2 shrink-0">
             <label class="whitespace-nowrap flex items-center h-10">설비명</label>
             <IconField iconPosition="left" class="w-56 min-w-[14rem]">
-                <!-- 가운데 정렬 추가: text-center -->
-                <InputText v-model="search.eq_name" class="w-full text-center" />
+                <InputText v-model="search.eq_name" class="w-full" />
                 <InputIcon class="pi pi-search cursor-pointer" @click="openPicker('eq_name')" />
             </IconField>
         </div>
@@ -94,12 +102,6 @@ function onClear() {
             <label for="st1" class="mr-4">사용</label>
             <RadioButton inputId="st2" name="eq_status" value="미사용" v-model="search.status" />
             <label for="st2">미사용</label>
-        </div>
-
-        <!-- 우측 버튼 -->
-        <div class="ml-auto flex items-center gap-2 shrink-0">
-            <Button label="조회" icon="pi pi-search" rounded @click="onSubmit" />
-            <Button label="초기화" icon="pi pi-refresh" severity="info" rounded @click="onClear" />
         </div>
     </div>
 

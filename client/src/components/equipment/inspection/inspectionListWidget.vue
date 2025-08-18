@@ -4,36 +4,33 @@ import axios from 'axios';
 
 function formatDate(val) {
     if (!val) return '';
-    return new Date(val).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
+    return new Date(val).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
-const props = defineProps({
-    params: { type: Object, default: () => ({ page: 1, size: 20 }) }
-});
+const props = defineProps({ params: { type: Object, default: () => ({ page: 1, size: 20 }) } });
 const emit = defineEmits(['loaded']);
-
 const rows = ref([]);
 
+/* 목록 단순 조회 */
 async function fetchSimple(page, size) {
     const { data } = await axios.get('/api/equipment/inspection', { params: { page, size } });
     rows.value = Array.isArray(data) ? data : [];
     emit('loaded', rows.value);
 }
 
+/* 조건 검색 */
 async function fetchSearch(p) {
     const { data } = await axios.get('/api/equipment/inspection/search', { params: p });
     rows.value = Array.isArray(data) ? data : [];
     emit('loaded', rows.value);
 }
 
+/* 파라미터 변경 감시 → 단순/검색 분기
+   ⚠ 점검코드(insp_code) 포함하도록 보강 */
 watch(
     () => props.params,
     (p) => {
-        const hasFilter = ['eq_id', 'insp_type', 'date_from', 'date_to', 'next_from', 'next_to'].some((k) => p && p[k]); // ← next_from/next_to 추가
+        const hasFilter = ['insp_code', 'eq_id', 'insp_type', 'date_from', 'date_to', 'next_from', 'next_to'].some((k) => p && p[k]);
         if (hasFilter) fetchSearch(p);
         else fetchSimple(p.page || 1, p.size || 20);
     },
