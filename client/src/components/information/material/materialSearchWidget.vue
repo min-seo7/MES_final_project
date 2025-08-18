@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -28,11 +28,9 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/material/getMaterialName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            materialName: item.material_name,
+            materialName: item.material_name
         }));
-        columns.value = [
-            { field: 'materialName', header: '자재명' },
-        ];
+        columns.value = [{ field: 'materialName', header: '자재명' }];
     }
 };
 
@@ -56,6 +54,8 @@ const resetSearch = () => {
     search.value.materialName = '';
     search.value.status = '';
     selectedItem.value = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -74,6 +74,10 @@ const selectSearch = async () => {
         console.log('material 검색실패');
     }
 };
+
+onMounted(() => {
+    selectSearch();
+});
 </script>
 
 <template>
@@ -104,7 +108,6 @@ const selectSearch = async () => {
                         <InputIcon class="pi pi-search" @click="openModal('materialName')" />
                     </IconField>
                 </div>
-
 
                 <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">

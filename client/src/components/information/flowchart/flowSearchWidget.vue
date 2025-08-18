@@ -1,18 +1,25 @@
-<script setup>import { ref, defineEmits } from 'vue';
+<script setup>
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
 const emits = defineEmits(['flowchartFilterSearch']);
 
+// 모달 관련
 const items = ref([]);
 const columns = ref([]);
 const showModal = ref(false);
 const modalType = ref('');
-const selectedItem = ref(null);
+const selectedItems = ref({
+    flowName: null,
+    productId: null,
+    productName: null
+});
 
+// 검색 조건
 const search = ref({
-    flowchartId: '',
-    flowchartName: '',
+    flowId: '',
+    flowName: '',
     productId: '',
     productName: '',
     status: ''
@@ -22,53 +29,72 @@ const search = ref({
 const openModal = async (type) => {
     modalType.value = type;
     showModal.value = true;
-    selectedItem.value = null;
 
-    if (type === 'flowchartName') {
-        resetSearch();
-        const res = await axios.get('/api/information/flowchart/getFlowchartName');
+    if (type === 'flowName') {
+        const res = await axios.get('/api/information/flowchart/getFlowName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            flowchartName: item.flow_name,
+            flowName: item.flow_name
         }));
-        columns.value = [
-            { field: 'flowchartName', header: '흐름도명' },
-        ];
-    } 
+        columns.value = [{ field: 'flowName', header: '흐름도명' }];
+    } else if (type === 'productId') {
+        const res = await axios.get('/api/information/flowchart/getProductId');
+        items.value = res.data.map((item, index) => ({
+            num: index + 1,
+            productId: item.product_id
+        }));
+        columns.value = [{ field: 'productId', header: '제품코드' }];
+    } else if (type === 'productName') {
+        const res = await axios.get('/api/information/flowchart/getProductName');
+        items.value = res.data.map((item, index) => ({
+            num: index + 1,
+            productName: item.product_name
+        }));
+        columns.value = [{ field: 'productName', header: '제품명' }];
+    }
 };
 
 // 모달 선택 완료
 const selectModalValue = () => {
-    if (!selectedItem.value) {
+    const selectedItem = selectedItems.value[modalType.value];
+    if (!selectedItem) {
         alert('선택된 항목이 없습니다.');
         return;
     }
 
-    search.value.flowchartId = selectedItem.value.flowchartId;
-    search.value.flowchartName = selectedItem.value.flowchartName;
-    search.value.productId = selectedItem.value.productId;
-    search.value.productName = selectedItem.value.productName;
-    search.value.status = selectedItem.value.status;
+    if (modalType.value === 'flowName') {
+        search.value.flowName = selectedItem.flowName;
+    } else if (modalType.value === 'productId') {
+        search.value.productId = selectedItem.productId;
+    } else if (modalType.value === 'productName') {
+        search.value.productName = selectedItem.productName;
+    }
 
     showModal.value = false;
 };
 
-// 선택필터초기화
+// 선택 필터 초기화
 const resetSearch = () => {
-    search.value.flowchartId = '';
-    search.value.flowchartName = '';
+    search.value.flowId = '';
+    search.value.flowName = '';
     search.value.productId = '';
     search.value.productName = '';
     search.value.status = '';
-    selectedItem.value = null;
+
+    // 모달 선택값 초기화
+    Object.keys(selectedItems.value).forEach((key) => {
+        selectedItems.value[key] = null;
+    });
+
+    selectSearch();
 };
 
 // 검색
 const selectSearch = async () => {
     try {
         const payload = {
-            flowchartId: search.value.flowchartId || null,
-            flowchartName: search.value.flowchartName || null,
+            flowId: search.value.flowId || null,
+            flowName: search.value.flowName || null,
             productId: search.value.productId || null,
             productName: search.value.productName || null,
             status: search.value.status || null
@@ -80,7 +106,12 @@ const selectSearch = async () => {
     } catch (err) {
         console.log('flowchart 검색실패');
     }
-};</script>
+};
+
+onMounted(() => {
+    selectSearch();
+});
+</script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
@@ -96,19 +127,18 @@ const selectSearch = async () => {
             <div class="flex items-center gap-6">
                 <!-- 흐름도코드 -->
                 <div class="flex items-center gap-2">
-                    <label for="flowchartId" class="whitespace-nowrap">흐름도코드</label>
+                    <label for="flowId" class="whitespace-nowrap">흐름도코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="flowchartId" type="text" class="w-60" />
-                        <InputIcon class="pi pi-search" />
+                        <InputText id="flowId" type="text" class="w-60" v-model="search.flowId" />
                     </IconField>
                 </div>
 
                 <!-- 흐름도명 -->
                 <div class="flex items-center gap-2">
-                    <label for="flowchartName" class="whitespace-nowrap">흐름도명</label>
+                    <label for="flowName" class="whitespace-nowrap">흐름도명</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="flowchartName" type="text" class="w-60" v-model="search.flowchartName"/>
-                        <InputIcon class="pi pi-search" @click = "openModal(flowchartName)"/>
+                        <InputText id="flowName" type="text" class="w-60" v-model="search.flowName" />
+                        <InputIcon class="pi pi-search" @click="openModal('flowName')" />
                     </IconField>
                 </div>
 
@@ -116,8 +146,8 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="productId" class="whitespace-nowrap">제품코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="productId" type="text" class="w-60" v-model="search.productId"/>
-                        <InputIcon class="pi pi-search" @click = "openModal(productName)" />
+                        <InputText id="productId" type="text" class="w-60" v-model="search.productId" />
+                        <InputIcon class="pi pi-search" @click="openModal('productId')" />
                     </IconField>
                 </div>
 
@@ -125,15 +155,14 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="productName" class="whitespace-nowrap">제품명</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="productName" type="text" class="w-60" v-model="search.productName"/>
-                        <InputIcon class="pi pi-search" @click = "openModal(productName)"/>
+                        <InputText id="productName" type="text" class="w-60" v-model="search.productName" />
+                        <InputIcon class="pi pi-search" @click="openModal('productName')" />
                     </IconField>
                 </div>
 
-
                 <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">
-                    <label for="materialCode" class="whitespace-nowrap">상태</label>
+                    <label for="status" class="whitespace-nowrap">상태</label>
                     <div class="flex items-center">
                         <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
                             <RadioButton id="status1" name="status" value="사용" v-model="search.status" />
@@ -146,6 +175,6 @@ const selectSearch = async () => {
             </div>
         </template>
     </Toolbar>
-    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
 
+    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItems[modalType]" @confirm="selectModalValue" />
 </template>

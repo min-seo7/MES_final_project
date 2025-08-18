@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -32,15 +32,15 @@ const openModal = async (type) => {
             productName: item.product_name,
             productId: item.product_id,
             productType: item.product_type,
-            productForm: item.product_form,
+            productForm: item.product_form
         }));
         columns.value = [
             { field: 'productName', header: '제품명' },
             { field: 'productId', header: '제품코드' },
             { field: 'productType', header: '제품유형' },
-            { field: 'productForm', header: '제품형태' },
+            { field: 'productForm', header: '제품형태' }
         ];
-    } 
+    }
 };
 
 // 모달 선택 완료
@@ -65,6 +65,8 @@ const resetSearch = () => {
     search.value.productType = '';
     search.value.status = '';
     selectedItem.value = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -84,6 +86,10 @@ const selectSearch = async () => {
         console.log('bom검색실패');
     }
 };
+
+onMounted(() => {
+    selectSearch();
+});
 </script>
 
 <template>
@@ -102,7 +108,7 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="bomCode" class="whitespace-nowrap">BOM번호</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="name2" type="text" class="w-60" v-model="search.bomId"/>
+                        <InputText id="name2" type="text" class="w-60" v-model="search.bomId" />
                     </IconField>
                 </div>
 
@@ -110,8 +116,8 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="productName" class="whitespace-nowrap">제품명</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="productName" type="text" class="w-60" v-model="search.productName"/>
-                        <InputIcon class="pi pi-search" @click="openModal('productName')"/>
+                        <InputText id="productName" type="text" class="w-60" v-model="search.productName" />
+                        <InputIcon class="pi pi-search" @click="openModal('productName')" />
                     </IconField>
                 </div>
 
@@ -128,7 +134,6 @@ const selectSearch = async () => {
                         </label>
                     </div>
                 </div>
-
 
                 <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">
@@ -147,5 +152,4 @@ const selectSearch = async () => {
     </Toolbar>
 
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
-
 </template>

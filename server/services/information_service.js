@@ -13,7 +13,6 @@ const findAllWarehouse = async (warehouseInfo) => {
   return list;
 };
 
-
 // 창고 등록
 const insertWarehouse = async (warehouseInfo) => {
   let conn;
@@ -57,7 +56,6 @@ const insertWarehouse = async (warehouseInfo) => {
     if (conn) conn.release();
   }
 };
-
 
 // 창고 수정
 const updateWarehouse = async (warehouseInfo) => {
@@ -141,8 +139,6 @@ const insertProduct = async (productInfo) => {
   }
 };
 
-
-
 // 제품 수정
 const updateProduct = async (productInfo) => {
   const insertData = convertToArray(productInfo, [
@@ -223,7 +219,6 @@ const insertMaterial = async (materialInfo) => {
     if (conn) conn.release();
   }
 };
-
 
 // 자재 수정
 const updateMaterial = async (materialInfo) => {
@@ -361,12 +356,13 @@ const updateDetailFlowchart = async (flowInfo) => {
 //흐름도 목록 조회
 const findAllFlowchart = async (flowchartInfo) => {
   const insertData = [
-    flowchartInfo.flowchartId ?? null,
-    flowchartInfo.flowchartName ?? null,
+    flowchartInfo.flowId ?? null,
+    flowchartInfo.flowName ?? null,
     flowchartInfo.productId ?? null,
     flowchartInfo.productName ?? null,
     flowchartInfo.status ?? null,
   ];
+
   let list = await mariadb.query("selectFlowchartList", insertData);
   return list;
 };
@@ -435,9 +431,6 @@ const insertAllFlowchart = async (flowInfo, flowDetails) => {
   }
 };
 
-
-
-
 // 흐름도 수정
 const updateFlowchart = async (flowInfo) => {
   const insertData = convertToArray(flowInfo, [
@@ -491,6 +484,8 @@ const findAllLine = async (lineInfo) => {
     lineInfo.lineId ?? null,
     lineInfo.lineName ?? null,
     lineInfo.processId ?? null,
+    lineInfo.processId ?? null,
+    lineInfo.equipmentId ?? null,
     lineInfo.equipmentId ?? null,
     lineInfo.status ?? null,
   ];
@@ -513,9 +508,6 @@ const insertLine = async (lineInfo) => {
   return result;
 };
 
-
-
-
 const insertAllLine = async (lineInfo, lineDetails) => {
   let conn;
   try {
@@ -525,7 +517,6 @@ const insertAllLine = async (lineInfo, lineDetails) => {
     // 1. 마지막 line_id 조회 (락)
     const rows = await conn.query("selectMaxLineId");
     const maxId = rows?.[0]?.max_line_id || null;
-
 
     let newLineId = "L001";
     if (maxId) {
@@ -569,7 +560,6 @@ const insertAllLine = async (lineInfo, lineDetails) => {
   }
 };
 
-
 // 라인 수정
 const updateLine = async (lineInfo) => {
   const insertData = convertToArray(lineInfo, [
@@ -595,7 +585,6 @@ const findAllProcess = async (processInfo) => {
   let list = await mariadb.query("selectProcessList", insertData);
   return list;
 };
-
 
 // 공정 등록
 const insertProcess = async (processInfo) => {
@@ -679,7 +668,6 @@ const insertBOM = async (bomInfo) => {
   return result;
 };
 
-
 const insertAllBOM = async (bomInfo, bomDetails) => {
   let conn;
   try {
@@ -700,11 +688,7 @@ const insertAllBOM = async (bomInfo, bomDetails) => {
     }
 
     // 3. BOM 등록
-    await conn.query("insertBOM", [
-      newBOMId,
-      bomInfo.prodId,
-      bomInfo.status,
-    ]);
+    await conn.query("insertBOM", [newBOMId, bomInfo.prodId, bomInfo.status]);
 
     // 4. BOM 상세 등록
     for (const detail of bomDetails) {
@@ -732,7 +716,6 @@ const insertAllBOM = async (bomInfo, bomDetails) => {
   }
 };
 
-
 // BOM_detail 등록
 const insertDetailBOM = async (bomInfo) => {
   const insertData = convertToArray(bomInfo, [
@@ -757,7 +740,6 @@ const findAllEmployeeId = async () => {
   let list = await mariadb.query("selectEmployeeIdModal");
   return list;
 };
-
 
 const findAllLocationModal = async () => {
   let list = await mariadb.query("selectLocationModal");
@@ -795,6 +777,11 @@ const findAllProcessId = async () => {
 
 const findAllProductName = async () => {
   let list = await mariadb.query("selectProductNameModal");
+  return list;
+};
+
+const findAllProductId = async () => {
+  let list = await mariadb.query("selectProductIdModal");
   return list;
 };
 
@@ -882,7 +869,6 @@ const insertEmployee = async (employeeInfo) => {
   }
 };
 
-
 // insert + id 받아오기
 // const resInfo = await mariadb.query("insertEmployee", insertData);
 
@@ -910,6 +896,7 @@ function convertToArray(obj, columns) {
 
 module.exports = {
   findAllFlowchartName,
+  findAllProductId,
   findAllWarehouseModal,
   findAllWarehouseTypeModal,
   findAllLocationModal,

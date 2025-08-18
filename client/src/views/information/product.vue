@@ -5,11 +5,29 @@ import productRegistWidget from '@/components/information/product/productRegistW
 
 import { ref, onUnmounted } from 'vue';
 
-const productSearchData = ref([]);
+const productSelectedData = ref([]);
 
+const rowsPerPage = 5;
+
+// 초기 빈 데이터 (placeholder)
+const productSearchData = ref(
+    Array(rowsPerPage).fill({
+        num: '\u00A0',
+        productId: '\u00A0',
+        productType: '\u00A0',
+        productForm: '\u00A0',
+        productName: '\u00A0',
+        specification: '\u00A0',
+        expiration: '\u00A0',
+        storageCondition: '\u00A0',
+        safetyStock: '\u00A0',
+        manual: '\u00A0',
+        status: '\u00A0'
+    })
+);
 
 const handleSearch = (result) => {
-    productSearchData.value = result.map((item, index) => ({
+    const mapped = result.map((item, index) => ({
         num: index + 1,
         productId: item.product_id,
         productType: item.product_type,
@@ -22,6 +40,43 @@ const handleSearch = (result) => {
         manual: item.product_manual,
         status: item.status
     }));
+
+    // 최소 행 수 유지
+    while (mapped.length < rowsPerPage) {
+        mapped.push({
+            num: '\u00A0',
+            productId: '\u00A0',
+            productType: '\u00A0',
+            productForm: '\u00A0',
+            productName: '\u00A0',
+            specification: '\u00A0',
+            expiration: '\u00A0',
+            storageCondition: '\u00A0',
+            safetyStock: '\u00A0',
+            manual: '\u00A0',
+            status: '\u00A0'
+        });
+    }
+
+    productSearchData.value = mapped;
+};
+
+const handleSelect = (row) => {
+    productSelectedData.value = [
+        {
+            productId: row.productId,
+            productType: row.productType,
+            productForm: row.productForm,
+            productName: row.productName,
+            specification: row.specification,
+            expiration: row.expiration,
+            storageCondition: row.storageCondition,
+            safetyStock: row.safetyStock,
+            manual: row.manual,
+            status: row.status
+        }
+    ];
+    console.log(productSelectedData);
 };
 
 onUnmounted(() => {
@@ -31,8 +86,8 @@ onUnmounted(() => {
 
 <template>
     <section class="product-container">
-        <productSearchWidget @productFilterSearch="handleSearch"/>
-        <productListWidget :items="productSearchData"/>
-        <productRegistWidget />
+        <productSearchWidget @productFilterSearch="handleSearch" />
+        <productListWidget :items="productSearchData" @productSelected="handleSelect" />
+        <productRegistWidget :items="productSelectedData" />
     </section>
 </template>

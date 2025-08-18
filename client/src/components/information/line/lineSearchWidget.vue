@@ -1,4 +1,5 @@
-<script setup>import { ref, defineEmits } from 'vue';
+<script setup>
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -8,7 +9,13 @@ const items = ref([]);
 const columns = ref([]);
 const showModal = ref(false);
 const modalType = ref('');
-const selectedItem = ref(null);
+
+// 모달 타입별 선택값 관리
+const selectedItems = ref({
+    lineName: null,
+    processId: null,
+    equipmentId: null
+});
 
 const search = ref({
     lineId: '',
@@ -22,21 +29,17 @@ const search = ref({
 const openModal = async (type) => {
     modalType.value = type;
     showModal.value = true;
-    selectedItem.value = null;
 
+    let res;
     if (type === 'lineName') {
-        resetSearch();
-        const res = await axios.get('/api/information/line/getLineName');
+        res = await axios.get('/api/information/line/getLineName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            lineName: item.line_name,
+            lineName: item.line_name
         }));
-        columns.value = [
-            { field: 'lineName', header: '라인명' },
-        ];
+        columns.value = [{ field: 'lineName', header: '라인명' }];
     } else if (type === 'processId') {
-        resetSearch();
-        const res = await axios.get('/api/information/line/getProcessId');
+        res = await axios.get('/api/information/line/getProcessId');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
             processId: item.process_id,
@@ -47,8 +50,7 @@ const openModal = async (type) => {
             { field: 'processName', header: '공정명' }
         ];
     } else if (type === 'equipmentId') {
-        resetSearch();
-        const res = await axios.get('/api/information/line/getEquipmentId');
+        res = await axios.get('/api/information/line/getEquipmentId');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
             equipmentId: item.equipment_id,
@@ -62,17 +64,22 @@ const openModal = async (type) => {
 };
 
 // 모달 선택 완료
-const selectModalValue = () => {
-    if (!selectedItem.value) {
+const selectModalValue = (item) => {
+    if (!item) {
         alert('선택된 항목이 없습니다.');
         return;
     }
 
-    search.value.lineId = selectedItem.value.lineId;
-    search.value.lineName = selectedItem.value.lineName;
-    search.value.processId = selectedItem.value.processId;
-    search.value.equipmentId = selectedItem.value.equipmentId;
-    search.value.status = selectedItem.value.status;
+    if (modalType.value === 'lineName') {
+        search.value.lineName = item.lineName;
+        selectedItems.value.lineName = item;
+    } else if (modalType.value === 'processId') {
+        search.value.processId = item.processId;
+        selectedItems.value.processId = item;
+    } else if (modalType.value === 'equipmentId') {
+        search.value.equipmentId = item.equipmentId;
+        selectedItems.value.equipmentId = item;
+    }
 
     showModal.value = false;
 };
@@ -84,7 +91,12 @@ const resetSearch = () => {
     search.value.processId = '';
     search.value.equipmentId = '';
     search.value.status = '';
-    selectedItem.value = null;
+
+    selectedItems.value.lineName = null;
+    selectedItems.value.processId = null;
+    selectedItems.value.equipmentId = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -102,9 +114,14 @@ const selectSearch = async () => {
         console.log(res.data.result);
         emits('lineFilterSearch', res.data.result);
     } catch (err) {
-        console.log('line 검색실패');
+        console.log('line 검색실패', err);
     }
-};</script>
+};
+
+onMounted(() => {
+    selectSearch();
+});
+</script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
@@ -122,7 +139,7 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="lineId" class="whitespace-nowrap">라인번호</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="lineId" type="text" class="w-60" />
+                        <InputText id="lineId" type="text" class="w-60" v-model="search.lineId" />
                     </IconField>
                 </div>
 
@@ -130,8 +147,8 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="lineName" class="whitespace-nowrap">라인명</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="lineName" type="text" class="w-60" v-model="search.lineName"/>
-                        <InputIcon class="pi pi-search" @click = "openModal(lineName)"/>
+                        <InputText id="lineName" type="text" class="w-60" v-model="search.lineName" />
+                        <InputIcon class="pi pi-search" @click="openModal('lineName')" />
                     </IconField>
                 </div>
 
@@ -140,7 +157,7 @@ const selectSearch = async () => {
                     <label for="processId" class="whitespace-nowrap">공정코드</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="processId" type="text" class="w-60" v-model="search.processId" />
-                        <InputIcon class="pi pi-search" @click = "openModal(processId)"/>
+                        <InputIcon class="pi pi-search" @click="openModal('processId')" />
                     </IconField>
                 </div>
 
@@ -149,10 +166,9 @@ const selectSearch = async () => {
                     <label for="equipmentId" class="whitespace-nowrap">설비코드</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="equipmentId" type="text" class="w-60" v-model="search.equipmentId" />
-                        <InputIcon class="pi pi-search" @click = "openModal(equipmentId)"/>
+                        <InputIcon class="pi pi-search" @click="openModal('equipmentId')" />
                     </IconField>
                 </div>
-
 
                 <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">
@@ -169,6 +185,6 @@ const selectSearch = async () => {
             </div>
         </template>
     </Toolbar>
-    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
 
+    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItems[modalType]" @confirm="selectModalValue" />
 </template>

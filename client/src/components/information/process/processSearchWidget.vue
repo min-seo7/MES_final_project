@@ -1,4 +1,5 @@
-<script setup>import { ref, defineEmits } from 'vue';
+<script setup>
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -27,12 +28,10 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/process/getProcessName');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            processName: item.process_name,
+            processName: item.process_name
         }));
-        columns.value = [
-            { field: 'processName', header: '공정명' },
-        ];
-    } 
+        columns.value = [{ field: 'processName', header: '공정명' }];
+    }
 };
 
 // 모달 선택 완료
@@ -55,6 +54,8 @@ const resetSearch = () => {
     search.value.processName = '';
     search.value.status = '';
     selectedItem.value = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -72,7 +73,12 @@ const selectSearch = async () => {
     } catch (err) {
         console.log('process 검색실패');
     }
-};</script>
+};
+
+onMounted(() => {
+    selectSearch();
+});
+</script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
@@ -90,7 +96,7 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="processId" class="whitespace-nowrap">공정코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="processId" type="text" class="w-60" v-model="search.processId"/>
+                        <InputText id="processId" type="text" class="w-60" v-model="search.processId" />
                     </IconField>
                 </div>
 
@@ -98,11 +104,10 @@ const selectSearch = async () => {
                 <div class="flex items-center gap-2">
                     <label for="processName" class="whitespace-nowrap">공정명</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="processName" type="text" class="w-60" v-model="search.processName"/>
-                        <InputIcon class="pi pi-search" @click = "openModal(processName)"/>
+                        <InputText id="processName" type="text" class="w-60" v-model="search.processName" />
+                        <InputIcon class="pi pi-search" @click="openModal('processName')" />
                     </IconField>
                 </div>
-
 
                 <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">
@@ -120,5 +125,4 @@ const selectSearch = async () => {
         </template>
     </Toolbar>
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
-
 </template>

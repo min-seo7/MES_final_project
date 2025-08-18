@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
 
@@ -30,31 +30,25 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/warehouse/getWarehouse');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            warehouse: item.warehouse,
+            warehouse: item.warehouse
         }));
-        columns.value = [
-            { field: 'warehouse', header: '창고' },
-        ];
-    } else if (type === 'location'){
+        columns.value = [{ field: 'warehouse', header: '창고' }];
+    } else if (type === 'location') {
         resetSearch();
         const res = await axios.get('/api/information/warehouse/getLocation');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
             location: item.location
         }));
-        columns.value = [
-            { field: 'location', header: '위치' },
-        ];
-    }else if (type === 'warehouseType'){
+        columns.value = [{ field: 'location', header: '위치' }];
+    } else if (type === 'warehouseType') {
         resetSearch();
         const res = await axios.get('/api/information/warehouse/getWarehouseType');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
             warehouseType: item.warehouseType
         }));
-        columns.value = [
-            { field: 'warehouseType', header: '창고유형' },
-        ];
+        columns.value = [{ field: 'warehouseType', header: '창고유형' }];
     }
 };
 
@@ -65,13 +59,11 @@ const selectModalValue = () => {
         return;
     }
 
-
     search.value.warehouseId = selectedItem.value.warehouseId;
     search.value.warehouse = selectedItem.value.warehouse;
     search.value.location = selectedItem.value.location;
     search.value.warehouseType = selectedItem.value.warehouseType;
     search.value.status = selectedItem.value.status;
-
 
     showModal.value = false;
 };
@@ -84,6 +76,8 @@ const resetSearch = () => {
     search.value.warehouseType = '';
     search.value.status = '';
     selectedItem.value = null;
+
+    selectSearch();
 };
 
 // 검색
@@ -104,6 +98,10 @@ const selectSearch = async () => {
         console.log('warehouse 검색실패');
     }
 };
+
+onMounted(() => {
+    selectSearch();
+});
 </script>
 
 <template>
@@ -131,7 +129,7 @@ const selectSearch = async () => {
                     <label for="warehouse" class="whitespace-nowrap">창고</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="warehouse" type="text" class="w-60" v-model="search.warehouse" />
-                        <InputIcon class="pi pi-search" @click="openModal(warehouse)"/>
+                        <InputIcon class="pi pi-search" @click="openModal('warehouse')" />
                     </IconField>
                 </div>
 
@@ -140,7 +138,7 @@ const selectSearch = async () => {
                     <label for="location" class="whitespace-nowrap">위치</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="location" type="text" class="w-60" v-model="search.location" />
-                        <InputIcon class="pi pi-search" @click="openModal(location)"/>
+                        <InputIcon class="pi pi-search" @click="openModal('location')" />
                     </IconField>
                 </div>
 
@@ -149,7 +147,7 @@ const selectSearch = async () => {
                     <label for="warehouseType" class="whitespace-nowrap">창고유형</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="warehouseType" type="text" class="w-60" v-model="search.warehouseType" />
-                        <InputIcon class="pi pi-search" @click="openModal(warehouseType)"/>
+                        <InputIcon class="pi pi-search" @click="openModal('warehouseType')" />
                     </IconField>
                 </div>
                 <!-- 상태 라디오 그룹 -->
@@ -168,5 +166,4 @@ const selectSearch = async () => {
         </template>
     </Toolbar>
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
-
 </template>

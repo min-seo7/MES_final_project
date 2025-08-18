@@ -8,8 +8,12 @@ SELECT employee_id,
 FROM employee`;
 
 const selectFlowchartNameModal = `
-SELECT flowchart_name
+SELECT flow_name
 FROM flowchart`;
+
+const selectProductIdModal = `
+SELECT product_id
+FROM product`;
 
 const selectWarehouseModal = `
 SELECT warehouse
@@ -44,7 +48,7 @@ SELECT equipment_id,
        equipment_name
 FROM equipment`;
 
-const selectMaterialNameModal =`
+const selectMaterialNameModal = `
 SELECT material_name
 FROM material`;
 
@@ -129,7 +133,6 @@ WHERE 1=1
   AND product_form = COALESCE(?, product_form)
   AND status = COALESCE(?, status)`;
 
-
 // 마지막 제품 ID 조회
 const selectMaxProductId = `
   SELECT MAX(product_id) AS max_product_id
@@ -186,7 +189,6 @@ WHERE 1=1
   AND material_id = COALESCE(?, material_id)
   AND material_name = COALESCE(?, material_name)
   AND status = COALESCE(?, status)`;
-
 
 // 자재 등록
 const insertMaterial = `
@@ -295,7 +297,7 @@ WHERE 1=1
   AND f.flow_name = COALESCE(?, f.flow_name)
   AND f.product_id = COALESCE(?, f.product_id)
   AND p.product_name = COALESCE(?, p.product_name)
-  AND b.status = COALESCE(?, b.status)
+  AND f.status = COALESCE(?, f.status)
  `;
 
 // 흐름도 등록
@@ -395,7 +397,7 @@ WHERE 1=1
           AND (? IS NULL OR d.process_id   = ?)
           AND (? IS NULL OR d.equipment_id = ?)
       )
-  AND l.status = COALESCE(?, l.status);
+  AND l.status = COALESCE(?, l.status)
 `;
 
 // 라인등록
@@ -446,7 +448,6 @@ WHERE 1=1
   AND process_name = COALESCE(?, process_name)
   AND status = COALESCE(?, status)`;
 
-
 // 공정수정
 const updateProcess = `
 UPDATE process
@@ -471,7 +472,6 @@ WHERE 1=1
   AND p.product_name = COALESCE(?, p.product_name)
   AND p.product_type = COALESCE(?, p.product_type)
   AND b.status = COALESCE(?, b.status)`;
-
 
 // bom detail 조회
 const selectBomDetail = `
@@ -562,7 +562,6 @@ const selectMaxLineId = `
   FOR UPDATE
 `;
 
-
 // 마지막 flow_id 조회
 const selectMaxFlowId = `
   SELECT MAX(flow_id) AS max_flow_id
@@ -584,10 +583,10 @@ const selectMaxEmpId = `
   FOR UPDATE
 `;
 
-
 module.exports = {
   selectMaxMaterialId,
   selectWarehouseTypeModal,
+  selectProductIdModal,
   selectWarehouseModal,
   selectLocationModal,
   selectProcessNameModal,

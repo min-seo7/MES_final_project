@@ -1,9 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
     detailData: {
+        type: Array,
+        default: () => []
+    },
+    items: {
         type: Array,
         default: () => []
     }
@@ -17,6 +21,25 @@ const form = ref({
     note: '',
     status: ''
 });
+
+watch(
+    () => props.items,
+    (newVal) => {
+        if (newVal && newVal.length) {
+            form.value = { ...newVal[0], lineId: newVal[0].lineId?.trim() || '' };
+        } else {
+            form.value = {
+                lineId: '',
+                lineName: '',
+                flowId: '',
+                productId: '',
+                note: '',
+                status: ''
+            };
+        }
+    },
+    { immediate: true }
+);
 
 const registLine = async () => {
     if (!form.value.productId) {
@@ -56,14 +79,14 @@ const registLine = async () => {
         alert('등록 실패');
     }
 };
-
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registLine()" />
+            <Button label=" 등록 " rounded @click="registLine()" :disabled="form.lineId?.trim() !== ''" />
+            <Button label=" 수정 " rounded :disabled="form.lineId?.trim() === ''" />
             <Button label=" 초기화 " severity="info" rounded />
         </div>
     </div>
