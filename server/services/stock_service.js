@@ -88,8 +88,8 @@ async function getSearchPurchaseList(filters) {
     params.push(`%${filters.materialName}%`);
   }
 
-  sql += " ORDER BY m.re_date DESC";  
-  
+  sql += " ORDER BY m.re_date DESC";
+
   const conn = await mariadb.getConnection();
   try {
     const rows = await conn.query(sql, params);
@@ -97,7 +97,7 @@ async function getSearchPurchaseList(filters) {
   } finally {
     conn.release();
   }
-};
+}
 //자재관리===================================================================
 //자재입고
 //자재입고대기목록
@@ -139,7 +139,7 @@ let matLotCancel = async (matLotCancelInfoList) => {
 //제품입고대기목록
 let prdPendigList = async () => {
   let prdPendingList = await mariadb.query("prdPendigListQuery");
-  console.log(prdPendingList)
+  console.log(prdPendingList);
   return prdPendingList;
 };
 //제품lot등록
@@ -167,7 +167,6 @@ let prdLotCancel = async (prdLotCancelInfoList) => {
 };
 
 //제품출고===========================
-//
 //제품출고대기목록
 let prdOutWaitList = async () => {
   let prdOutWaitList = await mariadb.query("prdShipWaitListQurey");
@@ -175,6 +174,38 @@ let prdOutWaitList = async () => {
 };
 //제품출고목록
 
+//제품출고대기조회
+async function getSearchOutWaitList(filters) {
+  let sql = mariadb.sqlList.prdShipWaitSearchQurey;
+  let params = [];
+
+  if (filters.shipment_date) {
+    sql += " AND sh.shipment_date = ?";
+    params.push(filters.shipment_date);
+  }
+  if (filters.shipment_id) {
+    sql += " AND sh.shipment_id LIKE ?";
+    params.push(`%${filters.shipment_id}%`);
+  }
+  if (filters.product_code) {
+    sql += " AND sh.product_code LIKE ?";
+    params.push(`%${filters.product_code}%`);
+  }
+  if (filters.product_name) {
+    sql += " AND p.product_name LIKE ?";
+    params.push(`%${filters.product_name}%`);
+  }
+
+  sql += " AND sh.ship_status = 1 ORDER BY sh.shipment_date DESC";
+
+  const conn = await mariadb.getConnection();
+  try {
+    const rows = await conn.query(sql, params);
+    return rows;
+  } finally {
+    conn.release();
+  }
+}
 //재고조회=========================================================================
 ////////////////////제품조회
 //제품첫목록
@@ -188,7 +219,7 @@ async function getSearchPrdLotList(filters) {
   let params = [];
 
   if (filters.prdLotNo) {
-    sql += " AND pl.lot_no = ?";
+    sql += " AND pl.prd_lot_no = ?";
     params.push(filters.prdLotNo);
   }
   if (filters.prdCode) {
@@ -204,8 +235,8 @@ async function getSearchPrdLotList(filters) {
     params.push(`%${filters.warehouse}%`);
   }
 
-  sql += " ORDER BY pl.open_date DESC";  
-  
+  sql += " ORDER BY pl.open_date DESC";
+
   const conn = await mariadb.getConnection();
   try {
     const rows = await conn.query(sql, params);
@@ -213,7 +244,7 @@ async function getSearchPrdLotList(filters) {
   } finally {
     conn.release();
   }
-};
+}
 /////////////////////자재조회=================
 //자재첫목록
 let matSearchtList = async () => {
@@ -242,8 +273,8 @@ async function getSearchMatLotList(filters) {
     params.push(`%${filters.warehouse}%`);
   }
 
-  sql += " ORDER BY ml.open_date DESC";  
-  
+  sql += " ORDER BY ml.open_date DESC";
+
   const conn = await mariadb.getConnection();
   try {
     const rows = await conn.query(sql, params);
@@ -251,7 +282,7 @@ async function getSearchMatLotList(filters) {
   } finally {
     conn.release();
   }
-};
+}
 
 //폐기물==================================================
 //목록
@@ -270,6 +301,39 @@ let wasteInfoUpdate = async (wasteInfoList) => {
     ]);
   }
 };
+//조회
+async function getSearchWasteList(filters) {
+  let sql = mariadb.sqlList.wasteSearchQuery;
+  let params = [];
+
+  console.log(filters);
+  if (filters.out_date) {
+    sql += " AND tw.out_date = ?";
+    params.push(filters.out_date);
+  }
+  if (filters.waste_name) {
+    sql += " AND waste_name LIKE ?";
+    params.push(`%${filters.waste_name}%`);
+  }
+  if (filters.warehouse) {
+    sql += " AND w.warehouse LIKE ?";
+    params.push(`%${filters.warehouse}%`);
+  }
+  if (filters.partner) {
+    sql += " AND p.partner_name LIKE ?";
+    params.push(`%${filters.partner}%`);
+  }
+
+  sql += "ORDER BY tw.re_date DESC";
+
+  const conn = await mariadb.getConnection();
+  try {
+    const rows = await conn.query(sql, params);
+    return rows;
+  } finally {
+    conn.release();
+  }
+}
 module.exports = {
   matList,
   prdList,
@@ -297,4 +361,6 @@ module.exports = {
   prdLotCancel,
   wasteList,
   wasteInfoUpdate,
+  getSearchOutWaitList,
+  getSearchWasteList,
 };

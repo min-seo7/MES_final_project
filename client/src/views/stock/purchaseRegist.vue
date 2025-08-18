@@ -4,7 +4,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import 'primeicons/primeicons.css'
+import 'primeicons/primeicons.css';
 import axios from 'axios';
 
 export default {
@@ -48,7 +48,7 @@ export default {
                 }
             ],
             //안전재고수량 미달
-            lowMat: [],
+            lowMat: []
         };
     },
     methods: {
@@ -95,7 +95,7 @@ export default {
             this.purshaseList.forEach((row) => {
                 row.patner = this.partnerName;
             });
-            this.selectPartner = null
+            this.selectPartner = null;
             this.partnerModal = false;
         },
         //자재용 모달
@@ -120,11 +120,9 @@ export default {
             this.materialModal = true;
         },
         onSelectMat() {
-             // 행 중복 체크
+            // 행 중복 체크
             let selectedMatCode = this.selectMat.matCode;
-            const isDuplicate = this.purshaseList.some((item, index) => 
-                item.mat_id === selectedMatCode && index !== this.selectRow
-            );
+            const isDuplicate = this.purshaseList.some((item, index) => item.mat_id === selectedMatCode && index !== this.selectRow);
             if (isDuplicate) {
                 alert('이미 선택된 자재입니다.');
                 return;
@@ -151,9 +149,9 @@ export default {
                 comm: ''
             });
         },
-        removeRow(){
-           if (this.purshaseList.length > 1) {
-                this.purshaseList.pop(); 
+        removeRow() {
+            if (this.purshaseList.length > 1) {
+                this.purshaseList.pop();
                 this.count--;
             }
         },
@@ -187,7 +185,7 @@ export default {
         async insertPurse() {
             try {
                 //마스터T 정보
-                if(!this.dueDate || !this.partnerId || !this.empName){
+                if (!this.dueDate || !this.partnerId || !this.empName) {
                     alert('필수정보입력');
                     return;
                 }
@@ -308,9 +306,9 @@ export default {
                     </div>
                 </div>
                 <!--입력 input박스끝-->
-                <div class ="flex justify-end mt-0 space-x-2">
-                        <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addEmptyRow()" />
-                        <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow()" />
+                <div class="flex justify-end mt-0 space-x-2">
+                    <Button icon="pi pi-plus" severity="success" rounded variant="outlined" @click="addEmptyRow()" />
+                    <Button icon="pi pi-minus" severity="success" rounded variant="outlined" @click="removeRow()" />
                 </div>
                 <div>
                     <DataTable :value="purshaseList" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">

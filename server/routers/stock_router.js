@@ -175,7 +175,6 @@ router.get("/prdPendingList", async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "(서버)제품목록 오류" });
   }
- 
 });
 //제품lot등록
 router.post("/rePrdtLot", async (req, res) => {
@@ -220,7 +219,17 @@ router.get("/prdWOutList", async (req, res) => {
     res.status(500).json({ message: "(서버)출고대기목록 오류" });
   }
 });
-
+//조회
+router.post("/productOutSearch", async (req, res) => {
+  try {
+    const data = await stockService.getSearchOutWaitList(req.body); // 검색조건 전달
+    res.json(data);
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "조회 실패" });
+  }
+});
 //재고조회======================================================================
 //제품재고조회
 //제품첫목록
@@ -288,6 +297,17 @@ router.post("/wasteOutReg", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "(서버)반출등록 실패" });
+  }
+});
+//조회
+router.post("/searchWasteList", async (req, res) => {
+  try {
+    const data = await stockService.getSearchWasteList(req.body); // 검색조건 전달
+    res.json(data);
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "조회 실패" });
   }
 });
 module.exports = router;
