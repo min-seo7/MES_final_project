@@ -31,12 +31,15 @@ const selectModalValue = (value) => {
     showModal.value = false;
 };
 const productCodeList = ref([
-    { code: 'PRD001-20', name: '분말형비료 20kg', sizeSpec: '20kg' }, //
-    { code: 'PRD001-40', name: '분말형비료 40kg', sizeSpec: '40kg' }, //
-    { code: 'PRD002-20', name: '과립형비료 20kg', sizeSpec: '20kg' }, //
-    { code: 'PRD002-40', name: '과립형비료 40kg', sizeSpec: '40kg' }, //
-    { code: 'PRD003-05', name: '액상형비료 5L', sizeSpec: '5L' }, //
-    { code: 'PRD003-10', name: '액상형비료 10L', sizeSpec: '10L' } //
+    { code: 'PRD001', name: '분말형비료', specification: 'kg' , unit:20 , prd_form:'완제품' }, //
+    { code: 'PRD001', name: '분말형비료', specification: 'kg', unit:40 , prd_form:'완제품' }, //
+    { code: 'PRD002', name: '과립형비료', specification: 'kg', unit:20 , prd_form:'완제품' }, //
+    { code: 'PRD002', name: '과립형비료', specification: 'kg', unit:40 , prd_form:'완제품' }, //
+    { code: 'PRD003', name: '액상형비료', specification: 'L' , unit:5 , prd_form:'완제품'}, //
+    { code: 'PRD003', name: '액상형비료', specification: 'L', unit:10 , prd_form:'완제품' }, //
+    { code: 'PRD001', name: '분말형비료', specification: null , unit:null , prd_form:'반제품'}, //
+    { code: 'PRD001', name: '과립형비료', specification: null , unit:null , prd_form:'반제품'}, //
+    { code: 'PRD001', name: '액상형비료', specification: null , unit:null , prd_form:'반제품'} //
 ]);
 
 // const currentPage = ref(1);
@@ -52,9 +55,9 @@ const productCodeList = ref([
 // });
 
 const products = ref([
-    { id: 1, productCode: 'PRD001-20', productname: '분말형비료 20kg', line: 'A01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' },
-    { id: 2, productCode: 'PRD002-20', productname: '분말형비료 20kg', line: 'B01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' },
-    { id: 3, productCode: 'PRD003-10', productname: '액상형비료 10L', line: 'C01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' }
+    { id: 1, productCode: 'PRD001', productname: '분말형비료', line: 'A01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' },
+    { id: 2, productCode: 'PRD002', productname: '과립형비료', line: 'B01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' },
+    { id: 3, productCode: 'PRD003', productname: '액상형비료', line: 'C01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' }
 ]);
 const selectedProducts = ref([]);
 const hiddenProductIds = ref(new Set());
@@ -165,19 +168,19 @@ const dropContent = () => {
         <!-- 지시자 영역 -->
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">계획일자</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planDate" />
+             <DatePicker class="flex-1" dateFormat="yy-mm-dd" v-model="planDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">계획시작일시</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planStartDate" />
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planStartDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">계획종료일시</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planEndDate" />
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planEndDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">납기일시</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="dueDate" />
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="dueDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>

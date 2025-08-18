@@ -52,22 +52,24 @@ const startWork = async (director, plan_detail_no, details) => {
 
     // 6. for문을 돌며 prd_order_detail에 데이터 삽입
     for (const info of detailsArray) {
-      const formattedStartDate = formatToDatabaseDatetime(info.startDatetime);
-      const formattedEndDate = formatToDatabaseDatetime(info.endDatetime);
+      // const formattedStartDate = formatToDatabaseDatetime(info.p_st_date);
+      // const formattedEndDate = formatToDatabaseDatetime(info.p_ed_date);
       // 1건 또는 여러 건의 지시를 모두 처리
       // 가져온 생산계획코드를 임시 저장
       const detailPlanNo = info.plan_detail_no || plan_detail_no || null;
       const insertedDetail = [
-        formattedStartDate,
-        formattedEndDate,
-        info.currentQty,
-        info.line,
-        info.productname,
+        // formattedStartDate,
+        // formattedEndDate,
+        info.p_st_date,
+        info.p_ed_date,
+        info.prd_noworder_qty,
+        info.line_id,
+        info.product_name,
         newOrderId,
         detailPlanNo,
         info.specification,
         info.unit,
-        info.form,
+        info.prd_form,
       ];
       await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
     }
@@ -84,5 +86,9 @@ const startWork = async (director, plan_detail_no, details) => {
     if (conn) conn.release();
   }
 };
+const selectProcessList = async () => {
+  let list = await query(sqlList.selectProcessList); 
+  return list;
+};
 
-module.exports = { startWork };
+module.exports = { startWork , selectProcessList};
