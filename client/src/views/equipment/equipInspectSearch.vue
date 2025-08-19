@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import InspectionSearchWidget from '@/components/equipment/inspection/inspectionSearchWidget.vue';
+import InspectionSearch3Widget from '@/components/equipment/inspection/inspectionSearch3Widget.vue';
 import InspectionListWidget from '@/components/equipment/inspection/inspectionListWidget.vue';
 
 const params = ref({ page: 1, size: 20 });
@@ -17,6 +17,7 @@ function fmtDate(d) {
 
 function handleSearch(q) {
     params.value = {
+        insp_code: q.insp_code || null,
         eq_id: q.eq_id || null,
         insp_type: q.insp_type || null,
         date_from: fmtDate(q.insp_date),
@@ -45,7 +46,7 @@ function handleLoaded(rows) {
 
 <template>
     <section class="space-y-6 p-4">
-        <InspectionSearchWidget :pickerData="pickerData" @submit="handleSearch" @clear="handleClear" />
+        <InspectionSearch3Widget :pickerData="pickerData" @submit="handleSearch" @clear="handleClear" />
 
         <div class="font-bold text-[17px] mt-6">목록</div>
         <InspectionListWidget :params="params" @loaded="handleLoaded" />
