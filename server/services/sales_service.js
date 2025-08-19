@@ -1,8 +1,11 @@
+// sales_service.js
+
 const { query, getConnection, sqlList } = require("../database/mapper.js");
-const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const fs = require("fs");
 const nodemailer = require("nodemailer");
+
 // 객체를 배열로 변환
 function convertToArray(obj, columns) {
   return columns.map((col) => obj[col]);
@@ -443,6 +446,9 @@ const selectFiltereReturns = (filter) => {
   return list;
 };
 
+//폰트 파일 경로 지정
+const fontPath = path.join(__dirname, "../fonts/NanumGothic-Regular.ttf");
+
 // PDF 생성 함수
 async function generatePdf(orderData) {
   const fileName = `${orderData.orderDate.replace(/-/g, "")}_${
@@ -453,6 +459,12 @@ async function generatePdf(orderData) {
   const doc = new PDFDocument();
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
+
+  // 한글 폰트 등록
+  doc.registerFont("NanumGothic", fontPath);
+
+  // 폰트 적용
+  doc.font("NanumGothic");
 
   doc.fontSize(18).text("주문서", { align: "center" });
   doc.moveDown();
