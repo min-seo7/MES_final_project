@@ -30,6 +30,7 @@ export default {
             this.orderNumber = '';
             this.materialCode = '';
             this.materialName = '';
+            this.getPurchaseList();
         },
         //조회
         async onSearch() {
@@ -80,7 +81,8 @@ export default {
                     supPatner: item.partner_name,
                     eName: item.manager,
                     dueDate: item.due_date,
-                    status: item.pro_status
+                    status: item.pro_status,
+                    memo: item.comm
                 }));
             } catch (error) {
                 console.error('자재목록 불러오기 실패:', error);
@@ -201,6 +203,7 @@ export default {
             <Column field="eName" header="담당자"></Column>
             <Column field="dueDate" header="납기요청일"></Column>
             <Column field="status" header="진행상태"></Column>
+            <Column field="memo" header="비고"></Column>
         </DataTable>
     </div>
 

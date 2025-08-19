@@ -46,13 +46,29 @@ watch(
     { immediate: true }
 );
 
+const emailDomains = ['naver.com', 'gmail.com', 'daum.net', 'hanmail.net', 'nate.com'];
+
 const registEmployee = async () => {
     try {
+        // 도메인을 선택했으면 합쳐서 email 완성
+        if (form.value.emailDomain) {
+            form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
+        }
         const res = await axios.post('/api/information/employee', form.value);
         alert(res.data.message);
     } catch (err) {
         console.log('사원등록실패');
     }
+};
+
+const onPhoneInput = (e) => {
+    let value = e.target.value.replace(/\D/g, ''); // 숫자만 추출
+    if (value.length > 3 && value.length <= 7) {
+        value = value.slice(0, 3) + '-' + value.slice(3);
+    } else if (value.length > 7) {
+        value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+    }
+    form.value.phone = value;
 };
 </script>
 
@@ -75,7 +91,7 @@ const registEmployee = async () => {
                 </div>
                 <div>
                     <label class="block mb-1">연락처</label>
-                    <InputText v-model="form.phone" class="w-full" />
+                    <InputText :value="form.phone" @input="onPhoneInput" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">입사일자</label>
@@ -119,7 +135,18 @@ const registEmployee = async () => {
                 </div>
                 <div>
                     <label class="block mb-1">E-Mail</label>
-                    <InputText v-model="form.email" class="w-full" />
+                    <div class="flex gap-2">
+                        <!-- 아이디 입력 -->
+                        <InputText v-model="form.email" placeholder="이메일 아이디" class="w-2/3" />
+
+                        <span class="self-center">@</span>
+
+                        <!-- 도메인 선택 -->
+                        <select v-model="form.emailDomain" class="w-1/3 border rounded px-2">
+                            <option value="" disabled>선택</option>
+                            <option v-for="domain in emailDomains" :key="domain" :value="domain">{{ domain }}</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block mb-1">퇴사일자</label>

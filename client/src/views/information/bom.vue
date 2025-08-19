@@ -76,12 +76,13 @@ onUnmounted(() => {
     <section class="employee-container">
         <BomSearchWidget @bomFilterSearch="handleSearch" />
         <BomListWidget :items="bomSearchData" @bomSelected="handleSelect" />
-        <BomRegistWidget :detailData="bomDetailData" :items="bomSelectedData" />
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
-                <BomDetailWidget :detailData="bomDetailData" />
+                <BomDetailWidget :detailData="bomDetailData" :items="bomSelectedData" />
             </div>
             <div class="md:w-1/2">
+                <BomRegistWidget :detailData="bomDetailData" :items="bomSelectedData" />
+
                 <BomDetailRegistWidget @bomDetail="handleBomDetail" />
             </div>
         </div>

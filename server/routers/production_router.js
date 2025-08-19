@@ -21,7 +21,6 @@ router.post("/productionOrder", async (req, res) => {
     // }
     const { director, plan_detail_no, details } = req.body;
     console.log("라우터가 받은 데이터:", req.body);
-
     console.log("받은 productPlanCode:", plan_detail_no);
     const result = await productionService.startWork(
       director,
@@ -35,13 +34,35 @@ router.post("/productionOrder", async (req, res) => {
     res.status(500).json({ message: "작업지시등록실패", error: error.message });
   }
 });
-// router.get("/productionResultRegist", async (req, res) => {
-//   try {
-//     let list = await productionService.selectPrcList();
-//     res.json(list);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "서버오류" });
-//   }
-// });
+// 생산 지시 목록을 조회하는 GET 메서드 추가
+router.get("/productionOrderList", async (req, res) => {
+  try {
+    // productionService에서 데이터를 조회하는 함수 호출
+    const productionOrderList = await productionService.selectOrderList();
+    // 조회 결과를 JSON 형식으로 클라이언트에게 응답
+    res.json({ list: productionOrderList });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버오류" });
+  }
+});
+router.get("/productionResultRegist", async (req, res) => {
+  try {
+    const notRegistPrcList = await productionService.notRegistPrcList();
+    res.json({ list: notRegistPrcList });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버오류" });
+  }
+});
+router.post("/insertPerform", async (req, res) => {
+  try {
+    const payload = req.body;
+    const insertPerform = await productionService.insertPerform(payload);
+    res.status(201).json({ list: insertPerform });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버오류" });
+  }
+});
 module.exports = router;

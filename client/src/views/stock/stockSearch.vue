@@ -145,19 +145,32 @@ export default {
             this.partnerModal = false;
         },
         //반출버튼=========================================
-        async postOutWaste() {
-            if (!this.selectedWaste.length) {
-                alert('확정할 항목을 선택하세요.');
-                return;
-            }
+        // async postOutWaste() {
+        //     if (!this.selectedWaste.length) {
+        //         alert('확정할 항목을 선택하세요.');
+        //         return;
+        //     }
+        //     try {
+        //         let outInfo = this.selectedWaste.map((row) => ({
+        //             seq: row.id,
+        //             out_date: this.dateFormat(row.date),
+        //             partner_id: row.partnerId,
+        //             comm: row.memo
+        //         }));
+        //         await axios.post('/api/stock/wasteOutReg', outInfo);
+        //     } catch (error) {
+        //         console.lof('등록실패', error);
+        //     }
+        //     this.getWasteList();
+        //     this.selectedWaste = [];
+        // },
+        //수정버튼==============================================
+        async postUpdate() {
             try {
-                let outInfo = this.selectedWaste.map((row) => ({
-                    seq: row.id,
-                    out_date: this.dateFormat(row.date),
-                    partner_id: row.partnerId,
-                    comm: row.memo
+                let updateInfo = this.selectedWaste.map((row) => ({
+                    seq: row.id
                 }));
-                await axios.post('/api/stock/wasteOutReg', outInfo);
+                await axios.post('/api/stock/wasteRewri', updateInfo);
             } catch (error) {
                 console.lof('등록실패', error);
             }
@@ -214,7 +227,7 @@ export default {
         <stockCommRowBtn
             :buttons="[
                 { label: '반출등록', icon: 'pi pi-check', onClick: postOutWaste },
-                { label: '수정', icon: 'pi pi-check', onClick: postOutWaste }
+                { label: '수정', icon: 'pi pi-check', onClick: postUpdate }
             ]"
         />
 

@@ -113,8 +113,8 @@ let matLotInsert = async (matInfoList) => {
       matInfo.init_qty,
       matInfo.warehouse,
       matInfo.comm,
-      matInfo.materialOrder_num,
       matInfo.purch_id,
+      matInfo.materialOrder_num,
     ]);
   }
 };
@@ -126,7 +126,11 @@ let matLotList = async () => {
 //반품처리
 let matReturn = async (matReturnInfoList) => {
   for (let matReturnInfo of matReturnInfoList) {
-    await mariadb.query("matReturnQuery", [matReturnInfo.purch_id]);
+    await mariadb.query("matReturnQuery", [
+      matReturnInfo.comm,
+      matReturnInfo.testNo,
+      matReturnInfo.purch_id,
+    ]);
   }
 };
 //입고취소
@@ -165,15 +169,52 @@ let prdLotCancel = async (prdLotCancelInfoList) => {
     await mariadb.query("prdLotCancelQuery", [prdLotCancelInfo.prd_lot_no]);
   }
 };
-
+//자제출고==============================
+//출고대기목록
+let matOutWaitList = async () => {
+  let matOutWaitList = await mariadb.query("matReqListQuery");
+  return matOutWaitList;
+};
+//출고등록
+let matOusR = async (matInfoList) => {
+  for (let matInfo of matInfoList) {
+    await mariadb.query("matOutReQuery", [
+      matInfo.req_id,
+      matInfo.material_id,
+      matInfo.order_qty,
+      matInfo.comm,
+    ]);
+  }
+};
+//출고완료목록
+let matOutList = async () => {
+  let matOutList = await mariadb.query("matOutListQuery");
+  return matOutList;
+};
 //제품출고===========================
 //제품출고대기목록
 let prdOutWaitList = async () => {
   let prdOutWaitList = await mariadb.query("prdShipWaitListQurey");
   return prdOutWaitList;
 };
+//제품출고등록
+let prdOusR = async (prdoutInfoList) => {
+  for (let prdoutInfo of prdoutInfoList) {
+    await mariadb.query("prdOutRQuery", [
+      prdoutInfo.shipment_id,
+      prdoutInfo.product_id,
+      prdoutInfo.order_qty,
+      prdoutInfo.prtner,
+      prdoutInfo.shipartner,
+      prdoutInfo.comm,
+    ]);
+  }
+};
 //제품출고목록
-
+let prdOutList = async () => {
+  let prdOutList = await mariadb.query("prdOutListQuery");
+  return prdOutList;
+};
 //제품출고대기조회
 async function getSearchOutWaitList(filters) {
   let sql = mariadb.sqlList.prdShipWaitSearchQurey;
@@ -283,7 +324,22 @@ async function getSearchMatLotList(filters) {
     conn.release();
   }
 }
-
+//반품==================================================
+let returnList = async () => {
+  let returnList = await mariadb.query("returnListQurey");
+  return returnList;
+};
+//등록
+let returnInfoUpdate = async (returnInfoList) => {
+  for (let retunInfo of returnInfoList) {
+    await mariadb.query("returnReQuery", [
+      retunInfo.warehouse,
+      retunInfo.re_qty,
+      retunInfo.comm,
+      retunInfo.id,
+    ]);
+  }
+};
 //폐기물==================================================
 //목록
 let wasteList = async () => {
@@ -299,6 +355,12 @@ let wasteInfoUpdate = async (wasteInfoList) => {
       wasteInfo.comm,
       wasteInfo.seq,
     ]);
+  }
+};
+//수정
+let wasteInfoRe = async (wasteInfoList) => {
+  for (let wasteInfo of wasteInfoList) {
+    await mariadb.query("wasteUpdate", [wasteInfo.seq]);
   }
 };
 //조회
@@ -363,4 +425,12 @@ module.exports = {
   wasteInfoUpdate,
   getSearchOutWaitList,
   getSearchWasteList,
+  prdOusR,
+  prdOutList,
+  matOutWaitList,
+  matOutList,
+  matOusR,
+  returnList,
+  returnInfoUpdate,
+  wasteInfoRe,
 };

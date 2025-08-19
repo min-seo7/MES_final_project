@@ -19,7 +19,8 @@ const productInstance = ref({
     specification: '',
     unit: '',
     prd_form: '',
-    line_name: ''
+    line_name: '',
+    productId: ''
 });
 const currentEditRow = ref(null);
 const showModal = ref(false);
@@ -70,6 +71,7 @@ const selectModalValue = (value) => {
     // 제품명 모달 처리
     else if (modalType.value === 'productNameInputModal') {
         productInstance.value.productname = value.name;
+        productInstance.value.productId = value.code;
         productInstance.value.productType = value.type;
         productInstance.value.line_id = value.line_id;
         productInstance.value.line_name = value.line_name;
@@ -82,6 +84,7 @@ const selectModalValue = (value) => {
             // 이전에 선택했던 행 데이터를 저장해둡니다.
 
             currentEditRow.value.productname = value.name;
+            currentEditRow.value.productId = value.code;
             currentEditRow.value.productType = value.type;
             currentEditRow.value.line_id = value.line_id;
             currentEditRow.value.line_name = value.line_name;
@@ -135,6 +138,7 @@ const products = ref([
         id: 1,
         startDatetime: new Date('2025-08-10 10:00'),
         endDatetime: new Date('2025-08-12 10:10'),
+        productId: 'P002',
         productname: '과립형비료',
         productPlanQty: 10000,
         productType: '과립형',
@@ -151,6 +155,7 @@ const products = ref([
         id: 2,
         startDatetime: new Date('2025-08-10 10:20'),
         endDatetime: new Date('2025-08-12 10:20'),
+        productId: 'P002',
         productname: '과립형비료',
         productPlanQty: 10000,
         productType: '과립형',
@@ -182,6 +187,7 @@ const hideSelected = () => {
 const columns = ref([
     { field: 'startDatetime', header: '생산시작일시' },
     { field: 'endDatetime', header: '생산종료일시' },
+    { field: 'productId', header: '제품코드' },
     { field: 'productname', header: '제품명' },
     { field: 'productPlanQty', header: '생산계획수량' },
     { field: 'productType', header: '제품형태' },
@@ -239,7 +245,8 @@ const startProduction = async () => {
             plan_detail_no: search.value.productPlanCode || null,
             specification: product.specification,
             unit: product.unit,
-            prd_form: product.prd_form
+            prd_form: product.prd_form,
+            product_id: product.productId
         };
     });
     console.log('p_st_date:', mappedDetails.p_st_date);
@@ -447,6 +454,7 @@ const dropContent = () => {
                         </span>
                     </template>
                 </Column>
+                <Column field="code" header="제품코드"></Column>
                 <Column field="type" header="제품형태"></Column>
                 <Column field="line_id" header="생산라인"></Column>
                 <Column field="line_name" header="라인명"></Column>
