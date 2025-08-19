@@ -37,6 +37,7 @@ export default {
             this.waName = '';
             this.warehouse = '';
             this.partner = '';
+            this.getWasteList();
         },
         //조회
         async onSearch() {
@@ -116,6 +117,10 @@ export default {
             this.selectWare = [];
             this.WarehouseModal = false;
         },
+        openPModal() {
+            this.partnerModal = true;
+            this.getPartnerList();
+        },
         //거래처(처리업체)
         openPatenrModal(rowIndex) {
             this.selectRow = rowIndex; // 클릭한 테이블 행 index
@@ -140,30 +145,30 @@ export default {
                 this.wasteList[this.selectRow].partner = this.selectPartner.partnerName;
                 this.wasteList[this.selectRow].partnerId = this.selectPartner.partnerId;
             }
-
+            this.partner = this.selectPartner.partnerName;
             this.selectPartner = null;
             this.partnerModal = false;
         },
         //반출버튼=========================================
-        // async postOutWaste() {
-        //     if (!this.selectedWaste.length) {
-        //         alert('확정할 항목을 선택하세요.');
-        //         return;
-        //     }
-        //     try {
-        //         let outInfo = this.selectedWaste.map((row) => ({
-        //             seq: row.id,
-        //             out_date: this.dateFormat(row.date),
-        //             partner_id: row.partnerId,
-        //             comm: row.memo
-        //         }));
-        //         await axios.post('/api/stock/wasteOutReg', outInfo);
-        //     } catch (error) {
-        //         console.lof('등록실패', error);
-        //     }
-        //     this.getWasteList();
-        //     this.selectedWaste = [];
-        // },
+        async postOutWaste() {
+            if (!this.selectedWaste.length) {
+                alert('확정할 항목을 선택하세요.');
+                return;
+            }
+            try {
+                let outInfo = this.selectedWaste.map((row) => ({
+                    seq: row.id,
+                    out_date: this.dateFormat(row.date) || null,
+                    partner_id: row.partnerId || null,
+                    comm: row.memo || null
+                }));
+                await axios.post('/api/stock/wasteOutReg', outInfo);
+            } catch (error) {
+                console.lof('등록실패', error);
+            }
+            this.getWasteList();
+            this.selectedWaste = [];
+        },
         //수정버튼==============================================
         async postUpdate() {
             try {
@@ -180,6 +185,7 @@ export default {
         //날짜양식
         dateFormat(date) {
             let newDateFormat = new Date(date);
+            if (isNaN(newDateFormat.getTime())) return null;
             return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
@@ -209,15 +215,15 @@ export default {
                 <div class="flex items-center gap-2">
                     <label for="warehouse" class="whitespace-nowrap">보관위치</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="warehouse" type="text" class="w-60" v-model="warehouse" @click="openWhModal" />
-                        <InputIcon class="pi pi-search" />
+                        <InputText id="warehouse" type="text" class="w-60" v-model="warehouse"  />
+                        <InputIcon class="pi pi-search" @click="openWhModal"/>
                     </IconField>
                 </div>
                 <div class="flex items-center gap-2">
                     <label for="artner" class="whitespace-nowrap">처리업체</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="artner" type="text" class="w-60" v-model="partner" @click="openPrdModal" />
-                        <InputIcon class="pi pi-search" />
+                        <InputText id="partner" type="text" class="w-60" v-model="partner"  />
+                        <InputIcon class="pi pi-search" @click="openPModal" />
                     </IconField>
                 </div>
             </div>
@@ -263,18 +269,18 @@ export default {
 
     <!--거래처-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="partnerId">거래처코드</label>
             <InputText id="partnerId" type="text" />
             <label for="partnerName">거래처명</label>
             <InputText id="partnerName" type="text" />
             <Button label="검색" />
-        </div>
-        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
+        </div> -->
+        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 30rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="partnerType" header="거래처유형"></Column>
-            <Column field="partnerId" header="거래처코드"></Column>
-            <Column field="partnerName" header="거래처명"></Column>
+            <Column field="partnerType" header="거래처유형" headerStyle="width: 10rem"></Column>
+            <Column field="partnerId" header="거래처코드" headerStyle="width: 10rem"></Column>
+            <Column field="partnerName" header="거래처명" headerStyle="width: 15rem"></Column>
             <Column field="memo" header="비고"></Column>
         </DataTable>
 
@@ -287,18 +293,18 @@ export default {
     </commModal>
     <!--보관장소 모달-->
     <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="wareCode">창고코드</label>
             <InputText id="wareCode" type="text" />
             <label for="wareName">창고명</label>
             <InputText id="warerName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
-            <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 5rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 7rem"></Column>
+            <Column field="warerType" header="창고유형" headerStyle="width: 10rem"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->

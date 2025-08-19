@@ -160,7 +160,7 @@ let prdLotInsert = async (prdInfoList) => {
 };
 //제품lot리스트(입고)
 let prdLotList = async () => {
-  let prdLotList = await mariadb.query("prdLotListQuerty");
+  let prdLotList = await pool.query("prdLotListQuerty");
   return prdLotList;
 };
 //입고취소
@@ -197,6 +197,30 @@ let prdOutWaitList = async () => {
   let prdOutWaitList = await mariadb.query("prdShipWaitListQurey");
   return prdOutWaitList;
 };
+//제품재고확인
+//조회
+async function getCheckStock(productIds) {
+  let sql = mariadb.sqlList.checkStockQuery;
+  console.log("checkStock:", mariadb.sqlList.checkStockQuery);
+  let params = [];
+
+  if (Array.isArray(productIds) && productIds.length > 0) {
+    const placeholders = productIds.map(() => '?').join(', ');
+    sql += ` AND pl.product_id IN (${placeholders})`;
+    params.push(...productIds);
+  }
+
+  sql += ` GROUP BY pl.product_id`;
+
+
+  const conn = await mariadb.getConnection();
+  try {
+    const rows = await conn.query(sql, params);
+    return rows;
+  } finally {
+    conn.release();
+  }
+}
 //제품출고등록
 let prdOusR = async (prdoutInfoList) => {
   for (let prdoutInfo of prdoutInfoList) {
@@ -433,4 +457,5 @@ module.exports = {
   returnList,
   returnInfoUpdate,
   wasteInfoRe,
+  getCheckStock
 };

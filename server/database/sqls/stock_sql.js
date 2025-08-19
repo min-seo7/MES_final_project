@@ -164,7 +164,9 @@ p.unit
 from ztestprdresult zt
 JOIN product p
 ON zt.product_id = p.product_id
-WHERE zt.judgment = '합격'`; //쿼리 만들어진걸로 수정해야 함.
+WHERE zt.judgment = '합격'
+AND zt.pro_status ='미생성'`; 
+// //쿼리 만들어진걸로 수정해야 함.
 // -> 입고처리완료 상태값 필요함 목록출력제어위해서..
 
 //제품입고처리
@@ -216,9 +218,9 @@ let matOutListQuery = `SELECT DATE_FORMAT(mo.out_date, '%Y-%m-%d') AS out_date,
                               m.unit,
                               mo.comm
                        from tbl_mat_out mo
-                       JOIN tbl_mat_req mr
+                       LEFT JOIN tbl_mat_req mr
                        ON mo.req_id = mr.req_id
-                       JOIN material m
+                       LEFT JOIN material m
                        ON mo.material_id = m.material_id
                        ORDER BY out_date DESC`;
 
@@ -242,6 +244,14 @@ let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS 
                             ON o.partner_id = pt.partner_id
                             WHERE sh.ship_status = 1
                             ORDER BY sh.shipment_date DESC`;
+//제품제고확인
+let checkStockQuery = `SELECT pl.product_id,
+                         p.product_name,
+                         SUM(pl.curr_qty) AS total_qty
+                  FROM tbl_prd_lot pl
+                  JOIN product p
+                  ON pl.product_id = p.product_id
+                  WHERE 1=1`;
 //출고등록
 let prdOutRQuery = `CALL prd_outbound(?, ?, ?, ?, ?, ?)`;
 //제품출고목록
@@ -256,13 +266,13 @@ let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date
                                     po.ship_partner,
                                     po.comm
                           FROM tbl_prd_out po
-                          JOIN shipment s
+                          LEFT JOIN shipment s
                           ON po.shipment_id = s.shipment_id
-                          JOIN product p
+                          LEFT JOIN product p
                           ON po.product_id = p.product_id
-                          JOIN order_items oi
+                          LEFT JOIN order_items oi
                           ON s.order_detail_id = oi.order_detail_id
-			     JOIN orders o
+			     LEFT JOIN orders o
 			     ON oi.order_id = o.order_id
                           ORDER BY ship_date DESC`;
 
@@ -300,7 +310,7 @@ let searchPrdListQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_d
                            JOIN product p
                            ON pl.product_id = p.product_id
                            WHERE pl.pro_status NOT IN ('입고취소', '종료')
-                           ORDER BY pl.open_date DESC`;
+                           ORDER BY pl.open_date`;
 
 let searchPrdLotSearchQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_date,
                                    pl.prd_lot_no,
@@ -357,7 +367,7 @@ let searchMatListQuery = `SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_d
                         JOIN material m
                         ON ml.material_id = m.material_id
                         WHERE ml.pro_status NOT IN ('입고취소', '종료')
-                        ORDER BY ml.open_date DESC`;
+                        ORDER BY ml.open_date`;
 
 let searchMatLotSearchQuery = `SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_date,
                                    ml.lot_no,
@@ -459,4 +469,5 @@ module.exports = {
   returnListQurey,
   returnReQuery,
   wasteUpdate,
+  checkStockQuery,
 };

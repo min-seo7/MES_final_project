@@ -106,7 +106,7 @@ export default {
         //행삭제버튼
         removeRow() {
             // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제
-            let index = this.prdReceiptPending.findIndex((row) => !row.p_prdCode);
+            let index = this.prdReceiptPending.findIndex((row) => !row.p_testPassQty);
 
             if (index !== -1) {
                 this.prdReceiptPending.splice(index, 1);
@@ -324,8 +324,8 @@ export default {
                 <div class="flex items-center gap-2">
                     <label for="prdCode" class="whitespace-nowrap">제품코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" @click="openPrdModal" />
-                        <InputIcon class="pi pi-search" />
+                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode"  />
+                        <InputIcon class="pi pi-search" @click="openPrdModal"/>
                     </IconField>
                 </div>
 
@@ -377,13 +377,13 @@ export default {
 
     <!--제품모달-->
     <commModal v-model="productModal" header="제품목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="prdCode">제품코드</label>
             <InputText id="prdCode" type="text" />
             <label for="prdName">제품명</label>
             <InputText id="prdName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
@@ -400,13 +400,13 @@ export default {
     </commModal>
     <!--보관장소 모달-->
     <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="wareCode">창고코드</label>
             <InputText id="wareCode" type="text" />
             <label for="wareName">창고명</label>
             <InputText id="warerName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>

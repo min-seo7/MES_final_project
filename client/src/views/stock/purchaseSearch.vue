@@ -171,9 +171,9 @@ export default {
             <!-- 자재코드 -->
             <div class="flex items-center gap-2">
                 <label for="materialCode" class="whitespace-nowrap">자재코드</label>
-                <IconField iconPosition="left" class="w-full" @click="openMatModal()">
+                <IconField iconPosition="left" class="w-full">
                     <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                    <InputIcon class="pi pi-search" />
+                    <InputIcon class="pi pi-search"  @click="openMatModal()"/>
                 </IconField>
             </div>
 
@@ -208,17 +208,17 @@ export default {
     </div>
 
     <!--자재모달-->
-    <commModal v-model="materialModal" header="자재목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
+    <commModal v-model="materialModal" header="자재목록" style="width: 30rem">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="matCode">자재코드</label>
             <InputText id="matCode" type="text" />
             <label for="matrName">자재명</label>
             <InputText id="matrName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 8rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 
