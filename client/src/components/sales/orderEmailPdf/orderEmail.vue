@@ -104,7 +104,7 @@ const savePdf = async () => {
         return;
     }
     try {
-        const response = await axios.post('/api/pdf/generate', selectedOrder.value, { responseType: 'blob' });
+        const response = await axios.post('/api/sales/pdf/generate', selectedOrder.value, { responseType: 'blob' });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -112,9 +112,9 @@ const savePdf = async () => {
         document.body.appendChild(link);
         link.click();
         link.remove();
-
-        toast.add({ severity: 'success', summary: '완료', detail: 'PDF 다운로드 성공', life: 3000 });
+        // PDF가 생성되었음을 상태에 저장
         isPdfGenerated.value = true;
+        toast.add({ severity: 'success', summary: '완료', detail: 'PDF 다운로드 성공', life: 3000 });
     } catch (error) {
         console.error('PDF 생성 실패:', error);
         toast.add({ severity: 'error', summary: '실패', detail: 'PDF 생성 실패', life: 3000 });
@@ -132,13 +132,14 @@ const sendEmail = async () => {
         return;
     }
     try {
+        // 서버의 이메일 API는 PDF 파일 생성을 내부적으로 처리한다고 가정합니다.
+        // 클라이언트는 이메일 전송에 필요한 정보만 전송하면 됩니다.
         const payload = {
-            to: emailForm.value.partnerEmail,
-            from: emailForm.value.managerEmail,
+            ...selectedOrder.value,
             subject: emailForm.value.subject,
-            text: emailForm.value.body
+            body: emailForm.value.body
         };
-        await axios.post('/api/email/send', payload);
+        await axios.post('/api/sales/email/send', payload);
         toast.add({ severity: 'success', summary: '완료', detail: '이메일 전송 성공', life: 3000 });
         isPdfGenerated.value = false;
     } catch (error) {
@@ -162,7 +163,6 @@ onMounted(() => {
                 <Button label="초기화" severity="info" rounded @click="resetFilters" />
             </div>
         </div>
-        <!-- 검색 조건 -->
         <Toolbar class="mb-4">
             <template #center>
                 <div class="flex flex-wrap gap-6 p-4">
@@ -199,7 +199,6 @@ onMounted(() => {
             </template>
         </Toolbar>
 
-        <!-- 주문내역 -->
         <div class="font-semibold text-xl mb-4 mt-7 flex justify-between items-center">
             <span>주문내역</span>
         </div>
@@ -217,7 +216,6 @@ onMounted(() => {
             <Column field="orderManagerEmail" header="담당자이메일" />
         </DataTable>
 
-        <!-- 이메일 / PDF -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <Panel header="이메일">
                 <div v-if="selectedOrder" class="flex flex-col space-y-4">

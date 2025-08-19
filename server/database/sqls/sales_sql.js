@@ -345,33 +345,77 @@ SELECT
     o.order_manager,
     i.quantity,
     o.delivery_addr,
-    DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
-    DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
+    DATE_FORMAT(o.order_date, '%Y-%m-%d') AS order_date,
+    DATE_FORMAT(i.del_date, '%Y-%m-%d') AS del_date,
     i.ord_status,
     i.order_detail_id,
-    MAX(tpo.prd_id) AS prd_id,
+    tpo.prd_id,
     s.shipment_id,
     r.in_date
 FROM orders o
 JOIN order_items i
     ON o.order_id = i.order_id
-LEFT JOIN tbl_prd_out tpo
-    ON i.product_id = tpo.product_id
-LEFT JOIN shipment s
-    ON i.order_detail_id = s.order_detail_id 
-LEFT JOIN returns r
-    ON i.order_detail_id = r.order_detail_id
+LEFT JOIN (
+    SELECT product_id, MAX(prd_id) AS prd_id
+    FROM tbl_prd_out
+    GROUP BY product_id
+) tpo ON i.product_id = tpo.product_id
+LEFT JOIN (
+    SELECT order_detail_id, MAX(shipment_id) AS shipment_id
+    FROM shipment
+    GROUP BY order_detail_id
+) s ON i.order_detail_id = s.order_detail_id
+LEFT JOIN (
+    SELECT order_detail_id, MAX(in_date) AS in_date
+    FROM returns
+    GROUP BY order_detail_id
+) r ON i.order_detail_id = r.order_detail_id
 WHERE
     (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR i.ord_status = ?)
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
-GROUP BY
-    o.order_id, o.partner_id, o.partner_name, i.product_id, i.product_name, o.manager,
-    i.quantity, o.delivery_addr, o.order_date, i.del_date, i.ord_status, o.order_manager,
-    i.order_detail_id, s.shipment_id, r.in_date
-`;
+ORDER BY o.order_id, i.product_id`;
+
+// const selectReturnPreList = `
+// SELECT
+//     o.order_id,
+//     o.partner_id,
+//     o.partner_name,
+//     i.product_id,
+//     i.product_name,
+//     o.manager,
+//     o.order_manager,
+//     i.quantity,
+//     o.delivery_addr,
+//     DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
+//     DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
+//     i.ord_status,
+//     i.order_detail_id,
+//     MAX(tpo.prd_id) AS prd_id,
+//     s.shipment_id,
+//     r.in_date
+// FROM orders o
+// JOIN order_items i
+//     ON o.order_id = i.order_id
+// LEFT JOIN tbl_prd_out tpo
+//     ON i.product_id = tpo.product_id
+// LEFT JOIN shipment s
+//     ON i.order_detail_id = s.order_detail_id
+// LEFT JOIN returns r
+//     ON i.order_detail_id = r.order_detail_id
+// WHERE
+//     (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
+//     AND (? IS NULL OR ? = '' OR i.ord_status = ?)
+//     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
+//     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
+//     AND (? IS NULL OR DATE(i.del_date) = ?)
+// GROUP BY
+//     o.order_id, o.partner_id, o.partner_name, i.product_id, i.product_name, o.manager,
+//     i.quantity, o.delivery_addr, o.order_date, i.del_date, i.ord_status, o.order_manager,
+//     i.order_detail_id, s.shipment_id, r.in_date
+// `;
 
 module.exports = {
   selectOrdPartnerModal,
