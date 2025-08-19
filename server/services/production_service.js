@@ -74,6 +74,7 @@ const startWork = async (director, plan_detail_no, details) => {
         info.specification,
         info.unit,
         info.prd_form,
+        info.product_id,
       ];
 
       await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
@@ -126,8 +127,74 @@ const selectPrcList = async () => {
     if (conn) conn.release();
   }
 };
+const selectOrderList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.selectOrderList);
+    // let list= await conn.query(sqlList.selectOrderList);
+    // const했을땐 단일행만 반환하다가 let으로 변경하니 나왔는데 갑자기 또 const로 선언해도 리스트 잘나옴 버근가
+    console.log("생산 지시 목록 조회 결과:", list);
 
+    // 날짜 형식을 데이터베이스에 맞게 변환
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제
+    if (conn) conn.release();
+  }
+};
+const notRegistPrcList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.notRegistPrcList);
+    console.log("등록되지 않은 공정 목록 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제
+    if (conn) conn.release();
+  }
+};
+const insertPerform = async (payload) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const values = [
+      payload.wo_no,
+      payload.pf_code,
+      payload.e_name,
+      payload.process_id,
+      payload.in_qty,
+      payload.line_id,
+      payload.product_id,
+      payload.prd_name,
+      payload.specification,
+      payload.unit,
+      payload.eq_code,
+      formatToDatabaseDatetime(payload.w_st_date),
+    ];
+    const result = await conn.query(sqlList.insertPerform, values);
+    if (result) {
+      console.log("실적 등록에 성공하였습니다.");
+      await conn.commit();
+    } else {
+      console.log("실적 등록에 실패하였습니다.", result.data);
+    }
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제
+    if (conn) conn.release();
+  }
+};
 module.exports = {
   startWork,
   //  insertProductionFlow
+  selectOrderList,
+  notRegistPrcList,
+  insertPerform,
 };

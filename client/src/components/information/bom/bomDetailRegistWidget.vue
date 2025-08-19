@@ -1,17 +1,61 @@
 <script setup>
 import { ref, defineEmits } from 'vue';
+import axios from 'axios';
+import CommonModal from '@/components/common/modal.vue';
 
 const emits = defineEmits(['bomDetail']);
+
+const item = ref([]);
+const columns = ref([]);
+const showModal = ref(false);
+const modalType = ref('');
+const selectedItem = ref(null);
 
 const form = ref({
     materialId: '',
     materialName: '',
+    materialType: '',
     unit: '',
     mixRatio: '',
     requiredQty: '',
     totalQty: '',
     status: ''
 });
+
+// 모달 열기
+const openModal = async (type) => {
+    modalType.value = type;
+    showModal.value = true;
+    selectedItem.value = null;
+
+    if (type === 'materialId') {
+        const res = await axios.get('/api/information/material/getMaterialName');
+        item.value = res.data.map((item, index) => ({
+            num: index + 1,
+            materialId: item.material_id,
+            materialName: item.material_name,
+            materialType: item.material_type
+        }));
+        columns.value = [
+            { field: 'materialId', header: '자재코드' },
+            { field: 'materialName', header: '자재명' },
+            { field: 'materialType', header: '자재유형' }
+        ];
+    }
+};
+
+// 모달 선택 완료
+const selectModalValue = () => {
+    if (!selectedItem.value) {
+        alert('선택된 항목이 없습니다.');
+        return;
+    }
+
+    form.value.materialId = selectedItem.value.materialId;
+    form.value.materialName = selectedItem.value.materialName;
+
+    showModal.value = false;
+};
 
 const addBOMdetail = () => {
     emits('bomDetail', form.value);
@@ -34,14 +78,13 @@ const addBOMdetail = () => {
                     <label class="block mb-1">자재코드</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText v-model="form.materialId" class="w-full" />
-                        <InputIcon class="pi pi-search" />
+                        <InputIcon class="pi pi-search" @click="openModal('materialId')" />
                     </IconField>
                 </div>
                 <div>
                     <label class="block mb-1">자재명</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText v-model="form.materialName" class="w-full" />
-                        <InputIcon class="pi pi-search" />
                     </IconField>
                 </div>
                 <div>
@@ -55,7 +98,7 @@ const addBOMdetail = () => {
                 </div>
                 <div>
                     <label class="block mb-1">혼합율</label>
-                    <InputText v-model="form.mixRatio" class="w-full" />%
+                    <InputText v-model="form.mixRatio" class="w-full" />
                 </div>
             </div>
             <div class="flex flex-col gap-4 w-full">
@@ -79,6 +122,7 @@ const addBOMdetail = () => {
             </div>
         </div>
     </div>
+    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="item" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
 </template>
 
 <style scoped>

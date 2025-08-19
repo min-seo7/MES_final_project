@@ -46,7 +46,7 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/warehouse/getWarehouseType');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            warehouseType: item.warehouseType
+            warehouseType: item.warehouse_type
         }));
         columns.value = [{ field: 'warehouseType', header: '창고유형' }];
     }

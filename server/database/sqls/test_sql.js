@@ -54,6 +54,7 @@ INNER JOIN material as mat
 ON PD.material_id = mat.material_id
 WHERE PD.inspStatus= '대기' 
 ORDER BY P.due_date DESC`;
+// ORDER BY MI.createdAt DESC`;
 // WHERE
 // 	MI.inspStatus = '대기'`;;
 
