@@ -44,8 +44,8 @@ export default {
             pandingCol: [
                 { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
                 { field: 'p_purNo', header: '발주번호', headerStyle: 'width: 25rem' },
-                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 12rem'},
-                { field: 'p_matName', header: '자재명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenMatModal},
+                { field: 'p_matCode', header: '자재코드', headerStyle: 'width: 12rem' },
+                { field: 'p_matName', header: '자재명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenMatModal },
                 { field: 'p_testResult', header: '검사결과', headerStyle: 'width: 13rem' },
                 { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
                 { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
@@ -86,8 +86,8 @@ export default {
         },
         //행삭제버튼
         removeRow() {
-            // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제 
-            let index = this.MatReceiptPanding.findIndex(row => !row.p_matCode);
+            // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제
+            let index = this.MatReceiptPanding.findIndex((row) => !row.p_matCode);
 
             if (index !== -1) {
                 this.MatReceiptPanding.splice(index, 1);
@@ -111,7 +111,7 @@ export default {
                 p_warehouse: '',
                 p_memo: '',
                 p_testNo: '',
-                p_purchId: '',
+                p_purchId: ''
             };
             this.MatReceiptPanding.unshift(newRow);
         },
@@ -140,14 +140,14 @@ export default {
         },
         //입고등록
         async postInsertMat() {
-             if (!this.selectPandingMats.length) {
+            if (!this.selectPandingMats.length) {
                 alert('입고처리할 자재를 선택해주세요.');
                 return;
-             }
+            }
 
             // 필수값 체크
-             let checkNull = this.selectPandingMats.find(row => {
-                return !row.p_matCode || !row.p_warehouse || !row.p_receiptQty ;
+            let checkNull = this.selectPandingMats.find((row) => {
+                return !row.p_matCode || !row.p_warehouse || !row.p_receiptQty;
             });
 
             if (checkNull) {
@@ -203,22 +203,23 @@ export default {
             }
             try {
                 let rejecgInfo = this.selectPandingMats.map((row) => ({
-                    purch_id: row.p_purchId
+                    comm: row.p_memo || null,
+                    purch_id: row.p_purchId,
+                    testNo: row.p_testNo
                 }));
-                console.log()
                 await axios.post('/api/stock/matReturn', rejecgInfo);
             } catch (error) {
                 console.log('반품실패', error);
             }
             this.getMatPandigList();
             this.selectPandingMats = [];
-            },
+        },
         //입고취소
         async postCanelLot() {
             if (!this.selectMatLots) {
                 alert('입고가 확정된 자재만 취소가능합니다.');
                 return;
-            } 
+            }
             try {
                 let cancelLotInfo = this.selectMatLots.map((row) => ({
                     lot_no: row.matLotNo
@@ -227,7 +228,7 @@ export default {
             } catch (error) {
                 console.log('취소실패', error);
             }
-            
+
             this.getMatLotLIst();
             this.selectPandingMats = [];
         },
@@ -242,7 +243,7 @@ export default {
                 this.MatReceiptPanding[this.selectRow].p_matCode = this.selectMat.matCode;
                 this.MatReceiptPanding[this.selectRow].p_matName = this.selectMat.matName;
                 this.MatReceiptPanding[this.selectRow].p_unit = this.selectMat.unit;
-            }else{
+            } else {
                 //(모달)자재선택시 반영.
                 this.materialCode = this.selectMat.matCode;
                 this.materialName = this.selectMat.matName;
@@ -264,7 +265,7 @@ export default {
                 console.error('자재목록 불러오기 실패:', error);
             }
         },
-        rowOpenMatModal(rowIndex){
+        rowOpenMatModal(rowIndex) {
             this.selectRow = rowIndex; // 클릭한 테이블 행 index
             this.materialModal = true;
             this.getMatList();
@@ -357,17 +358,17 @@ export default {
                 </TabList>
                 <TabPanels>
                     <TabPanel value="0">
-                        <div class ="flex justify-end mt-0 space-x-2">
-                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addNewRow" />
-                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow" />
+                        <div class="flex justify-end mt-0 space-x-2">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" @click="addNewRow" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" @click="removeRow" />
                         </div>
                         <!--0번탭 컨텐츠영역-->
                         <stockCommTable v-model:selection="selectPandingMats" :columns="pandingCol" :dataRows="MatReceiptPanding" />
                     </TabPanel>
                     <TabPanel value="1">
-                        <div class ="flex justify-end mt-0 space-x-2 invisible">
-                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  />
-                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  />
+                        <div class="flex justify-end mt-0 space-x-2 invisible">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" />
                         </div>
                         <!--1번탭 컨텐츠영역-->
                         <stockCommTable v-model:selection="selectMatLots" :columns="ReceiptCol" :dataRows="MatReceipts" />

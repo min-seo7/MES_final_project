@@ -56,6 +56,7 @@ export default {
             outPrdCol: [
                 { field: 'outDate', header: '출고일', headerStyle: 'width: 20rem' },
                 { field: 'shipNo', header: '출고번호', headerStyle: 'width: 25rem' },
+                { field: 'prdType', header: '제품유형', headerStyle: 'width: 25rem' },
                 { field: 'prdCode', header: '제품코드', headerStyle: 'width: 20rem' },
                 { field: 'prdName', header: '제품명', headerStyle: 'width: 13rem' },
                 { field: 'outQty', header: '출고수량', headerStyle: 'width: 13rem' },
@@ -134,8 +135,8 @@ export default {
                 alert('삭제할 행이 없습니다.');
             }
         },
-        async postRegistOut(){
-            try{
+        async postRegistOut() {
+            try {
                 // if (!this.dueDate || !this.partnerId || !this.empName) {
                 //     alert('필수정보입력');
                 //     return;
@@ -149,12 +150,13 @@ export default {
                 }));
                 console.log(prdOutInfo);
                 await axios.post('/api/stock/rePrdOut', prdOutInfo);
-            } catch (error){
+            } catch (error) {
                 console.error('등록 실패', error);
             }
             alert('출고등록 완료');
             this.selectOutWaitPrds = null;
             this.getoutPrds();
+            this.getOutList();
         },
         //테이블영역=====================================================================
         //출고대기목록
@@ -181,20 +183,22 @@ export default {
             try {
                 const res = await axios.get('/api/stock/prdOutList');
                 this.outPrds = res.data.map((item) => ({
-                    id: `${item.shipment_id}-${item.product_code}`,
+                    id: `${item.prd_out_no}-${item.product_id}`,
                     outDate: item.ship_date,
                     shipNo: item.prd_out_no,
-                    prdCode: item.prd_out_no,
-                    prdName: item.product_code,
-                    outQty: item.product_name,
+                    prdType: item.product_type,
+                    prdCode: item.product_id,
+                    prdName: item.product_name,
+                    outQty: item.prd_out_qty,
                     unit: `${'EA'}`,
                     partnerName: item.partner_name,
-                    e_name: item.partner_name,
-                    shipEnt: item.partner_name,
-                    memo: item.partner_name
+                    e_name: item.e_name,
+                    shipEnt: item.ship_partner,
+                    memo: item.comm
                 }));
+                console.log(this.outWaitPrds);
             } catch (error) {
-                console.error('제품출고 불러오기 실패:', error);
+                console.error('제품출목록 불러오기 실패:', error);
             }
         },
         //모달============================================================================================
@@ -269,6 +273,7 @@ export default {
     mounted() {
         console.log('제품출고');
         this.getoutPrds();
+        this.getOutList();
     }
 };
 </script>
