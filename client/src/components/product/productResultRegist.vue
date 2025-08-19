@@ -27,12 +27,20 @@ const selectModalValue = (value) => {
         search.value.productPlanCode = value.code;
     }
     showModal.value = false;
-}
-const productionOrderList= ref([]);
+};
+const productionOrderList = ref([]);
 const loading = ref(true); // 로딩 상태를 관리하는 변수
 const columns = ref([
+    { field: 'wo_no', header: '공정지시코드' },
+    { field: 'startDate', header: '작업시작일시' },
+    { field: 'endDate', header: '작업종료일시' },
+    { field: 'product_id', header: '제품코드' },
+    { field: 'product_name', header: '제품명' },
+    { field: 'specification', header: '규격' },
+    { field: 'unit', header: '단위' },
     { field: 'use_order', header: '공정순서' },
     { field: 'process', header: '공정' },
+    { field: 'process_name', header: '공정명' },
     { field: 'line_id', header: '라인코드' },
     { field: 'equipment_id', header: '설비코드' },
     { field: 'prd_noworder_qty', header: '현지시수량' },
@@ -41,58 +49,20 @@ const columns = ref([
     { field: 'qty', header: '생산량' },
     { field: 'status', header: '상태' }
 ]);
-const products = ref([
-    {
-        process: '분말형',
-        line: 'A01',
-        planQuantity: 10000,
-        productionQuantity: 1000,
-        productId: 'P001',
-        productName: '분말형비료',
-        specification: '20',
-        unit: 'kg',
-        prd_form: '완제품',
-        equipmentCode: 'EQ-COMB-01',
-        equipmentName: '배합기#1',
-        startDate: '2025-08-10 09:00',
-        endDate: '2025-08-12 17:30',
-        status: '완료'
-    },
-    {
-        process: '분말형',
-        line: 'A01',
-        planQuantity: 10000,
-        productionQuantity: 1000,
-        productId: 'P001',
-        productName: '분말형비료',
-        specification: '20',
-        unit: 'kg',
-        prd_form: '완제품',
-        equipmentCode: 'EQ-FERM-01',
-        equipmentName: '발효기#1',
-        startDate: '2025-08-10 09:00',
-        endDate: '2025-08-12 17:30',
-        status: '진행'
-    }
-    // ... 이미지에 표시된 다른 행 데이터들
-]);
 const items = ref([]);
-const selectedRow = ref(null);
+const selectedRow = ref({});
 const onRowSelect = (event) => {
-    const selectedData = event.data;
-    if (selectedData.status == '진행') {
-        alert('공정이 진행중입니다.\n실적을 등록합니다.');
-        //return;
-    }
+    let selectedData = event.data;
+    wo_no.value = selectedData.wo_no;
     process.value = selectedData.process;
-    startDate.value = selectedData.startDate;
-    endDate.value = selectedData.endDate;
-    planQuantity.value = selectedData.planQuantity;
-    line.value = selectedData.line;
-    productName.value = selectedData.productName;
-    equipmentCode.value = selectedData.equipmentCode;
-    equipmentName.value = selectedData.equipmentName;
-    productionQuantity.value = selectedData.productionQuantity;
+    process_name.value = selectedData.process_name;
+    inQuantity.value = selectedData.prd_noworder_qty;
+    lineId.value = selectedData.line_id;
+    productId.value = selectedData.product_id;
+    productName.value = selectedData.product_name;
+    specification.value = selectedData.specification;
+    unit.value = selectedData.unit;
+    equipmentCode.value = selectedData.equipment_id;
     status.value = selectedData.status;
     console.log('선택된 항목:', selectedData);
 };
@@ -102,12 +72,16 @@ const onCellEditComplete = (event) => {
 };
 const worker = ref(''); // 초기값
 const process = ref('');
+const wo_no = ref('');
+const process_name = ref('');
+const productId = ref('');
+const productName = ref('');
+const specification = ref('');
+const unit = ref('');
 const startDate = ref('');
 const endDate = ref('');
-const planQuantity = ref(0);
-const line = ref('');
-const productName = ref('');
-const performanceNumber = ref(''); // 실적번호
+const inQuantity = ref(0);
+const lineId = ref('');
 const equipmentCode = ref('');
 const equipmentName = ref('');
 const productionQuantity = ref(0);
@@ -139,17 +113,19 @@ const generateCode = () => {
 
     // 최종 코드 생성
     const newCode = `PF${dateString}-${sequenceNumber}`;
-
     // 다음 일련번호를 위해 카운터 증가
     counter.value++;
 
     return newCode;
+
+    // 이거 DB에서 seq로 자동 부여되게 할수는 있음 현재는 이 코드로 만들어진 더미데이터가 있어서 DB단에서 생성이 불가 PK제약조건위배
+    // concat(CONCAT('PF', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR pf_code_seq, 3, '0'))
 };
 const fetchProductionOrderList = async () => {
     try {
         const response = await axios.get('/api/production/productionOrderList');
         // Check if response.data exists and has a 'list' property that is an array
-        
+
         if (response.data && Array.isArray(response.data.list)) {
             productionOrderList.value = response.data.list.map((item) => ({
                 wo_no: item.wo_no,
@@ -181,8 +157,12 @@ const fetchProductionProcess = async () => {
     try {
         const response = await axios.get('/api/production/productionResultRegist');
         items.value = response.data.list.map((item) => ({
+            wo_no: item.wo_no,
+            startDate: item.startDate,
+            endDate: item.endDate,
             use_order: item.use_order,
             process: item.process_id,
+            process_name: item.process_name,
             line_id: item.line_id,
             product_id: item.product_id,
             product_name: item.product_name,
@@ -191,7 +171,7 @@ const fetchProductionProcess = async () => {
             useOrder: item.use_order,
             equipment_id: item.equipment_id,
             prd_noworder_qty: item.prd_noworder_qty,
-            in_qty: 0,
+            in_qty: item.in_qty ? item.in_qty : 0,
             def_qty: 0,
             qty: 0,
             status: item.status
@@ -207,61 +187,75 @@ onMounted(async () => {
     await fetchProductionOrderList();
     await fetchProductionProcess();
 });
-
-const performanceInsert = () => {
-    // const performanceInsertDate = new Date();
-    // console.log(performanceInsertDate);
-    const payload = {
-        performanceNumber: performanceNumber.value,
-        worker: worker.value,
-        process: process.value,
-        planQuantity: planQuantity.value,
-        line: line.value,
-        productName: productName.value,
-        equipmentCode: equipmentCode.value,
-        productionQuantity: productionQuantity.value
-        ,performanceInsStartDate: performanceInsStartDate.value
-        ,performanceInsEndDate: performanceInsEndDate.value
-    };
-    console.log(payload);
-    // if (!payload.performanceNumber) {
-    //     alert('실적 번호를 먼저 부여해주세요.');
-    //     return;
-    // }
-    axios.post('/api/insertperform', payload).then((response) => {
-        console.log('실적 등록 성공:', response.data);
-        alert('실적이 성공적으로 등록되었습니다.');
-        resetData();
-    });
-};
-const performanceNumberInsert = () => {
-    performanceNumber.value = generateCode();
-};
-const registStartPerformance = () => {
-    // console.log(now);
-    // const year = now.getFullYear();
-    // const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    // const day = now.getDate().toString().padStart(2, '0');
-    // const hour = now.getHours();
-    // const minute = now.getMinutes();
-    // console.log(hour, minute);
-    // const dateString = `${year}-${month}-${day} ${hour}:${minute}`;
-    performanceInsStartDate.value = new Date();
+// const performanceNumberInsert = () => {
+//     performanceNumber.value = generateCode();
+// };
+const registStartPerformance = async () => {
+    if (status.value == '완료' || status.value == '진행') {
+        alert('이미 실적이 등록되었거나 공정진행중입니다');
+        return;
+    } else {
+        // console.log(now);
+        // const year = now.getFullYear();
+        // const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        // const day = now.getDate().toString().padStart(2, '0');
+        // const hour = now.getHours();
+        // const minute = now.getMinutes();
+        // console.log(hour, minute);
+        // const dateString = `${year}-${month}-${day} ${hour}:${minute}`;
+        // step 1. 작업시작 일시가 먼저 디스플레이에 기입
+        performanceInsStartDate.value = new Date();
+        const newCode = generateCode();
+        try {
+            const payload = {
+                wo_no: wo_no.value,
+                pf_code: newCode,
+                e_name: worker.value,
+                process_id: process.value,
+                in_qty: inQuantity.value,
+                line_id: lineId.value,
+                product_id: productId.value,
+                prd_name: productName.value,
+                specification: specification.value,
+                unit: unit.value,
+                eq_code: equipmentCode.value,
+                w_st_date: performanceInsStartDate.value
+            };
+            // step 2. 투입량을 수정
+            const result = await axios.post('/api/production/insertPerform', payload);
+            if (result) {
+                alert('실적이 정상적으로 등록되었습니다.');
+                resetData();
+            } else {
+                console.log('실적이 정상적으로 등록되지못했습니다.', result.data);
+            }
+        } catch (error) {
+            console.error('실패:', error);
+        }
+    }
 };
 const registEndPerformance = () => {
+    if (status.value == '완료' || status.value == '대기') {
+        alert('이미 실적이 등록되었거나 작업대기중입니다');
+        return;
+    }
     performanceInsEndDate.value = new Date();
 };
 const resetData = () => {
     process.value = '';
+    process_name.value = '';
     startDate.value = '';
     endDate.value = '';
-    planQuantity.value = 0;
-    line.value = '';
+    inQuantity.value = 0;
+    lineId.value = '';
     productName.value = '';
+    productId.value = '';
+    specification.value = '';
+    unit.value = '';
+    wo_no.value = '';
     equipmentCode.value = '';
     equipmentName.value = '';
     productionQuantity.value = 0;
-    performanceNumber.value = '';
     status.value = '';
     performanceInsStartDate.value = '';
     performanceInsEndDate.value = '';
@@ -270,10 +264,9 @@ const resetData = () => {
 <template>
     <div class="col-span-1 flex items-center gap-2">
         <div class="w-full flex justify-end gap-2">
-            <Button label=" 실적등록 " rounded @click="performanceInsert" />
-            <Button label=" 실적번호부여 " rounded @click="performanceNumberInsert" />
-            <Button label=" 실적시작 " rounded @click="registStartPerformance" />
-            <Button label=" 실적종료 " rounded @click="registEndPerformance" />
+            <!-- <Button label=" 실적등록 " rounded @click="performanceInsert" /> -->
+            <Button label=" 작업시작 " rounded @click="registStartPerformance" />
+            <Button label=" 작업종료 " rounded @click="registEndPerformance" />
             <Button label=" 지시목록 " rounded @click="openModal('orderList')" />
             <Button label=" 초기화 " severity="info" rounded @click="resetData" />
         </div>
@@ -286,55 +279,71 @@ const resetData = () => {
                     <InputText class="flex-1" v-model="worker" />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">공정</label>
+                    <label class="w-24 text-right">공정코드</label>
                     <InputText class="flex-1" v-model="process" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
+                    <label class="w-24 text-right">공정명</label>
+                    <InputText class="flex-1" v-model="process_name" disabled />
+                </div>
+                <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">라인</label>
-                    <InputText class="flex-1" v-model="line" disabled />
+                    <InputText class="flex-1" v-model="lineId" disabled />
+                </div>
+                <div class="col-span-1 flex items-center gap-2">
+                    <label class="w-24 text-right">제품코드</label>
+                    <InputText class="flex-1" v-model="productId" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
                     <label class="w-24 text-right">제품명</label>
                     <InputText class="flex-1" v-model="productName" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">실적번호</label>
-                    <InputText class="flex-1" placeholder="번호자동부여" disabled />
+                    <label class="w-24 text-right">규격</label>
+                    <InputText class="flex-1" v-model="specification" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">설비 코드</label>
+                    <label class="w-24 text-right">단위</label>
+                    <InputText class="flex-1" v-model="unit" disabled />
+                </div>
+                <div class="col-span-1 flex items-center gap-2">
+                    <label class="w-24 text-right">설비코드</label>
                     <InputText class="flex-1" v-model="equipmentCode" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">생산 수량</label>
-                    <InputNumber class="flex-1" v-model="productionQuantity" disabled />
+                    <label class="w-24 text-right">투입량</label>
+                    <InputNumber class="flex-1" v-model="inQuantity" />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">공정 상태</label>
+                    <label class="w-24 text-right">진행상태</label>
                     <InputText class="flex-1" v-model="status" disabled />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">실적 시작 일시</label>
+                    <label class="w-24 text-right">작업코드</label>
+                    <InputText class="flex-1" v-model="wo_no" disabled />
+                </div>
+                <div class="col-span-1 flex items-center gap-2">
+                    <label class="w-24 text-right">시작 일시</label>
                     <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="performanceInsStartDate" />
                 </div>
                 <div class="col-span-1 flex items-center gap-2">
-                    <label class="w-24 text-right">실적 종료 일시</label>
+                    <label class="w-24 text-right">종료 일시</label>
                     <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="performanceInsEndDate" />
                 </div>
             </div>
         </div>
 
         <div class="flex-grow overflow-y-auto">
-            <DataTable :value="items" :paginator="true" :rows="4" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
-               <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
-                <template #body="{ data }" v-if="col.field === 'startDate' || col.field === 'endDate'">
-                    {{ formatDate(data[col.field]) }}
-                </template>
-               </Column>
+            <DataTable :value="items" :paginator="true" :rows="10" :selection="selectedRow" selectionMode="single" scrollable scrollHeight="400px" editMode="cell" @cell-edit-complete="onCellEditComplete" @row-select="onRowSelect">
+                <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
+                    <template #body="{ data, field }" v-if="col.field === 'startDate' || col.field === 'endDate'">
+                        {{ formatDate(data[field]) }}
+                    </template>
+                </Column>
             </DataTable>
         </div>
     </div>
-     <Dialog v-model:visible="showModal" modal header="생산지시 리스트" :style="{ width: '40vw' }" @hide="closeModal">
+    <Dialog v-model:visible="showModal" modal header="생산지시 리스트" :style="{ width: '40vw' }" @hide="closeModal">
         <p class="font-bold mb-4 text-lg">
             🔍
             {{
@@ -361,6 +370,5 @@ const resetData = () => {
                 <Column field="prd_noworder_qty" header="현지시수량"></Column>
             </DataTable>
         </div>
-        
     </Dialog>
 </template>

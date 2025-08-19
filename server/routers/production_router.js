@@ -21,7 +21,6 @@ router.post("/productionOrder", async (req, res) => {
     // }
     const { director, plan_detail_no, details } = req.body;
     console.log("라우터가 받은 데이터:", req.body);
-
     console.log("받은 productPlanCode:", plan_detail_no);
     const result = await productionService.startWork(
       director,
@@ -50,7 +49,17 @@ router.get("/productionOrderList", async (req, res) => {
 router.get("/productionResultRegist", async (req, res) => {
   try {
     const notRegistPrcList = await productionService.notRegistPrcList();
-    res.json({list: notRegistPrcList});
+    res.json({ list: notRegistPrcList });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버오류" });
+  }
+});
+router.post("/insertPerform", async (req, res) => {
+  try {
+    const payload = req.body;
+    const insertPerform = await productionService.insertPerform(payload);
+    res.status(201).json({ list: insertPerform });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "서버오류" });
