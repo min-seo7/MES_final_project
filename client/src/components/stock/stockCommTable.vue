@@ -36,7 +36,7 @@ export default {
                     <!--  { field: 'purch_qty', header: '수량', inputNumber: true },  {field: 'comm', header: '비고', inputText: true } -->
                     <!--{ field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal },-->
                     <InputText v-model="slotProps.data[col.field]" type="text" style="width: 100%" v-if="col.inputText" />
-                    <InputText v-model="slotProps.data[col.field]" type="text" style="width: 100%" @click="col.onClick(slotProps.index)" v-else-if="col.inputTextWM" />
+                    <InputText v-model="slotProps.data[col.field]" type="text " style="width: 100%" @click="col.onClick(slotProps.index)" v-else-if="col.inputTextWM" />
                     <InputNumber v-model="slotProps.data[col.field]" :min="0" type="number" style="width: 80%" v-else-if="col.inputNumber" />
 
                     <!-- 기본 출력 -->

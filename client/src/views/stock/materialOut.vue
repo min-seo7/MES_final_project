@@ -31,28 +31,27 @@ export default {
             selectOutgMats: [],
             //자재출고대기컬럼
             outWaitgCol: [
-                { field: 'dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
-                { field: 'purNo', header: '지시번호', headerStyle: 'width: 18rem' },
-                { field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem' },
-                { field: 'matName', header: '자재명', headerStyle: 'width: 13rem' },
-                { field: 'testPassQty', header: '요청수량', headerStyle: 'width: 15rem' },
-                { field: 'receiptQty', header: '출고수량', headerStyle: 'width: 15rem', inputNumber: true },
-                { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
-                { field: 'memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
+                { field: 'w_dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
+                { field: 'w_purNo', header: '지시번호', headerStyle: 'width: 18rem' },
+                { field: 'w_matCode', header: '자재코드', headerStyle: 'width: 20rem' },
+                { field: 'w_matName', header: '자재명', headerStyle: 'width: 13rem' },
+                { field: 'w_reqQty', header: '요청수량', headerStyle: 'width: 15rem' },
+                { field: 'w_receiptQty', header: '출고수량', headerStyle: 'width: 15rem', inputNumber: true },
+                { field: 'w_unit', header: '단위', headerStyle: 'width: 13rem' },
+                { field: 'w_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],
             matOutWait: [],
             outCol: [
-                { field: 'dueDate', header: '출고일', headerStyle: 'width: 20rem' },
-                { field: 'purNo', header: '지시번호', headerStyle: 'width: 18rem' },
+                { field: 'outDate', header: '출고일', headerStyle: 'width: 20rem' },
+                { field: 'woNo', header: '지시번호', headerStyle: 'width: 18rem' },
                 { field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem' },
                 { field: 'matName', header: '자재명', headerStyle: 'width: 13rem' },
-                { field: 'testPassQty', header: '요청수량', headerStyle: 'width: 15rem' },
-                { field: 'receiptQty', header: '출고수량', headerStyle: 'width: 15rem' },
+                { field: 'outQty', header: '출고수량', headerStyle: 'width: 15rem' },
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
-                { field: 'receiptQty', header: '담당자', headerStyle: 'width: 15rem' },
+                { field: 'eName', header: '담당자', headerStyle: 'width: 15rem' },
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem' }
             ],
-            matOut: [],
+            matOut: []
         };
     },
     methods: {
@@ -65,7 +64,67 @@ export default {
             this.MatInDate = '';
             this.MatLotNo = '';
         },
-        //(모달)자재
+        //테이블===============================================================
+        //출고요청목록
+        async getReqOutMats() {
+            try {
+                const res = await axios.get('/api/stock/matWOutList');
+                this.matOutWait = res.data.map((item) => ({
+                    id: `${item.wo_no}-${item.material_id}`,
+                    w_dueDate: item.req_date,
+                    w_purNo: item.wo_no,
+                    w_matCode: item.material_id,
+                    w_matName: item.material_name,
+                    w_reqQty: item.req_qty,
+                    w_unit: item.unit,
+                    w_reId: item.req_id
+                }));
+            } catch (error) {
+                console.error('제품출고대기 불러오기 실패:', error);
+            }
+        },
+        //출고완료목록
+        async getOutMats() {
+            try {
+                const res = await axios.get('/api/stock/matOutList');
+                this.matOut = res.data.map((item) => ({
+                    id: `${item.mat_out_no}-${item.material_id}`,
+                    outDate: item.out_date,
+                    woNo: item.wo_no,
+                    matCode: item.material_id,
+                    matName: item.material_name,
+                    outQty: item.out_qty,
+                    unit: item.unit,
+                    memo: item.comm,
+                    matNo: item.mat_out_no
+                }));
+            } catch (error) {
+                console.error('제품출고대기 불러오기 실패:', error);
+            }
+        },
+        //자재출고등록
+        async postMatOut() {
+            try {
+                // if (!this.dueDate || !this.partnerId || !this.empName) {
+                //     alert('필수정보입력');
+                //     return;
+                let matOutInfo = this.selectOutWaitMats.map((row) => ({
+                    req_id: row.w_reId,
+                    material_id: row.w_matCode,
+                    order_qty: row.w_receiptQty,
+                    comm: row.w_memo || null
+                }));
+                console.log(matOutInfo);
+                await axios.post('/api/stock/reMatOut', matOutInfo);
+            } catch (error) {
+                console.error('등록 실패', error);
+            }
+            alert('출고등록 완료');
+            this.selectOutWaitMats = null;
+            this.getReqOutMats();
+            this.getOutMats();
+        },
+        //(모달)자재==================================================================
         openMatModal() {
             this.materialModal = true;
 
@@ -96,6 +155,8 @@ export default {
     },
     mounted() {
         console.log('자재출고');
+        this.getReqOutMats();
+        this.getOutMats();
     }
 };
 </script>
@@ -140,8 +201,8 @@ export default {
         <!--중간버튼-->
         <stockCommRowBtn
             :buttons="[
-                { label: '출고등록', icon: 'pi pi-check', onClick: editHandler },
-                 { label: '출고취소', icon: 'pi pi-trash', onClick: postCanelLot }
+                { label: '출고등록', icon: 'pi pi-check', onClick: postMatOut },
+                { label: '출고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"
         />
 
@@ -154,16 +215,16 @@ export default {
                 </TabList>
                 <TabPanels>
                     <TabPanel value="0">
-                        <div class ="flex justify-end mt-0 space-x-2">
-                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addNewRow" />
-                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow" />
+                        <div class="flex justify-end mt-0 space-x-2">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" @click="addNewRow" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" @click="removeRow" />
                         </div>
                         <!--0번탭 컨텐츠영역-->
-                        <stockCommTable v-model:selection="selectOutWaitMats" :columns="outWaitgCol" :dataRows="matOutWait"/>
+                        <stockCommTable v-model:selection="selectOutWaitMats" :columns="outWaitgCol" :dataRows="matOutWait" />
                     </TabPanel>
                     <TabPanel value="1">
                         <!--1번탭 컨텐츠영역-->
-                        <stockCommTable v-model:selection="selectOutgMats" :columns="outCol" :dataRows="matOut"/>
+                        <stockCommTable v-model:selection="selectOutgMats" :columns="outCol" :dataRows="matOut" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
