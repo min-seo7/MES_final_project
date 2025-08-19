@@ -1,6 +1,7 @@
 <script setup>
 import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+import CommonModal from '@/components/common/modal.vue';
 
 const props = defineProps({
     detailData: {
@@ -13,12 +14,57 @@ const props = defineProps({
     }
 });
 
+const item = ref([]);
+const columns = ref([]);
+const showModal = ref(false);
+const modalType = ref('');
+const selectedItem = ref(null);
+
 const form = ref({
     bomId: '',
     prodId: '',
+    prodName: '',
+    prodForm: '',
     prodType: '',
     status: ''
 });
+
+// 모달 열기
+const openModal = async (type) => {
+    modalType.value = type;
+    showModal.value = true;
+    selectedItem.value = null;
+
+    if (type === 'productId') {
+        const res = await axios.get('/api/information//flowchart/getProductId');
+        item.value = res.data.map((item, index) => ({
+            num: index + 1,
+            prodId: item.product_id,
+            prodName: item.product_name,
+            prodType: item.product_type,
+            prodForm: item.product_form
+        }));
+        columns.value = [
+            { field: 'prodId', header: '제품코드' },
+            { field: 'prodName', header: '제품명' },
+            { field: 'prodType', header: '제품유형' },
+            { field: 'prodForm', header: '제품형태' }
+        ];
+    }
+};
+
+// 모달 선택 완료
+const selectModalValue = () => {
+    if (!selectedItem.value) {
+        alert('선택된 항목이 없습니다.');
+        return;
+    }
+
+    form.value.prodId = selectedItem.value.prodId;
+    form.value.prodName = selectedItem.value.prodName;
+
+    showModal.value = false;
+};
 
 watch(
     () => props.items,
@@ -100,7 +146,7 @@ const registBom = async () => {
                 <label class="block mb-1">제품코드</label>
                 <IconField iconPosition="left" class="w-full">
                     <InputText v-model="form.prodId" class="w-full" />
-                    <InputIcon class="pi pi-search" />
+                    <InputIcon class="pi pi-search" @click="openModal('productId')" />
                 </IconField>
             </div>
             <div style="display: flex; gap: 20px" class="w-1/4">
@@ -114,6 +160,7 @@ const registBom = async () => {
             </div>
         </div>
     </div>
+    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="item" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
 </template>
 
 <style scoped>

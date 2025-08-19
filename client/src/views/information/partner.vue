@@ -58,6 +58,18 @@ const handleSearch = (result) => {
 };
 
 const handleSelect = (row) => {
+    let email = '';
+    let domain = '';
+
+    if (row.email && row.email.includes('@')) {
+        const parts = row.email.split('@');
+        email = parts[0];
+        domain = parts[1];
+    } else {
+        email = row.email || '';
+        domain = '';
+    }
+
     partnerSelectedData.value = [
         {
             partnerId: row.partnerId,
@@ -65,13 +77,14 @@ const handleSelect = (row) => {
             partnerName: row.partnerName,
             manager: row.manager,
             mainTel: row.mainTel,
-            email: row.email,
+            email: email, // @ 앞부분
+            emailDomain: domain, // @ 뒷부분
             address: row.address,
             businessNo: row.businessNo,
             status: row.status
         }
     ];
-    console.log(partnerSelectedData);
+    console.log(partnerSelectedData.value);
 };
 
 onUnmounted(() => {

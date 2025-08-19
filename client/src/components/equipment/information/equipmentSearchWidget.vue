@@ -63,6 +63,8 @@ function selectComplete() {
     search.value.equipment_id = picker.selected.value; // 입력칸만 채움(자동조회 X)
     showPicker.value = false;
 }
+
+
 </script>
 
 <template>

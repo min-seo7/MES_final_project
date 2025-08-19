@@ -19,6 +19,10 @@ const search = ref({
     status: ''
 });
 
+const onReset = () => {
+    emits('resetForm');
+};
+
 // 모달 열기
 const openModal = async (type) => {
     modalType.value = type;
@@ -66,6 +70,7 @@ const resetSearch = () => {
     selectedItem.value = null;
 
     selectSearch();
+    onReset();
 };
 
 // 검색
@@ -126,9 +131,9 @@ onMounted(() => {
                     <label for="productType" class="whitespace-nowrap">제품유형</label>
                     <div class="flex items-center">
                         <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                            <RadioButton id="productType1" name="auth" value="반제품" v-model="search.productType" />
+                            <RadioButton id="productType1" name="productType" value="반제품" v-model="search.productType" />
                             <label for="productType1" class="ml-2 mr-4">반제품</label>
-                            <RadioButton id="productType2" name="auth" value="완제품" v-model="search.productType" />
+                            <RadioButton id="productType2" name="productType" value="완제품" v-model="search.productType" />
                             <label for="productType2" class="ml-2 mr-4">완제품</label>
                         </label>
                     </div>
@@ -139,11 +144,11 @@ onMounted(() => {
                     <label for="productForm" class="whitespace-nowrap">제품형태</label>
                     <div class="flex items-center">
                         <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                            <RadioButton id="productForm1" name="status" value="분말형" v-model="search.productForm" />
+                            <RadioButton id="productForm1" name="productForm" value="분말형" v-model="search.productForm" />
                             <label for="productForm1" class="ml-2 mr-4">분말형</label>
-                            <RadioButton id="productForm2" name="status" value="과립형" v-model="search.productForm" />
+                            <RadioButton id="productForm2" name="productForm" value="과립형" v-model="search.productForm" />
                             <label for="productForm2" class="ml-2 mr-4">과립형</label>
-                            <RadioButton id="productForm3" name="status" value="액상형" v-model="search.productForm" />
+                            <RadioButton id="productForm3" name="productForm" value="액상형" v-model="search.productForm" />
                             <label for="productForm3" class="ml-2">액상형</label>
                         </label>
                     </div>

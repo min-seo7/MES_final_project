@@ -1,40 +1,23 @@
 const mariadb = require("../database/mapper.js");
-
-// =======================
-// 설비점검 페이지
-// =======================
-
-// 설비점검 목록(최근순, 최대 100)
-const findInspectionList = async () => {
-  return await mariadb.query("selectInspectionList");
-};
-
-// // 설비점검 검색(필터) and부분 // 추후에 주석풀것
-// const findInspectionByFilter = async (q = {}) => {
-//   const params = [
-//     q.insp_code || null, q.insp_code || null,
-//     q.eq_id || null, q.eq_id || null,
-//     q.insp_type || null, q.insp_type || null,
-//     q.date_from || null, q.date_from || null,
-//     q.date_to || null, q.date_to || null,
-//     q.next_from || null, q.next_from || null,
-//     q.next_to || null, q.next_to || null,
-//     Number(q.size) || 20,
-//     Number(q.page) ? (Number(q.page) - 1) * (Number(q.size) || 20) : 0
-//   ];
-//   return await mariadb.query("selectInspectionListByFilter", params);
-// };
-
-// util 함수 추가
+const sqlList = require("../database/sqlList.js");
+/* ---------- 공통 유틸 ---------- */
 const norm = (v) => {
   if (v === undefined || v === null) return null;
   const s = String(v).trim();
   return s.length > 0 ? s : null;
 };
+const formatDate = (val) => {
+  if (!val) return null;
+  if (typeof val === "string") return val.slice(0, 10);
+  return val.toISOString().slice(0, 10);
+};
+const fmtDate = formatDate;
 
-// 👉 기본은 OR 검색
-// 👉 필요하면 AND 검색 코드 주석 해제하고 OR 주석처리하면 됨
-// 설비점검 검색(필터)
+/* ---------- 설비점검 페이지 (기존) ---------- */
+const findInspectionList = async () => {
+  return await mariadb.query("selectInspectionList");
+};
+
 const findInspectionByFilter = async (q = {}) => {
   const paramsOr = [
     norm(q.insp_code),
@@ -57,7 +40,6 @@ const findInspectionByFilter = async (q = {}) => {
   return await mariadb.query("selectInspectionListByFilterOr", paramsOr);
 };
 
-// 설비점검 DISTINCT (모달 페이징)
 const findInspectionDistinct = async (field, page = 1, size = 5) => {
   let listSql = "",
     countSql = "";
@@ -91,11 +73,103 @@ const findInspectionDistinct = async (field, page = 1, size = 5) => {
   return { items, total, page, size };
 };
 
-// =======================
-// 설비정보 등록/수정 페이지
-// =======================
+/* ---------- ★ 설비점검 단건/등록/수정 + 디테일 ---------- */
 
-// 설비정보 등록/수정 DISTINCT
+const findInspectionOne = async (inspId) => {
+  if (!inspId) return null;
+  const rows = await mariadb.query("selectInspectionOne", [inspId]);
+  if (!rows || rows.length === 0) return null;
+
+  const master = rows[0];
+  const details = await mariadb.query("selectInspectionDetails", [inspId]);
+  return {
+    ...master,
+    inspectionDate: fmtDate(master.inspectionDate),
+    nextDate: fmtDate(master.nextDate),
+    details: (details || []).map((d) => ({
+      item: d.item ?? "",
+      result: d.result ?? "",
+      action: d.action ?? "",
+    })),
+  };
+};
+
+const registerInspection = async (data = {}) => {
+  if (!(data.equipmentCode || "").trim()) throw new Error("설비코드 필수");
+  if (!(data.inspectionType || "").trim()) throw new Error("점검유형 필수");
+  if (!data.inspectionDate) throw new Error("점검일 필수");
+  if (!(data.manager || "").trim()) throw new Error("점검책임자 필수");
+
+  const inspectionCode =
+    (data.inspectionCode || "").trim() && data.inspectionCode !== "자동생성"
+      ? data.inspectionCode.trim()
+      : genInspectionCode();
+
+  await mariadb.query("insertInspection", [
+    inspectionCode,
+    data.equipmentCode.trim(),
+    data.inspectionType.trim(),
+    data.inspectionCycle || null,
+    fmtDate(data.inspectionDate),
+    fmtDate(data.nextDate),
+    data.manager.trim(),
+    data.note || null,
+    data.lastResult || null,
+  ]);
+
+  if (Array.isArray(data.details)) {
+    for (const d of data.details) {
+      await mariadb.query("insertInspectionDetail", [
+        inspectionCode,
+        d?.item || "",
+        d?.result || "",
+        d?.action || "",
+      ]);
+    }
+  }
+  return { inspectionCode };
+};
+
+const updateInspection = async (data = {}) => {
+  if (!String(data.inspectionCode || "").trim())
+    throw new Error("점검코드 누락");
+  if (!String(data.equipmentCode || "").trim())
+    throw new Error("설비코드 필수");
+  if (!String(data.inspectionType || "").trim())
+    throw new Error("점검유형 필수");
+  if (!data.inspectionDate) throw new Error("점검일 필수");
+  if (!String(data.manager || "").trim()) throw new Error("점검책임자 필수");
+
+  await mariadb.query("updateInspection", [
+    String(data.equipmentCode || "").trim(),
+    String(data.inspectionType || "").trim(),
+    data.inspectionCycle || null,
+    fmtDate(data.inspectionDate),
+    fmtDate(data.nextDate),
+    String(data.manager || "").trim(),
+    data.note || null,
+    String(data.inspectionCode || "").trim(),
+  ]);
+
+  await mariadb.query("deleteInspectionDetails", [
+    String(data.inspectionCode || "").trim(),
+  ]);
+
+  if (Array.isArray(data.details)) {
+    for (const d of data.details) {
+      await mariadb.query("insertInspectionDetail", [
+        String(data.inspectionCode || "").trim(),
+        String(d?.item || "").trim(),
+        String(d?.result || "").trim(),
+        String(d?.action || "").trim(),
+      ]);
+    }
+  }
+
+  return { success: true };
+};
+
+/* ---------- 설비정보 등록/수정 페이지 (기존) ---------- */
 const getDistinct = async (field) => {
   let sql = "";
   switch (field) {
@@ -117,13 +191,10 @@ const getDistinct = async (field) => {
     default:
       return [];
   }
-
   const rows = await mariadb.query(sql);
-  // 🔥 rows = [{equipment_id:"EQ-001"}, ...] 이런 식이라서 값만 추출해야 함
   return rows.map((r) => Object.values(r)[0]);
 };
 
-// 설비정보 조건 검색
 const searchEquipment = async (q = {}, page = 1, size = 10) => {
   const params = [
     q.equipment_id || null,
@@ -145,64 +216,71 @@ const searchEquipment = async (q = {}, page = 1, size = 10) => {
   return { items, total, page, size };
 };
 
-// 설비정보 등록 (undefined 방지 + 날짜 포맷)
-const insertEquipment = async (eqInfo) => {
-  const payload = {
-    equipmentCode: (eqInfo.equipmentCode ?? "").trim(),
-    equipmentType: (eqInfo.equipmentType ?? "").trim(),
-    equipmentName: (eqInfo.equipmentName ?? "").trim(),
-    manufacturer: (eqInfo.manufacturer ?? "").trim(),
-    serialNo: (eqInfo.serialNo ?? "").trim(),
-    // 첨부는 아직 파일 업로드 미적용이므로 null 저장
-    safety_standard: eqInfo.safety_standard ?? null,
-    operation_manual: eqInfo.operation_manual ?? null,
-    purchaseDate: formatDate(eqInfo.purchaseDate),
-    startDate: formatDate(eqInfo.startDate),
-    location: (eqInfo.location ?? "").trim(),
-    status: (eqInfo.status ?? "사용").trim(),
-  };
+// 설비 등록 설비코드 생성
+const insertEquipment = async (equipmentInfo) => {
+  let conn;
+  try {
+    conn = await mariadb.getConnection();
+    await conn.beginTransaction();
 
-  const params = convertToArray(payload, [
-    "equipmentCode",
-    "equipmentType",
-    "equipmentName",
-    "manufacturer",
-    "serialNo",
-    "safety_standard",
-    "operation_manual",
-    "purchaseDate",
-    "startDate",
-    "location",
-    "status",
-  ]);
+    // 1. 마지막 equipment_id 조회 (mapper alias 사용)
+    const rows = await conn.query("selectMaxEqId"); // <-- 여기에 들어감
+    const maxNum = rows?.[0]?.max_num || 0;
 
-  // 디버그: 파라미터 개수 확인 (완료되면 주석)
-  console.log("[insertEquipment] params length =", params.length, params);
+    // 2. 새로운 equipment_id 생성
+    let newEqId;
+    if (!maxId) {
+      newEqId = "EQ001";
+    } else {
+      const lastNum = parseInt(maxId.replace(/\D/g, ""), 10);
+      const newEqId = `EQ${String(maxNum + 1).padStart(3, "0")}`;
+    }
 
-  return await mariadb.query("insertEquipment", params);
+    // 3. 날짜 포맷팅 함수
+    const formatDateToYMD = (isoDate) => {
+      if (!isoDate) return null;
+      const d = new Date(isoDate);
+      if (isNaN(d)) return null;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const purchaseDate = formatDateToYMD(equipmentInfo.purchaseDate);
+    const startDate = formatDateToYMD(equipmentInfo.startDate);
+
+    // 4. INSERT 실행
+    const insertData = [
+      newEqId, // equipment_id
+      equipmentInfo.equipmentType, // equipment_type
+      equipmentInfo.equipmentName, // equipment_name
+      equipmentInfo.manufacturer, // manufacturer
+      equipmentInfo.serialNo, // serial_no
+      equipmentInfo.safetyStandard || null, // safety_standard
+      equipmentInfo.operationManual || null, // operation_manual
+      purchaseDate, // purchase_date
+      startDate, // start_date
+      equipmentInfo.location, // location
+      equipmentInfo.status, // status
+    ];
+
+    await conn.query("insertEquipment", insertData);
+
+    // 5. 커밋
+    await conn.commit();
+
+    return { success: true, newEqId };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("insertEquipment Error:", err);
+    return { success: false, error: err.message };
+  } finally {
+    if (conn) conn.release();
+  }
 };
 
-// 설비정보 수정
-// 설비 수정
-const updateEquipment = async (data) => {
-  const params = convertToArray(data, [
-    "equipmentName", // ← 프론트에서 보낸 key
-    "manufacturer",
-    "serialNo",
-    "purchaseDate",
-    "startDate",
-    "equipmentType",
-    "location",
-    "status",
-    "equipmentCode", // WHERE 조건
-  ]);
-  return await mariadb.query("updateEquipment", params);
-};
-
-// "설비정보 조회페이지"
-/* ========== 설비정보 조회(info2) ========== */
-
-// 5-1) 무필터 페이지(진입 10건)
+/* ---------- 설비정보 조회페이지 (기존) ---------- */
 const findEquipmentInfoPage = async (page = 1, size = 10) => {
   const items = await mariadb.query("selectEquipmentInfoPage", [
     size,
@@ -212,10 +290,8 @@ const findEquipmentInfoPage = async (page = 1, size = 10) => {
   return { items, total, page, size };
 };
 
-// 5-2) 조건검색 OR 기본 (status는 AND)
 const searchEquipmentInfo2 = async (q = {}, page = 1, size = 10) => {
   const paramsSel = [
-    // OR 그룹 (코드/유형/명/위치)
     q.equipment_id || null,
     q.equipment_id || null,
     q.equipment_type || null,
@@ -229,31 +305,14 @@ const searchEquipmentInfo2 = async (q = {}, page = 1, size = 10) => {
     size,
     (page - 1) * size,
   ];
-  const paramsCnt = paramsSel.slice(0, -2); // LIMIT/OFFSET 뺀 나머지
-
+  const paramsCnt = paramsSel.slice(0, -2);
   const items = await mariadb.query("selectEquipmentInfoSearchOr", paramsSel);
   const total = (
     await mariadb.query("countEquipmentInfoSearchOr", paramsCnt)
   )[0].total;
-
-  /* AND 버전 사용하려면 아래로 교체(윗줄 주석 처리)
-  const paramsSelA = [
-    q.equipment_id || null, q.equipment_id || null,
-    q.equipment_type || null, q.equipment_type || null,
-    q.equipment_name || null, q.equipment_name || null,
-    q.location || null, q.location || null,
-    q.status || null, q.status || null,
-    size, (page-1)*size
-  ];
-  const paramsCntA = paramsSelA.slice(0, -2);
-  const items = await mariadb.query("selectEquipmentInfoSearchAnd", paramsSelA);
-  const total = (await mariadb.query("countEquipmentInfoSearchAnd", paramsCntA))[0].total;
-  */
-
   return { items, total, page, size };
 };
 
-// 5-3) DISTINCT (모달)
 const findEquipmentInfoDistinct = async (field, page = 1, size = 5) => {
   let listSql = "",
     countSql = "";
@@ -287,7 +346,6 @@ const findEquipmentInfoDistinct = async (field, page = 1, size = 5) => {
   return { items, total, page, size };
 };
 
-// --- ADD: 단건 조회 (PK) 이거 설비정보 등록/수정에 설비코드부분---
 const findOneEquipment = async (q = {}) => {
   const id = (q.equipment_id || "").trim();
   if (!id) return null;
@@ -295,7 +353,6 @@ const findOneEquipment = async (q = {}) => {
   return rows[0] || null;
 };
 
-// [FIX] 설비정보 조건 검색 (note 컬럼 SELECT/COUNT에서 제거)
 const searchEquipment2 = async (q = {}, page = 1, size = 10) => {
   const params = [
     q.equipment_id || null,
@@ -317,42 +374,43 @@ const searchEquipment2 = async (q = {}, page = 1, size = 10) => {
   return { items, total, page, size };
 };
 
-// ✅ 설비코드 자동 생성 (INSP001, INSP002, …)
-const generateCode = async () => {
-  const rows = await mariadb.query("genEquipmentCode"); // mapper_sql 키와 동일
-  return rows?.[0]?.new_code; // 예: 'INSP001'
+// 설비정보 수정
+const updateEquipment = async (data = {}) => {
+  const params = [
+    (data.equipmentName ?? "").trim(),
+    (data.manufacturer ?? "").trim(),
+    (data.serialNo ?? "").trim(),
+    formatDate(data.purchaseDate),
+    formatDate(data.startDate),
+    (data.equipmentType ?? "").trim(),
+    (data.location ?? "").trim(),
+    (data.status ?? "").trim(),
+    (data.equipmentCode ?? "").trim(), // PK
+  ];
+  return await mariadb.query("updateEquipment", params);
 };
 
-// --- /ADD ---
+// 설비정보 등록/수정페이지 설비코드 자동생성
 
-// =======================
-// 공통 함수
-// =======================
-const formatDate = (val) => {
-  if (!val) return null;
-  if (typeof val === "string") return val.slice(0, 10);
-  return val.toISOString().slice(0, 10);
-};
-
-const convertToArray = (obj, columns) => {
-  return columns.map((col) => obj[col]);
-};
-
-// =======================
-// Export
-// =======================
 module.exports = {
+  /* 설비점검(기존) */
   findInspectionList,
   findInspectionByFilter,
+  findInspectionDistinct,
+
+  /* ★ 설비점검 단건/등록/수정 */
+  findInspectionOne,
+  registerInspection,
+  updateInspection,
+
+  /* 설비정보(기존) */
   getDistinct,
   searchEquipment,
   insertEquipment,
   updateEquipment,
-  findInspectionDistinct,
   findEquipmentInfoPage,
   searchEquipmentInfo2,
   findEquipmentInfoDistinct,
   findOneEquipment,
   searchEquipment2,
-  generateCode,
 };

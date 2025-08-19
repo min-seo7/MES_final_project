@@ -36,14 +36,14 @@ export default {
             //입고대기 테이블 컬럼
             pendingCol: [
                 { field: 'p_dueDate', header: '입고예정일', headerStyle: 'width: 20rem' },
-                { field: 'p_No', header: '검수번호', headerStyle: 'width: 25rem' },
-                { field: 'p_prdType', header: '제품타입', headerStyle: 'width: 15rem' },
+                { field: 'p_No', header: '검수번호', headerStyle: 'width: 18rem' },
+                { field: 'p_prdType', header: '제품타입', headerStyle: 'width: 18rem' },
                 { field: 'p_prdCode', header: '제품코드', headerStyle: 'width: 15rem' },
-                { field: 'p_prdName', header: '제품명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenPrdModal },
+                { field: 'p_prdName', header: '제품명', headerStyle: 'width: 35rem', inputTextWM: true, onClick: this.rowOpenPrdModal },
                 { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
                 { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
                 { field: 'p_unit', header: '단위', headerStyle: 'width: 13rem' },
-                { field: 'p_exp', header: '유통기한', headerStyle: 'width: 50rem' },
+                { field: 'p_exp', header: '유통기한', headerStyle: 'width: 20rem' },
                 { field: 'p_warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal }, //창고위치모달.
                 { field: 'p_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],
@@ -164,9 +164,9 @@ export default {
                 console.log('입고등록실패', error);
             }
             alert('입고등록 완료');
-            this.selectPendingPrds = [];
             this.getPrdPendigList();
             this.getprdLotLIst();
+            this.selectPendingPrds = [];
         },
         //입고취소
         async postCanelLot() {
@@ -183,7 +183,6 @@ export default {
             } catch (error) {
                 console.lof('취소실패', error);
             }
-
             this.getprdLotLIst();
             this.selectPandingPrds = [];
         },

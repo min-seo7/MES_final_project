@@ -61,22 +61,45 @@ const handleSearch = (result) => {
     productSearchData.value = mapped;
 };
 
+const handleResetForm = () => {
+    productSelectedData.value = {}; // 초기화
+};
+
 const handleSelect = (row) => {
+    const parseValueUnit = (value) => {
+        if (!value) return { number: '', unit: '' };
+
+        // 숫자(정수/소수) + 문자 단위로 분리
+        const match = value.match(/^([\d.]+)\s*(\D+)$/);
+        if (match) {
+            return { number: match[1], unit: match[2] };
+        }
+        return { number: value, unit: '' }; // 단위가 없을 경우
+    };
+
+    const spec = parseValueUnit(row.specification);
+    const stock = parseValueUnit(row.safetyStock);
+    const exp = parseValueUnit(row.expiration);
+
     productSelectedData.value = [
         {
             productId: row.productId,
             productType: row.productType,
             productForm: row.productForm,
             productName: row.productName,
-            specification: row.specification,
-            expiration: row.expiration,
+            specification: spec.number,
+            unit: spec.unit,
+            expiration: exp.number,
+            expirationUnit: exp.unit,
             storageCondition: row.storageCondition,
-            safetyStock: row.safetyStock,
+            safetyStock: stock.number,
+            safetyStockUnit: stock.unit,
+
             manual: row.manual,
             status: row.status
         }
     ];
-    console.log(productSelectedData);
+    console.log(productSelectedData.value);
 };
 
 onUnmounted(() => {
@@ -86,7 +109,7 @@ onUnmounted(() => {
 
 <template>
     <section class="product-container">
-        <productSearchWidget @productFilterSearch="handleSearch" />
+        <productSearchWidget @productFilterSearch="handleSearch" @resetForm="handleResetForm" />
         <productListWidget :items="productSearchData" @productSelected="handleSelect" />
         <productRegistWidget :items="productSelectedData" />
     </section>
