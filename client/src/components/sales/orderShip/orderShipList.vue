@@ -1,56 +1,47 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import RadioButton from 'primevue/radiobutton';
 import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import InputGroup from 'primevue/inputgroup';
 import Calendar from 'primevue/calendar';
-import Toolbar from 'primevue/toolbar';
+// import Toolbar from 'primevue/toolbar';
 import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Paginator from 'primevue/paginator';
-
-// 날짜 예시
-const today = new Date().toISOString().slice(0, 10);
-const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+import Paginator from 'primevue/paginator'; // Paginator 컴포넌트 추가
+import Dialog from 'primevue/dialog';
+import axios from 'axios';
 
 // 상태 변수
 const ship = ref('');
-const order = ref({
-    delStartDate: null,
-    delEndDate: null
-});
+const searchFilters = ref({ prodCode: '', partCode: '', delStartDate: null, delEndDate: null });
+const customers2 = ref([]);
 
-// 전체 주문내역
-const allOrders = [
-    {
-        ordernum: 'ORD001',
-        prodCode: 'P1001',
-        partCode: 'SUP002',
-        partName: '농협',
-        productName: '분말형',
-        qty: 100,
-        addr: '서울 강남구',
-        createDate: today,
-        deliveryDate: nextWeek,
-        shipState: '출하대기',
-        manager: '홍oo',
-        name: '김미국'
-    }
-];
+// 페이징 관련 변수
+const totalRecords = ref(0);
+const first = ref(0);
+const rows = ref(10);
 
-// 화면에 표시할 주문내역
-const customers2 = ref([...allOrders]);
+// 모달 관련 상태 변수
+const showSupplierModal = ref(false);
+const supplierList = ref([]);
+const showProductModal = ref(false);
+const productList = ref([]);
 
-// 주문상태에 따른 색상
+// 상태코드 ↔ 상태명 매핑
+const shipStateMap = { 1: '출하대기', 2: '출하중', 3: '출하완료' };
+const shipStateMapReverse = computed(() => Object.fromEntries(Object.entries(shipStateMap).map(([k, v]) => [v, k])));
+
+// 출하 상태별 색상 설정
 const getSeverity = (status) => {
     switch (status) {
         case '출하대기':
             return 'contrast';
         case '출하중':
-            return 'danger';
+            return 'warning';
         case '출하완료':
             return 'success';
         default:
@@ -58,112 +49,224 @@ const getSeverity = (status) => {
     }
 };
 
-// 조회 버튼 클릭 시 필터링
-const searchOrders = () => {
-    if (ship.value) {
-        customers2.value = allOrders.filter((order) => order.orderstate === ship.value);
-    } else {
-        customers2.value = [...allOrders];
+const formatDate = (date) => (date ? new Date(date).toISOString().slice(0, 10) : '');
+
+// API 호출 함수 (페이징 포함)
+const fetchShipList = async () => {
+    try {
+        const params = {
+            productId: searchFilters.value.prodCode || null,
+            partnerId: searchFilters.value.partCode || null,
+            shipStatus: ship.value ? shipStateMapReverse.value[ship.value] : null,
+            delStartDate: searchFilters.value.delStartDate ? formatDate(searchFilters.value.delStartDate) : null,
+            delEndDate: searchFilters.value.delEndDate ? formatDate(searchFilters.value.delEndDate) : null
+        };
+        const res = await axios.get('/api/sales/shipReqSearch', { params });
+        if (res.data?.list) {
+            customers2.value = res.data.list.map((item) => ({
+                shipmentId: item.shipment_id,
+                productId: item.product_id,
+                productName: item.product_name,
+                partnerName: item.partner_name,
+                quantity: item.quantity,
+                deliveryAddr: item.delivery_addr,
+                delDate: item.del_date,
+                shipmentDate: item.shipment_date,
+                shipState: shipStateMap[item.ship_status] ?? item.ship_status,
+                manager: item.manager,
+                orderManager: item.order_manager
+            }));
+            totalRecords.value = customers2.value.length; // 전체 레코드 수 업데이트
+        }
+    } catch (err) {
+        console.error('출하 내역 데이터 로드 실패', err);
+        customers2.value = [];
+        totalRecords.value = 0;
     }
 };
 
-// 초기화 버튼 클릭 시 모든 값 리셋
-const resetFilters = () => {
-    ship.value = '';
-    order.value.delStartDate = null;
-    order.value.delEndDate = null;
-    customers2.value = [...allOrders];
+const fetchSuppliers = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordPaModalList');
+        supplierList.value = response.data.list.map((item) => ({
+            code: item.partner_id,
+            name: item.partner_name,
+            address: item.address,
+            manager: item.manager
+        }));
+    } catch (error) {
+        console.error('거래처 데이터 로드 실패:', error);
+        supplierList.value = [];
+    }
 };
+
+const fetchProducts = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordModalPrdList');
+        productList.value = response.data.list.map((item) => ({
+            code: item.product_id,
+            name: item.product_name,
+            spec: item.specification,
+            stock: item.stock || 0
+        }));
+    } catch (error) {
+        console.error('제품 데이터 로드 실패:', error);
+        productList.value = [];
+    }
+};
+
+// 모달 열기/선택 함수
+const openSupplierModal = () => {
+    showSupplierModal.value = true;
+    fetchSuppliers();
+};
+
+const selectSupplier = (event) => {
+    const supplier = event.data;
+    searchFilters.value.partCode = supplier.code;
+    showSupplierModal.value = false;
+};
+
+const openProductModal = () => {
+    showProductModal.value = true;
+    fetchProducts();
+};
+
+const selectProduct = (event) => {
+    const product = event.data;
+    searchFilters.value.prodCode = product.code;
+    showProductModal.value = false;
+};
+
+// 조회 / 초기화
+const searchOrders = () => {
+    fetchShipList();
+};
+
+const resetFilters = () => {
+    searchFilters.value = { prodCode: '', partCode: '', delStartDate: null, delEndDate: null };
+    ship.value = '';
+    fetchShipList();
+};
+
+// 페이징 이벤트 핸들러
+const onPage = (event) => {
+    first.value = event.first;
+    rows.value = event.rows;
+};
+
+// 페이징된 데이터 계산
+const paginatedData = computed(() => {
+    const start = first.value;
+    const end = first.value + rows.value;
+    return customers2.value.slice(start, end);
+});
+
+// 초기 로딩 시 데이터 조회
+onMounted(fetchShipList);
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold">검색</h1>
-        <div class="flex space-x-2">
-            <Button label="조회" rounded @click="searchOrders" />
-            <Button label="초기화" severity="info" rounded @click="resetFilters" />
+    <div class="p-4 bg-gray-100 min-h-screen">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">출하내역 조회</h1>
+            <div class="flex space-x-2">
+                <Button label="조회" rounded @click="searchOrders" />
+                <Button label="초기화" severity="info" rounded @click="resetFilters" />
+            </div>
         </div>
-    </div>
 
-    <Toolbar>
-        <template #center>
-            <IconField>
-                <div class="flex flex-col gap-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">주문번호</label>
-                            <InputGroup>
-                                <InputText placeholder="ORD001" />
-                                <Button icon="pi pi-search" />
-                            </InputGroup>
-                        </div>
+        <div class="p-4 border rounded-md shadow-md mb-8" style="background-color: white">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="flex flex-col space-y-1">
+                    <label class="font-semibold text-sm">제품코드</label>
+                    <InputGroup>
+                        <IconField iconPosition="right">
+                            <InputText v-model="searchFilters.prodCode" placeholder="제품코드" />
+                            <InputIcon class="pi pi-search cursor-pointer" @click="openProductModal" />
+                        </IconField>
+                    </InputGroup>
+                </div>
 
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">출하상태</label>
-                            <div class="flex flex-wrap gap-3">
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="ship" inputId="ingredient1" name="ship" value="출하대기" />
-                                    <label for="ingredient1">출하대기</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="ship" inputId="ingredient2" name="ship" value="출하중" />
-                                    <label for="ingredient2">출하중</label>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <RadioButton v-model="ship" inputId="ingredient3" name="ship" value="출하완료" />
-                                    <label for="ingredient3">출하완료</label>
-                                </div>
-                            </div>
-                        </div>
+                <div class="flex flex-col space-y-1">
+                    <label class="font-semibold text-sm">거래처코드</label>
+                    <InputGroup>
+                        <IconField iconPosition="right">
+                            <InputText v-model="searchFilters.partCode" placeholder="거래처코드" />
+                            <InputIcon class="pi pi-search cursor-pointer" @click="openSupplierModal" />
+                        </IconField>
+                    </InputGroup>
+                </div>
+
+                <div class="flex flex-col col-span-2">
+                    <label class="font-semibold text-sm">납기일</label>
+                    <div class="flex items-center space-x-2">
+                        <Calendar v-model="searchFilters.delStartDate" dateFormat="yy-mm-dd" placeholder="시작일" showIcon class="w-full" />
+                        <span>~</span>
+                        <Calendar v-model="searchFilters.delEndDate" dateFormat="yy-mm-dd" placeholder="종료일" showIcon class="w-full" />
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="flex flex-col space-y-1">
-                            <label class="font-semibold text-sm">거래처코드</label>
-                            <InputGroup>
-                                <InputText placeholder="SUP002" />
-                                <Button icon="pi pi-search" class="p-button-secondary" />
-                            </InputGroup>
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm mb-1">출하상태</label>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="flex items-center gap-2">
+                            <RadioButton v-model="ship" inputId="ship1" name="ship" value="출하대기" @change="searchOrders" />
+                            <label for="ship1">출하대기</label>
                         </div>
-                        <div class="flex flex-col space-y-1">
-                            <label class="font-semibold text-sm">* 납기일</label>
-                            <div class="flex items-center space-x-2">
-                                <Calendar v-model="order.delStartDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
-                                <span>~</span>
-                                <Calendar v-model="order.delEndDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
-                            </div>
+                        <div class="flex items-center gap-2">
+                            <RadioButton v-model="ship" inputId="ship2" name="ship" value="출하중" @change="searchOrders" />
+                            <label for="ship2">출하중</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <RadioButton v-model="ship" inputId="ship3" name="ship" value="출하완료" @change="searchOrders" />
+                            <label for="ship3">출하완료</label>
                         </div>
                     </div>
                 </div>
-            </IconField>
-        </template>
-    </Toolbar>
+            </div>
+        </div>
 
-    <br />
-    <div class="font-semibold text-xl mb-4">
-        주문내역
-        <DataTable :value="customers2" scrollable scrollHeight="200px" class="mt-6">
-            <Column field="ordernum" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
-            <Column field="prodCode" header="제품코드" style="min-width: 100px" />
+        <div class="font-semibold text-xl mb-4">출하내역</div>
+        <DataTable :value="paginatedData" scrollable scrollHeight="400px" class="mt-4">
+            <Column field="shipmentId" header="출하번호" style="min-width: 100px" frozen class="font-bold" />
+            <Column field="productId" header="제품코드" style="min-width: 100px" />
             <Column field="productName" header="제품명" style="min-width: 120px" />
-            <Column field="partName" header="거래처명" style="min-width: 80px" />
-            <Column field="qty" header="수량" style="min-width: 120px" />
-            <Column field="addr" header="배송지" style="min-width: 100px" />
-            <Column field="createDate" header="납기일자" style="min-width: 80px" />
-            <Column field="deliveryDate" header="출하일자" style="min-width: 120px" />
-            <Column field="manager" header="거래담당자" style="min-width: 80px" />
-
-            <template #body="slotProps">
-                <Tag :value="slotProps.data.shipState" :severity="getSeverity(slotProps.data.shipState)" :rounded="true" class="px-3 py-1 text-sm" />
-            </template>
-            <!-- 주문상태에 Tag 적용 -->
+            <Column field="partnerName" header="거래처명" style="min-width: 120px" />
+            <Column field="quantity" header="수량" style="min-width: 80px" />
+            <Column field="deliveryAddr" header="배송지" style="min-width: 150px" />
+            <Column field="delDate" header="납기일자" style="min-width: 120px" />
+            <Column field="shipmentDate" header="출하일자" style="min-width: 120px" />
             <Column field="shipState" header="출하상태" style="min-width: 120px">
                 <template #body="slotProps">
-                    <Tag :value="slotProps.data.shipState" :severity="getSeverity(slotProps.data.shipState)" :rounded="true" class="px-3 py-1 text-sm" />
+                    <Tag :value="slotProps.data.shipState" :severity="getSeverity(slotProps.data.shipState)" rounded class="px-3 py-1 text-sm" />
                 </template>
             </Column>
-            <Column field="name" header="담당자" style="min-width: 80px" />
+            <Column field="orderManager" header="담당자" style="min-width: 100px" />
         </DataTable>
-        <Paginator :rows="10" :totalRecords="customers2.length" :rowsPerPageOptions="[10, 20, 30]" />
+
+        <div class="flex justify-center mt-4">
+            <Paginator :rows="rows" :totalRecords="totalRecords" :rowsPerPageOptions="[10, 20, 30]" @page="onPage" />
+        </div>
+
+        <Dialog v-model:visible="showSupplierModal" modal header="거래처 검색" :style="{ width: '50vw' }">
+            <DataTable :value="supplierList" selectionMode="single" @row-select="selectSupplier">
+                <Column field="code" header="거래처코드" />
+                <Column field="name" header="거래처명" />
+                <Column field="address" header="주소" />
+                <Column field="manager" header="담당자" />
+            </DataTable>
+        </Dialog>
+
+        <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '50vw' }">
+            <DataTable :value="productList" selectionMode="single" @row-select="selectProduct">
+                <Column field="code" header="제품코드" />
+                <Column field="name" header="제품명" />
+                <Column field="spec" header="규격" />
+                <Column field="stock" header="재고" />
+            </DataTable>
+        </Dialog>
     </div>
 </template>
+
+<style scoped></style>

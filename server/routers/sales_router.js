@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const { generatePdf, sendEmail } = require("../services/sales_service");
 const salesService = require("../services/sales_service.js");
 
 //주문등록
@@ -85,6 +85,25 @@ router.get("/pdfEmail", async (req, res) => {
   }
 });
 
+//반품정보관련 주문내역
+router.get("/returnRegist", async (req, res) => {
+  try {
+    const filter = {
+      orderId: req.query.orderId || null,
+      orderStatus: req.query.orderStatus || null,
+      productName: req.query.productName || null,
+      partnerId: req.query.partnerId || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.selectFiltereReturns(filter);
+    res.json({ list: filteredData });
+  } catch (error) {
+    console.error("반품내역 조회 실패:sales_router.js", error);
+    res.status(500).json({ error: "데이터를 가져오는 데 실패했습니다." });
+  }
+});
+
 //출하요청내역(주문서목록조회)
 router.get("/shipReqOrders", async (req, res) => {
   try {
@@ -139,17 +158,25 @@ router.post("/shipReqRegist", async (req, res) => {
     res.status(500).json({ message: "출하 등록 실패", error: error.message });
   }
 });
-//출하조회
+
+//출하조회 (필터링 적용)
 router.get("/shipReqSearch", async (req, res) => {
   try {
-    let list = await salesService.shipList();
-    res.json({ list });
+    const filters = {
+      partnerId: req.query.partnerId || null,
+      productId: req.query.productId || null,
+      shipStatus: req.query.shipStatus || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.shipList(filters);
+    res.json({ list: filteredData });
   } catch (err) {
-    console.error("주문조회내역조회" + err);
-    res.status(500).json({ message: "서버오류" });
+    console.error("출하조회 실패:", err);
+    res.status(500).json({ message: "서버 오류" });
   }
 });
-// 납기일 수정 및 이력 등록 라우터 추가
+// 납기일 수정 및 이력 등록
 router.put("/updateOrderDelivery", async (req, res) => {
   try {
     const delDateInfo = req.body;
@@ -191,4 +218,74 @@ router.get("/orderModify", async (req, res) => {
     res.status(500).json({ error: "납기일 변경 내역 조회 실패" });
   }
 });
+//반품내역 조회 라우터
+router.get("/returnSearch", async (req, res) => {
+  try {
+    const filter = {
+      orderId: req.query.orderId || null,
+      reStatus: req.query.reStatus || null,
+      partnerId: req.query.partnerId || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.returnList(filter);
+    res.json({ list: filteredData });
+  } catch (err) {
+    console.error("출하조회 실패:", err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+//반품등록
+router.post("/returnRegist", async (req, res) => {
+  try {
+    const returnItems = req.body.returnItems;
+    if (!returnItems || returnItems.length === 0) {
+      return res.status(400).json({ message: "반품할 항목이 없습니다." });
+    }
+    const result = await salesService.returnRegist(returnItems);
+    if (result.success) {
+      res.status(200).json({
+        message: "반품 등록 성공",
+        createdCount: result.createdCount,
+      });
+    } else {
+      res.status(500).json({ message: "반품 등록 실패", error: result.error });
+    }
+  } catch (error) {
+    console.error("반품 등록 실패:", error);
+    res.status(500).json({ message: "반품 등록 실패", error: error.message });
+  }
+});
+
+// PDF 생성 및 다운로드
+router.post("/pdf/generate", async (req, res) => {
+  try {
+    const { filePath, fileName } = await generatePdf(req.body);
+    res.download(filePath, fileName);
+  } catch (err) {
+    console.error("PDF 생성 실패:", err);
+    res.status(500).json({ message: "PDF 생성 실패" });
+  }
+});
+
+// 이메일 전송
+router.post("/email/send", async (req, res) => {
+  try {
+    const { filePath, fileName } = await generatePdf(req.body); // PDF 먼저 생성
+    await sendEmail({
+      to: req.body.partnerEmail,
+      from: req.body.managerEmail,
+      subject: req.body.subject,
+      text: req.body.body,
+      attachmentPath: filePath,
+      attachmentName: fileName,
+    });
+    res.json({ message: "이메일 전송 완료" });
+  } catch (err) {
+    console.error("이메일 전송 실패:", err);
+    res.status(500).json({ message: "이메일 전송 실패" });
+  }
+});
+
 module.exports = router;

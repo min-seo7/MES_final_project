@@ -23,7 +23,7 @@ const orderStateMapReverse = computed(() => {
     return Object.fromEntries(Object.entries(orderStateMap).map(([key, value]) => [value, key]));
 });
 
-// const getStatusText = (code) => orderStateMap[code] ?? '알수없음';
+const getStatusText = (code) => orderStateMap[code] ?? '알수없음';
 
 // 검색 필터 상태
 const searchFilters = ref({

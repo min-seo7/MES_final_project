@@ -1,3 +1,4 @@
 node_modules
 uploads
 sqls/.env
+/pdfs/

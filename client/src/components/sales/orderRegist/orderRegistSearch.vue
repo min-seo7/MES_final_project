@@ -330,7 +330,6 @@ onMounted(() => {
                         <InputIcon class="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
                     </IconField>
                 </div>
-
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">* 수량</label>
                     <InputNumber v-model="order.quantity" :min="1" showButtons class="w-full" />

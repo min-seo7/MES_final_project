@@ -1,5 +1,8 @@
 const { query, getConnection, sqlList } = require("../database/mapper.js");
-
+const fs = require("fs");
+const path = require("path");
+const PDFDocument = require("pdfkit");
+const nodemailer = require("nodemailer");
 // 객체를 배열로 변환
 function convertToArray(obj, columns) {
   return columns.map((col) => obj[col]);
@@ -214,9 +217,27 @@ const insertShipment = async (shipmentItems) => {
   }
 };
 
-//출하등록조회
-const shipList = () => {
-  let list = query("shipList");
+//출하내역조회
+const shipList = (filter) => {
+  const params = [
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.productId,
+    filter.productId,
+    filter.productId,
+    filter.shipStatus,
+    filter.shipStatus,
+    filter.shipStatus,
+    filter.startDate,
+    filter.startDate,
+    filter.startDate,
+    filter.endDate,
+    filter.endDate,
+    filter.endDate,
+  ];
+  console.log("출하조회 필터링 파라미터:", params);
+  let list = query("shipList", params);
   return list;
 };
 
@@ -317,6 +338,168 @@ const InsertOrder = async (orderInfo, orderItems) => {
     conn.release();
   }
 };
+// //반품등록
+const returnRegist = async (returnItems) => {
+  const conn = await getConnection();
+  let createdCount = 0;
+  try {
+    // 1. 트랜잭션 시작
+    await conn.beginTransaction();
+
+    // 2. 새로운 반품 ID 생성 (출하 ID와 동일한 로직)
+    const [lastReturnRow] = await conn.query(sqlList.SelectMaxReturnId);
+    let lastNum = 0;
+    if (lastReturnRow && lastReturnRow.max_return_id) {
+      lastNum = parseInt(lastReturnRow.max_return_id.replace("RTN", ""), 10);
+    }
+    // 3. 반품 항목들을 순회하며 데이터베이스 작업 수행
+    for (const item of returnItems) {
+      lastNum += 1;
+      const newReturnId = `RTN${String(lastNum).padStart(3, "0")}`;
+
+      // a. 반품 정보를 returns 테이블에 삽입
+      const insertParams = [
+        newReturnId,
+        item.orderDetailId,
+        item.productId,
+        item.quantity, // 반품 수량
+        item.returnDate,
+        item.returnReason,
+        item.orderManager,
+        item.reStatus,
+        item.inDate,
+        item.warehouseName,
+        item.prdId,
+        item.shipmentId,
+      ];
+      await conn.query(sqlList["returnRegist"], insertParams);
+    }
+    // 4. 모든 작업이 성공하면 트랜잭션 커밋
+    await conn.commit();
+    return { success: true, createdCount };
+  } catch (err) {
+    // 5. 오류 발생 시 트랜잭션 롤백
+    await conn.rollback();
+
+    if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
+      console.error("Duplicate entry detected. (order_detail_id)");
+      return {
+        success: false,
+        error: "선택된 항목 중 이미 반품 등록된 내역이 있습니다.",
+      };
+    } else {
+      console.error("ReturnRegist Error:", err);
+      return { success: false, error: err.message };
+    }
+  } finally {
+    // 6. 연결 해제
+    conn.release();
+  }
+};
+
+//반품내역
+const returnList = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.reStatus,
+    filter.reStatus,
+    filter.reStatus,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.startDate,
+    filter.startDate,
+    filter.startDate,
+    filter.endDate,
+    filter.endDate,
+    filter.endDate,
+  ];
+  console.log("반품조회 필터링 파라미터:", params);
+  let list = query("returnList", params);
+  return list;
+};
+
+//반품등록전  조회
+const selectFiltereReturns = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.startDate,
+    filter.endDate,
+  ];
+  let list = query("selectReturnPreList", params);
+  return list;
+};
+
+// PDF 생성 함수
+async function generatePdf(orderData) {
+  const fileName = `${orderData.orderDate.replace(/-/g, "")}_${
+    orderData.partnerName
+  }_${orderData.orderId}_주문서.pdf`;
+  const filePath = path.join(__dirname, "../pdfs", fileName);
+
+  const doc = new PDFDocument();
+  const stream = fs.createWriteStream(filePath);
+  doc.pipe(stream);
+
+  doc.fontSize(18).text("주문서", { align: "center" });
+  doc.moveDown();
+  doc.fontSize(12).text(`주문번호: ${orderData.orderId}`);
+  doc.text(`거래처: ${orderData.partnerName}`);
+  doc.text(`배송지: ${orderData.deliveryAddr}`);
+  doc.text(`제품명: ${orderData.productName}`);
+  doc.text(`수량: ${orderData.quantity}`);
+  doc.text(`납기일: ${orderData.delDate}`);
+  doc.end();
+
+  return new Promise((resolve, reject) => {
+    stream.on("finish", () => resolve({ fileName, filePath }));
+    stream.on("error", reject);
+  });
+}
+
+// 이메일 전송 함수
+async function sendEmail({
+  to,
+  from,
+  subject,
+  text,
+  attachmentPath,
+  attachmentName,
+}) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: from,
+      pass: "앱 비밀번호",
+    },
+  });
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    attachments: [
+      {
+        filename: attachmentName,
+        path: attachmentPath,
+      },
+    ],
+  });
+}
 
 module.exports = {
   InsertOrder,
@@ -329,5 +512,10 @@ module.exports = {
   shipList,
   modifyUpdate,
   modifyList,
+  returnList,
   selectFilterInfoEmail,
+  returnRegist,
+  selectFiltereReturns,
+  generatePdf,
+  sendEmail,
 };
