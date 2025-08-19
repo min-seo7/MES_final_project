@@ -64,12 +64,24 @@ const handleSearch = (result) => {
 };
 
 const handleSelect = (row) => {
+    let email = '';
+    let domain = '';
+
+    if (row.email && row.email.includes('@')) {
+        const parts = row.email.split('@');
+        email = parts[0];
+        domain = parts[1];
+    } else {
+        email = row.email || '';
+        domain = '';
+    }
     employeeSelectedData.value = [
         {
             employeeId: row.employeeId,
             name: row.name,
             phone: row.phone,
-            email: row.email,
+            email: email,
+            emailDomain: domain,
             hireDate: row.hireDate,
             leaveDate: row.leaveDate,
             auth: row.auth,

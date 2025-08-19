@@ -68,7 +68,12 @@ const registMaterial = async () => {
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">자재유형</label>
-                    <InputText v-model="form.materialType" class="w-full" />
+                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <RadioButton id="partnerType1" name="partnerType" value="원자재" v-model="form.partnerType" />
+                        <label for="partnerType1" class="ml-2 mr-4">원자재</label>
+                        <RadioButton id="partnerType2" name="partnerType" value="부자재" v-model="form.partnerType" />
+                        <label for="partnerType2" class="ml-2">부자재</label>
+                    </label>
                 </div>
                 <div>
                     <label class="block mb-1">자재명</label>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
+import CommonModal from '@/components/common/modal.vue';
 
 const props = defineProps({
     detailData: {
@@ -18,9 +19,53 @@ const form = ref({
     lineName: '',
     flowId: '',
     productId: '',
+    productName: '',
     note: '',
     status: ''
 });
+
+const item = ref([]);
+const columns = ref([]);
+const showModal = ref(false);
+const modalType = ref('');
+const selectedItem = ref(null);
+
+// 모달 열기
+const openModal = async (type) => {
+    modalType.value = type;
+    showModal.value = true;
+    selectedItem.value = null;
+
+    if (type === 'productId') {
+        const res = await axios.get('/api/information//flowchart/getProductId');
+        item.value = res.data.map((item, index) => ({
+            num: index + 1,
+            productId: item.product_id,
+            productName: item.product_name,
+            productType: item.product_type,
+            productForm: item.product_form
+        }));
+        columns.value = [
+            { field: 'productId', header: '제품코드' },
+            { field: 'productName', header: '제품명' },
+            { field: 'productType', header: '제품유형' },
+            { field: 'productForm', header: '제품형태' }
+        ];
+    }
+};
+
+// 모달 선택 완료
+const selectModalValue = () => {
+    if (!selectedItem.value) {
+        alert('선택된 항목이 없습니다.');
+        return;
+    }
+
+    form.value.productId = selectedItem.value.productId;
+    form.value.productName = selectedItem.value.productName;
+
+    showModal.value = false;
+};
 
 watch(
     () => props.items,
@@ -57,7 +102,7 @@ const registLine = async () => {
 
     try {
         const payload = {
-            bomInfo: {
+            lineInfo: {
                 // 서버에서 받을 기본 정보
                 lineId: form.value.lineId,
                 lineName: form.value.lineName,
@@ -66,7 +111,7 @@ const registLine = async () => {
                 note: form.value.note,
                 status: form.value.status
             },
-            bomDetails: props.detailData // 서버에서 받을 상세 리스트
+            lineDetails: props.detailData // 서버에서 받을 상세 리스트
         };
 
         const res = await axios.post('/api/information/line', payload, {
@@ -100,11 +145,10 @@ const registLine = async () => {
                 </div>
                 <div>
                     <label class="block mb-1">제품코드</label>
-                    <InputText v-model="form.productId" class="w-full" />
-                </div>
-                <div>
-                    <label class="block mb-1">흐름도코드</label>
-                    <InputText v-model="form.flowId" class="w-full" />
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText v-model="form.productId" class="w-full" />
+                        <InputIcon class="pi pi-search" @click="openModal('productId')" />
+                    </IconField>
                 </div>
                 <div style="display: flex; gap: 20px">
                     <label class="block mb-1" style="text-align: center">상태</label>
@@ -123,26 +167,24 @@ const registLine = async () => {
                     <label class="block mb-1">라인명</label>
                     <div class="flex gap-2 items-center">
                         <InputText v-model="form.lineName" class="w-full" />
-                        <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
                 <div>
                     <label class="block mb-1">제품명</label>
                     <div class="flex gap-2 items-center">
                         <InputText v-model="form.productName" class="w-full" />
-                        <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
                 <div>
                     <label class="block mb-1">비고</label>
                     <div class="flex gap-2 items-center">
                         <InputText v-model="form.note" class="w-full" />
-                        <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="item" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
 </template>
 
 <style scoped>
