@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { generatePdf, sendEmail } = require("../services/sales_service");
+// const { generatePdf, sendEmail } = require("../services/sales_service");
 const salesService = require("../services/sales_service.js");
 
 //주문등록
@@ -258,34 +258,47 @@ router.post("/returnRegist", async (req, res) => {
   }
 });
 
-// PDF 생성 및 다운로드
+// PDF 생성 및 다운로드 (기존 코드가 올바르게 동작하므로 그대로 둡니다.)
 router.post("/pdf/generate", async (req, res) => {
   try {
-    const { filePath, fileName } = await generatePdf(req.body);
-    res.download(filePath, fileName);
+    const { filePath, fileName } = await salesService.generatePdf(req.body);
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error("PDF 다운로드 중 오류 발생:", err);
+        res.status(500).json({ message: "PDF 다운로드 실패" });
+      }
+      require("fs").unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) console.error("임시 파일 삭제 실패:", unlinkErr);
+      });
+    });
   } catch (err) {
     console.error("PDF 생성 실패:", err);
     res.status(500).json({ message: "PDF 생성 실패" });
   }
 });
 
-// 이메일 전송
+// 이메일 전송 라우터 수정
+// sales_service.js의 generatePdfAndSendEmail 함수를 사용하도록 변경합니다.
 router.post("/email/send", async (req, res) => {
   try {
-    const { filePath, fileName } = await generatePdf(req.body); // PDF 먼저 생성
-    await sendEmail({
-      to: req.body.partnerEmail,
-      from: req.body.managerEmail,
-      subject: req.body.subject,
-      text: req.body.body,
-      attachmentPath: filePath,
-      attachmentName: fileName,
-    });
-    res.json({ message: "이메일 전송 완료" });
+    // sales_service.js의 generatePdfAndSendEmail 함수를 호출하여
+    // PDF 생성 및 이메일 전송을 한 번에 처리합니다.
+    const result = await salesService.generatePdfAndSendEmail(
+      req.body,
+      req.body
+    );
+    // 결과에 따라 응답을 보냅니다.
+    if (result.success) {
+      res.json({ message: "이메일 전송 완료" });
+    } else {
+      console.error("이메일 전송 실패:", result.error);
+      res
+        .status(500)
+        .json({ message: "이메일 전송 실패", error: result.error });
+    }
   } catch (err) {
     console.error("이메일 전송 실패:", err);
     res.status(500).json({ message: "이메일 전송 실패" });
   }
 });
-
 module.exports = router;

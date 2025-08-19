@@ -27,8 +27,6 @@ const modifyUpdate = async (delDateInfo) => {
   const conn = await getConnection();
   try {
     await conn.beginTransaction();
-
-    // history_id 순차적으로 생성
     const [lastHistoryRow] = await conn.query(sqlList.SelectMaxHistoryId);
     let newHistoryId;
     if (lastHistoryRow && lastHistoryRow.max_history_id) {
@@ -42,15 +40,11 @@ const modifyUpdate = async (delDateInfo) => {
     } else {
       newHistoryId = "HIST001";
     }
-
-    // 주문상세 테이블 납기일 업데이트
     const updateParams = [
       formatDateToYMD(delDateInfo.changeDeliveryDate),
       delDateInfo.orderDetailId,
     ];
     await conn.query(sqlList["modifyDelDate"], updateParams);
-
-    // order_history 테이블에 변경 이력 삽입
     const insertHistoryParams = [
       newHistoryId,
       formatDateToYMD(delDateInfo.orderDate),
@@ -59,7 +53,6 @@ const modifyUpdate = async (delDateInfo) => {
       delDateInfo.orderDetailId,
     ];
     await conn.query(sqlList["modifyInsert"], insertHistoryParams);
-
     await conn.commit();
     return { success: true };
   } catch (err) {
@@ -89,7 +82,6 @@ const modifyList = (filter) => {
     filter.delDate,
     filter.delDate,
   ];
-  console.log("필터링 파라미터:", params);
   let list = query("modifyNextList", params);
   return list;
 };
@@ -154,7 +146,6 @@ const selectFilteredShips = (filters) => {
     filters.endDate,
     filters.endDate,
   ];
-  console.log("필터링 파라미터:", params);
   let list = query("selectShipOrders", params);
   return list;
 };
@@ -169,10 +160,8 @@ const selectOrderDetails = async (orderId) => {
 const insertShipment = async (shipmentItems) => {
   const conn = await getConnection();
   let createdCount = 0;
-
   try {
     await conn.beginTransaction();
-
     const [lastShipmentRow] = await conn.query(sqlList.SelectMaxShipId);
     let lastNum = 0;
     if (lastShipmentRow && lastShipmentRow.max_shipment_id) {
@@ -181,11 +170,9 @@ const insertShipment = async (shipmentItems) => {
         10
       );
     }
-
     for (const item of shipmentItems) {
       lastNum += 1;
       const newShipmentId = `SHIP${String(lastNum).padStart(3, "0")}`;
-
       const params = [
         newShipmentId,
         item.item_seq,
@@ -200,7 +187,6 @@ const insertShipment = async (shipmentItems) => {
       await conn.query(sqlList["insertShip"], params);
       createdCount++;
     }
-
     await conn.commit();
     return { success: true, createdCount };
   } catch (err) {
@@ -239,7 +225,6 @@ const shipList = (filter) => {
     filter.endDate,
     filter.endDate,
   ];
-  console.log("출하조회 필터링 파라미터:", params);
   let list = query("shipList", params);
   return list;
 };
@@ -259,10 +244,8 @@ const selectOrderProductModal = () => {
 // 주문 1: 주문상세 N
 const InsertOrder = async (orderInfo, orderItems) => {
   const conn = await getConnection();
-
   try {
     await conn.beginTransaction();
-    // 데이터베이스에서 마지막 주문번호 조회
     const [lastOrderRow] = await conn.query(sqlList.SelectMaxOrderId);
     let newOrderId;
     if (lastOrderRow && lastOrderRow.max_order_id) {
@@ -277,11 +260,7 @@ const InsertOrder = async (orderInfo, orderItems) => {
       newOrderId = "ORD001";
     }
     orderInfo.orderId = newOrderId;
-
-    // 주문 날짜 형식 맞추기
     orderInfo.orderDate = formatDateToYMD(orderInfo.orderDate);
-
-    // orders 테이블에 insert
     const insertOrderData = convertToArray(orderInfo, [
       "orderId",
       "partnerId",
@@ -294,8 +273,6 @@ const InsertOrder = async (orderInfo, orderItems) => {
       "totalQty",
     ]);
     await conn.query(sqlList["InsertOrders"], insertOrderData);
-
-    // 주문 상세 번호 순차적으로 증가
     const [lastDetailRow] = await conn.query(sqlList.orderDetailId);
     let lastDetailIdNum = 0;
     if (lastDetailRow && lastDetailRow.max_order_detail_id) {
@@ -304,17 +281,12 @@ const InsertOrder = async (orderInfo, orderItems) => {
         10
       );
     }
-
-    // order_items 테이블에 insert
     for (const item of orderItems) {
       item.delDate = formatDateToYMD(item.delDate);
       item.orderId = newOrderId;
-
-      // 새로운 order_detail_id 생성 및 할당
       lastDetailIdNum += 1;
       const newDetailId = `DET${String(lastDetailIdNum).padStart(3, "0")}`;
       item.orderDetailId = newDetailId;
-
       const insertItemData = convertToArray(item, [
         "orderDetailId",
         "itemSeq",
@@ -330,7 +302,6 @@ const InsertOrder = async (orderInfo, orderItems) => {
       ]);
       await conn.query(sqlList["InsertOrderItems"], insertItemData);
     }
-
     await conn.commit();
     return { success: true, newOrderId: newOrderId };
   } catch (err) {
@@ -341,31 +312,26 @@ const InsertOrder = async (orderInfo, orderItems) => {
     conn.release();
   }
 };
-// //반품등록
+
+// 반품등록
 const returnRegist = async (returnItems) => {
   const conn = await getConnection();
   let createdCount = 0;
   try {
-    // 1. 트랜잭션 시작
     await conn.beginTransaction();
-
-    // 2. 새로운 반품 ID 생성 (출하 ID와 동일한 로직)
     const [lastReturnRow] = await conn.query(sqlList.SelectMaxReturnId);
     let lastNum = 0;
     if (lastReturnRow && lastReturnRow.max_return_id) {
       lastNum = parseInt(lastReturnRow.max_return_id.replace("RTN", ""), 10);
     }
-    // 3. 반품 항목들을 순회하며 데이터베이스 작업 수행
     for (const item of returnItems) {
       lastNum += 1;
       const newReturnId = `RTN${String(lastNum).padStart(3, "0")}`;
-
-      // a. 반품 정보를 returns 테이블에 삽입
       const insertParams = [
         newReturnId,
         item.orderDetailId,
         item.productId,
-        item.quantity, // 반품 수량
+        item.quantity,
         item.returnDate,
         item.returnReason,
         item.orderManager,
@@ -377,13 +343,10 @@ const returnRegist = async (returnItems) => {
       ];
       await conn.query(sqlList["returnRegist"], insertParams);
     }
-    // 4. 모든 작업이 성공하면 트랜잭션 커밋
     await conn.commit();
     return { success: true, createdCount };
   } catch (err) {
-    // 5. 오류 발생 시 트랜잭션 롤백
     await conn.rollback();
-
     if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
       console.error("Duplicate entry detected. (order_detail_id)");
       return {
@@ -395,7 +358,6 @@ const returnRegist = async (returnItems) => {
       return { success: false, error: err.message };
     }
   } finally {
-    // 6. 연결 해제
     conn.release();
   }
 };
@@ -419,12 +381,11 @@ const returnList = (filter) => {
     filter.endDate,
     filter.endDate,
   ];
-  console.log("반품조회 필터링 파라미터:", params);
   let list = query("returnList", params);
   return list;
 };
 
-//반품등록전  조회
+//반품등록전  조회
 const selectFiltereReturns = (filter) => {
   const params = [
     filter.orderId,
@@ -446,34 +407,156 @@ const selectFiltereReturns = (filter) => {
   return list;
 };
 
-//폰트 파일 경로 지정
+// 폰트 파일 경로 지정
 const fontPath = path.join(__dirname, "../fonts/NanumGothic-Regular.ttf");
 
-// PDF 생성 함수
+// PDF 생성 함수 (수정됨)
 async function generatePdf(orderData) {
   const fileName = `${orderData.orderDate.replace(/-/g, "")}_${
     orderData.partnerName
   }_${orderData.orderId}_주문서.pdf`;
   const filePath = path.join(__dirname, "../pdfs", fileName);
 
-  const doc = new PDFDocument();
+  const doc = new PDFDocument({
+    size: "A4",
+    margins: { top: 50, bottom: 50, left: 50, right: 50 },
+  });
   const stream = fs.createWriteStream(filePath);
-  doc.pipe(stream);
+  doc.pipe(stream); // 한글 폰트 등록
 
-  // 한글 폰트 등록
   doc.registerFont("NanumGothic", fontPath);
+  doc.font("NanumGothic"); // 제목
 
-  // 폰트 적용
-  doc.font("NanumGothic");
+  doc.fontSize(18).text("주 문 서", { align: "center" }); // 우측 상단 박스 (결재 라인)
 
-  doc.fontSize(18).text("주문서", { align: "center" });
-  doc.moveDown();
-  doc.fontSize(12).text(`주문번호: ${orderData.orderId}`);
-  doc.text(`거래처: ${orderData.partnerName}`);
-  doc.text(`배송지: ${orderData.deliveryAddr}`);
-  doc.text(`제품명: ${orderData.productName}`);
-  doc.text(`수량: ${orderData.quantity}`);
-  doc.text(`납기일: ${orderData.delDate}`);
+  const headerX = 380;
+  const headerY = 50;
+  const headerWidth = 180;
+  const headerHeight = 60;
+  doc.rect(headerX, headerY, headerWidth, headerHeight).stroke();
+  doc
+    .fontSize(8)
+    .text("담당", headerX + 15, headerY + 5, { width: 30, align: "center" });
+  doc.text("부서장", headerX + 50, headerY + 5, { width: 30, align: "center" });
+  doc.text("김원", headerX + 85, headerY + 5, { width: 30, align: "center" });
+  doc.text("사장", headerX + 120, headerY + 5, { width: 30, align: "center" });
+  doc.text("/", headerX + 25, headerY + 20, { width: 10, align: "center" });
+  doc.text("/", headerX + 60, headerY + 20, { width: 10, align: "center" });
+  doc.text("/", headerX + 95, headerY + 20, { width: 10, align: "center" });
+  doc.text("/", headerX + 130, headerY + 20, { width: 10, align: "center" }); // 거래처 정보 박스
+
+  const partnerBoxY = 115;
+  doc.rect(50, partnerBoxY, 510, 50).stroke();
+  doc.fontSize(10);
+  doc.text("하기와 같이 주문합니다.", 60, partnerBoxY + 10);
+  doc.text("귀하", 480, partnerBoxY + 10);
+  doc.text(
+    `20 ${new Date().getFullYear().toString().substring(2)} 년 ${
+      new Date().getMonth() + 1
+    } 월 ${new Date().getDate()} 일`,
+    440,
+    partnerBoxY + 25
+  );
+  doc.moveDown(); // 주요 주문 정보 박스
+
+  const detailsBoxY = 170;
+  doc.rect(50, detailsBoxY, 510, 80).stroke();
+  doc.fontSize(10);
+  doc.text("● 품 명 : " + orderData.productName, 60, detailsBoxY + 10);
+  doc.text("● 납기기한 : " + orderData.delDate, 60, detailsBoxY + 30);
+  doc.text("● 납품장소 : " + orderData.deliveryAddr, 60, detailsBoxY + 50); // 테이블 헤더 (1줄)
+
+  const tableTop = 260;
+  const tableX = 50;
+  const tableWidth = 510;
+  const rowHeight = 20;
+  const cellPadding = 5;
+  const headers = [
+    { label: "품명", width: 100 },
+    { label: "제품코드", width: 80 },
+    { label: "규격/크기", width: 70 },
+    { label: "수량", width: 50 },
+    { label: "단가", width: 70 },
+    { label: "금액", width: 70 },
+    { label: "지급조건", width: 70 },
+  ];
+
+  let currentX = tableX;
+  doc.fontSize(10);
+  headers.forEach((header) => {
+    doc.text(header.label, currentX, tableTop + cellPadding, {
+      width: header.width,
+      align: "center",
+    });
+    currentX += header.width;
+  }); // 테이블 내용 (주문 상세) - 동적으로 추가
+
+  let contentY = tableTop + rowHeight;
+  const item = orderData; // 단일 주문이므로 orderData를 직접 사용
+  currentX = tableX;
+  doc.text(item.productName, currentX, contentY + cellPadding, {
+    width: headers[0].width,
+    align: "center",
+  });
+  currentX += headers[0].width;
+  doc.text(item.productId, currentX, contentY + cellPadding, {
+    width: headers[1].width,
+    align: "center",
+  });
+  currentX += headers[1].width;
+  doc.text(item.spec, currentX, contentY + cellPadding, {
+    width: headers[2].width,
+    align: "center",
+  });
+  currentX += headers[2].width;
+  doc.text(item.quantity, currentX, contentY + cellPadding, {
+    width: headers[3].width,
+    align: "center",
+  });
+  currentX += headers[3].width;
+  doc.text(item.price, currentX, contentY + cellPadding, {
+    width: headers[4].width,
+    align: "center",
+  });
+  currentX += headers[4].width;
+  doc.text(item.supplyPrice, currentX, contentY + cellPadding, {
+    width: headers[5].width,
+    align: "center",
+  }); // 지급조건, 비고는 데이터에 없으므로 빈칸으로 둠 // 테이블 라인 그리기
+  doc.rect(tableX, tableTop, tableWidth, 400).stroke(); // 전체 테이블 테두리
+  doc
+    .moveTo(tableX, tableTop + rowHeight)
+    .lineTo(tableX + tableWidth, tableTop + rowHeight)
+    .stroke(); // 헤더 아래 가로선
+  for (let i = 0; i < 20; i++) {
+    // 가로 줄
+    doc
+      .moveTo(tableX, tableTop + rowHeight * (i + 2))
+      .lineTo(tableX + tableWidth, tableTop + rowHeight * (i + 2))
+      .stroke();
+  }
+  currentX = tableX;
+  headers.forEach((header) => {
+    doc
+      .moveTo(currentX, tableTop)
+      .lineTo(currentX, tableTop + 400)
+      .stroke();
+    currentX += header.width;
+  }); // 푸터
+
+  const footerY = tableTop + 420;
+  // 주문 회사: orderData.partnerName 또는 유사한 필드를 사용
+  doc.text(`주문 회사: ${orderData.partnerName}`, 400, footerY);
+
+  // 주문 책임자: orderData.manager 또는 유사한 필드를 사용
+  doc.text(`주문 책임자: ${orderData.manager}`, 400, footerY + 15);
+
+  // 주소 및 전화번호: orderData.partnerAddress, orderData.partnerTel 등 유사한 필드를 사용
+  doc.text(
+    `주소 및 전화번호: ${orderData.deliveryAddr}, ${orderData.partnerName}`,
+    400,
+    footerY + 30
+  );
   doc.end();
 
   return new Promise((resolve, reject) => {
@@ -483,34 +566,32 @@ async function generatePdf(orderData) {
 }
 
 // 이메일 전송 함수
-async function sendEmail({
-  to,
-  from,
-  subject,
-  text,
-  attachmentPath,
-  attachmentName,
-}) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: from,
-      pass: "앱 비밀번호",
-    },
-  });
+async function generatePdfAndSendEmail(orderData, emailDetails) {
+  const { fileName, filePath } = await generatePdf(orderData); // 이 함수는 이제 경로를 반환합니다.
 
-  await transporter.sendMail({
-    from,
-    to,
-    subject,
-    text,
-    attachments: [
-      {
-        filename: attachmentName,
-        path: attachmentPath,
-      },
-    ],
-  });
+  try {
+    await sendEmail({
+      to: emailDetails.partnerEmail,
+      from: emailDetails.managerEmail, // 담당자 이메일이 발신자라고 가정합니다.
+      subject: emailDetails.subject,
+      text: emailDetails.body,
+      attachmentPath: filePath,
+      attachmentName: fileName,
+    });
+    console.log(
+      `이메일이 첨부파일과 함께 성공적으로 전송되었습니다: ${fileName}`
+    );
+    return { success: true, message: "이메일이 성공적으로 전송되었습니다." };
+  } catch (error) {
+    console.error("이메일 전송 실패:", error);
+    return { success: false, error: "이메일 전송에 실패했습니다." };
+  } finally {
+    // 임시 PDF 파일 정리
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`임시 파일이 삭제되었습니다: ${filePath}`);
+    }
+  }
 }
 
 module.exports = {
@@ -529,5 +610,5 @@ module.exports = {
   returnRegist,
   selectFiltereReturns,
   generatePdf,
-  sendEmail,
+  generatePdfAndSendEmail,
 };
