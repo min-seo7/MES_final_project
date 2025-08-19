@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Access: typeof import('./src/components/common/access.vue')['default']
+    AutoComplete: typeof import('primevue/autocomplete')['default']
     BestSellingWidget: typeof import('./src/components/dashboard/BestSellingWidget.vue')['default']
     BomDetailRegistWidget: typeof import('./src/components/information/bom/bomDetailRegistWidget.vue')['default']
     BomDetailWidget: typeof import('./src/components/information/bom/bomDetailWidget.vue')['default']
@@ -21,7 +22,6 @@ declare module 'vue' {
     Column: typeof import('primevue/column')['default']
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
-    Dialog: typeof import('primevue/dialog')['default']
     EmployeeListWidget: typeof import('./src/components/information/employee/employeeListWidget.vue')['default']
     EmployeeRegistWidget: typeof import('./src/components/information/employee/employeeRegistWidget.vue')['default']
     EmployeeSearchWidget: typeof import('./src/components/information/employee/employeeSearchWidget.vue')['default']
