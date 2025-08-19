@@ -295,11 +295,11 @@ onMounted(() => {
                     <div class="flex gap-2">
                         <InputGroup>
                             <IconField iconPosition="right">
-                                <InputText v-model="searchForm.partnerId" placeholder="코드" />
+                                <InputText v-model="searchForm.partnerId" placeholder="거래처코드" />
                                 <InputIcon class="pi pi-search cursor-pointer" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
-                        <InputText v-model="searchForm.partnerName" placeholder="명칭" disabled />
+                        <InputText v-model="searchForm.partnerName" placeholder="거래처명" disabled />
                     </div>
                 </div>
                 <div class="flex flex-col">
@@ -307,11 +307,11 @@ onMounted(() => {
                     <div class="flex gap-2">
                         <InputGroup>
                             <IconField iconPosition="right">
-                                <InputText v-model="searchForm.productId" placeholder="코드" />
+                                <InputText v-model="searchForm.productId" placeholder="제품코드" />
                                 <InputIcon class="pi pi-search cursor-pointer" @click="openProductModal" />
                             </IconField>
                         </InputGroup>
-                        <InputText v-model="searchForm.productName" placeholder="명칭" disabled />
+                        <InputText v-model="searchForm.productName" placeholder="제품명" disabled />
                     </div>
                 </div>
                 <div class="flex flex-col col-span-2">

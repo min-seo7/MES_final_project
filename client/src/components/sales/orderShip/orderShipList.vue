@@ -6,7 +6,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import InputGroup from 'primevue/inputgroup';
 import Calendar from 'primevue/calendar';
-import Toolbar from 'primevue/toolbar';
+// import Toolbar from 'primevue/toolbar';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import DataTable from 'primevue/datatable';
@@ -28,10 +28,8 @@ const rows = ref(10);
 // 모달 관련 상태 변수
 const showSupplierModal = ref(false);
 const supplierList = ref([]);
-const selectedSupplier = ref(null);
 const showProductModal = ref(false);
 const productList = ref([]);
-const selectedProduct = ref(null);
 
 // 상태코드 ↔ 상태명 매핑
 const shipStateMap = { 1: '출하대기', 2: '출하중', 3: '출하완료' };
@@ -184,7 +182,7 @@ onMounted(fetchShipList);
                     <label class="font-semibold text-sm">제품코드</label>
                     <InputGroup>
                         <IconField iconPosition="right">
-                            <InputText v-model="searchFilters.prodCode" placeholder="코드" />
+                            <InputText v-model="searchFilters.prodCode" placeholder="제품코드" />
                             <InputIcon class="pi pi-search cursor-pointer" @click="openProductModal" />
                         </IconField>
                     </InputGroup>
@@ -194,7 +192,7 @@ onMounted(fetchShipList);
                     <label class="font-semibold text-sm">거래처코드</label>
                     <InputGroup>
                         <IconField iconPosition="right">
-                            <InputText v-model="searchFilters.partCode" placeholder="코드" />
+                            <InputText v-model="searchFilters.partCode" placeholder="거래처코드" />
                             <InputIcon class="pi pi-search cursor-pointer" @click="openSupplierModal" />
                         </IconField>
                     </InputGroup>

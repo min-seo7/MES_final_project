@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-// import InputGroup from 'primevue/inputgroup';
+import InputGroup from 'primevue/inputgroup';
 import Calendar from 'primevue/calendar';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -11,6 +11,9 @@ import Paginator from 'primevue/paginator';
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
 import RadioButton from 'primevue/radiobutton';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import Toolbar from 'primevue/toolbar';
 
 // 상태코드(int) → 상태명 매핑
 const orderStateMap = {
@@ -48,16 +51,13 @@ const selectedOrder = ref(null);
 
 // 거래처 모달 관련
 const showSupplierDialog = ref(false);
-const suppliers = ref([]); // Changed name for clarity
-const supplierCurrentPage = ref(1);
-const supplierPageSize = ref(3);
-
+const suppliers = ref([]);
 const fetchSuppliers = async () => {
     try {
         const response = await axios.get('/api/sales/ordPaModalList');
         suppliers.value = response.data.list.map((item) => ({
-            partnerId: item.partner_id,
-            partnerName: item.partner_name,
+            code: item.partner_id,
+            name: item.partner_name,
             ceo: item.ceo,
             address: item.address,
             manager: item.manager,
@@ -67,49 +67,47 @@ const fetchSuppliers = async () => {
         console.error('거래처 데이터 로드 실패:', error);
     }
 };
-
 const openSupplierModal = async () => {
-    await fetchSuppliers(); // Fetch data only when modal is opened
+    await fetchSuppliers();
     showSupplierDialog.value = true;
 };
-
-const selectSupplierFromDialog = (supplier) => {
-    search.value.partCode = supplier.partnerId;
-    search.value.partName = supplier.partnerName;
+const selectSupplier = (event) => {
+    const supplier = event.data;
+    search.value.partCode = supplier.code;
+    search.value.partName = supplier.name;
     search.value.manager = supplier.manager;
     search.value.addr = supplier.address;
     showSupplierDialog.value = false;
 };
 
-// 모달 및 제품 데이터
+// 제품 모달 관련  추가
 const showProductDialog = ref(false);
-const products = ref([
-    { productId: 'P001', productName: '분말형', specification: '20KG', productPrice: 5000 },
-    { productId: 'P002', productName: '분말형', specification: '40KG', productPrice: 9500 },
-    { productId: 'P003', productName: '액상형', specification: '10L', productPrice: 12000 },
-    { productId: 'P004', productName: '액상형', specification: '20L', productPrice: 23000 }
-]);
-
+const products = ref([]);
+const fetchProducts = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordModalPrdList');
+        products.value = response.data.list.map((item) => ({
+            code: item.product_id,
+            name: item.product_name,
+            spec: item.specification,
+            stock: item.stock || 0
+        }));
+    } catch (error) {
+        console.error('제품 데이터 로드 실패:', error);
+        products.value = [];
+    }
+};
+const openProductModal = async () => {
+    await fetchProducts();
+    showProductDialog.value = true;
+};
 const selectProduct = (event) => {
     const product = event.data;
-    search.value.productName = product.productName;
-    search.value.spec = product.specification;
-    search.value.prodCode = product.productId;
+    search.value.prodCode = product.code;
+    search.value.productName = product.name;
+    search.value.spec = product.spec;
     showProductDialog.value = false;
 };
-
-// 동적 품목 및 규격 데이터
-const productList = ['분말형', '과립형', '액상형'];
-const productSpecs = {
-    분말형: ['20KG', '40KG'],
-    과립형: ['20KG', '40KG'],
-    액상형: ['5L', '10L', '20L']
-};
-
-// 품명에 따라 동적으로 변하는 규격 옵션
-const specOptions = computed(() => {
-    return productSpecs[search.value.productName] || [];
-});
 
 // 주문 데이터
 const orders = ref([]);
@@ -132,7 +130,7 @@ const fetchOrders = async () => {
             productName: search.value.productName || null,
             partnerId: search.value.partCode || null,
             delDate: formattedDelDate,
-            spec: search.value.spec || null // Added spec to queryParams
+            spec: search.value.spec || null
         };
 
         const response = await axios.get('/api/sales/orderSearch', { params: queryParams });
@@ -152,7 +150,7 @@ const fetchOrders = async () => {
                 ordState: getStatusText(item.ord_status),
                 orderManager: item.order_manager,
                 spec: item.spec,
-                orderDetailId: item.order_detail_id // ✅ 추가: 백엔드에서 받아온 order_detail_id
+                orderDetailId: item.order_detail_id
             }));
         } else {
             orders.value = [];
@@ -228,14 +226,14 @@ const saveOrderUpdate = async () => {
     try {
         const updatePayload = {
             orderId: selectedOrder.value.orderId,
-            orderDate: selectedOrder.value.orderDate, // ✅ 추가: 원본 주문 날짜
-            orderDetailId: selectedOrder.value.orderDetailId, // ✅ 추가: order_detail_id
+            orderDate: selectedOrder.value.orderDate,
+            orderDetailId: selectedOrder.value.orderDetailId,
             changeDeliveryDate: orderUpdate.value.changeDeliveryDate?.toISOString().slice(0, 10),
             changeReason: orderUpdate.value.changeReason
         };
         await axios.put('/api/sales/updateOrderDelivery', updatePayload);
         alert('납기일 변경이 완료되었습니다.');
-        fetchOrders(); // 변경 후 목록 새로고침
+        fetchOrders();
     } catch (error) {
         console.error('납기일 변경 실패:', error);
         alert('납기일 변경에 실패했습니다. 다시 시도해주세요.');
@@ -245,20 +243,14 @@ const saveOrderUpdate = async () => {
 // 행 선택 시 기존납기일 및 담당자 채움
 const onOrderSelect = (event) => {
     const order = event.data;
-    selectedOrder.value = { ...order }; // ✅ 추가: 선택된 행 전체를 저장
+    selectedOrder.value = { ...order };
     orderUpdate.value.originDeliveryDate = order.delDate;
     orderUpdate.value.manager = order.orderManager;
 };
 
-// 거래처 모달 페이징
-const supplierTotalPages = computed(() => Math.ceil(suppliers.value.length / supplierPageSize.value));
-const pagedSupplierList = computed(() => {
-    const start = (supplierCurrentPage.value - 1) * supplierPageSize.value;
-    return suppliers.value.slice(start, start + supplierPageSize.value);
-});
-
+// 초기 데이터 로드
 onMounted(() => {
-    fetchOrders(); // 초기 데이터 로드
+    fetchOrders();
 });
 </script>
 
@@ -275,40 +267,35 @@ onMounted(() => {
             <div class="flex flex-wrap gap-6 p-4">
                 <div class="flex flex-col">
                     <label for="partCode" class="font-semibold text-sm mb-1">거래처코드</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="partCode" type="text" class="w-60" v-model="search.partCode" readonly />
-                        <InputIcon class="pi pi-search" @click="openSupplierModal(partCode)" />
-                    </IconField>
+                    <InputGroup>
+                        <IconField iconPosition="left">
+                            <InputText id="partCode" type="text" class="w-60" v-model="search.partCode" readonly />
+                            <InputIcon class="pi pi-search" @click="openSupplierModal" />
+                        </IconField>
+                    </InputGroup>
                 </div>
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm">제품명</label>
-                <div class="flex flex-wrap gap-3">
-                    <div v-for="item in productList" :key="item" class="flex items-center gap-2">
-                        <RadioButton v-model="search.productName" :inputId="item" :value="item" />
-                        <label :for="item">{{ item }}</label>
-                    </div>
+
+                <div class="flex flex-col">
+                    <label for="prodCode" class="font-semibold text-sm mb-1">제품코드</label>
+                    <InputGroup>
+                        <IconField iconPosition="left">
+                            <InputText id="prodCode" type="text" class="w-60" v-model="search.prodCode" readonly />
+                            <InputIcon class="pi pi-search" @click="openProductModal" />
+                        </IconField>
+                    </InputGroup>
                 </div>
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm">규격</label>
-                <div class="flex flex-wrap gap-3">
-                    <div v-for="item in specOptions" :key="item" class="flex items-center gap-2">
-                        <RadioButton v-model="search.spec" :inputId="`spec-${item}`" :value="item" />
-                        <label :for="`spec-${item}`">{{ item }}</label>
-                    </div>
+
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm">납기일</label>
+                    <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
                 </div>
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm">납기일</label>
-                <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
-            </div>
-            <div class="flex flex-col">
-                <label class="font-semibold text-sm">주문상태</label>
-                <div class="flex flex-wrap gap-3">
-                    <div class="flex items-center gap-2" v-for="state in Object.values(orderStateMap)" :key="state">
-                        <RadioButton v-model="search.orderStatus" :inputId="`orderState-${state}`" name="orderStatus" :value="state" />
-                        <label :for="`orderState-${state}`">{{ state }}</label>
+                <div class="flex flex-col">
+                    <label class="font-semibold text-sm">주문상태</label>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="flex items-center gap-2" v-for="state in Object.values(orderStateMap)" :key="state">
+                            <RadioButton v-model="search.orderStatus" :inputId="`orderState-${state}`" name="orderStatus" :value="state" />
+                            <label :for="`orderState-${state}`">{{ state }}</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -349,7 +336,7 @@ onMounted(() => {
                     @click="
                         () => {
                             orderUpdate.value = { originDeliveryDate: '', changeDeliveryDate: null, changeReason: '', manager: '' };
-                            selectedOrder = null; // Reset selection on update form clear
+                            selectedOrder = null;
                         }
                     "
                 />
@@ -378,33 +365,21 @@ onMounted(() => {
         </div>
     </div>
 
-    <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog">
-        <div class="p-4">
-            <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
-            <ul class="mb-3">
-                <li
-                    v-for="supplier in pagedSupplierList"
-                    :key="supplier.partnerId"
-                    :class="['cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded', search.partCode === supplier.partnerId ? 'bg-blue-100 text-blue-700 font-semibold' : '']"
-                    @click="selectSupplierFromDialog(supplier)"
-                >
-                    • {{ supplier.partnerId }} - {{ supplier.partnerName }} - {{ supplier.address }} - {{ supplier.ceo }} - {{ supplier.manager }} - {{ supplier.mainTel }}
-                </li>
-            </ul>
-        </div>
-        <div class="flex justify-center gap-2 pb-4">
-            <Button label="이전" @click="supplierCurrentPage--" :disabled="supplierCurrentPage === 1" size="small" />
-            <span class="px-2">페이지 {{ supplierCurrentPage }} / {{ supplierTotalPages }}</span>
-            <Button label="다음" @click="supplierCurrentPage++" :disabled="supplierCurrentPage === supplierTotalPages" size="small" />
-        </div>
+    <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }">
+        <DataTable :value="suppliers" selectionMode="single" @row-select="selectSupplier">
+            <Column field="code" header="거래처코드" />
+            <Column field="name" header="거래처명" />
+            <Column field="address" header="주소" />
+            <Column field="manager" header="담당자" />
+        </DataTable>
     </Dialog>
 
     <Dialog v-model:visible="showProductDialog" modal header="제품 검색" :style="{ width: '50vw' }">
-        <DataTable :value="products" selectionMode="single" dataKey="productId" @rowSelect="selectProduct">
-            <Column field="productId" header="제품코드"></Column>
-            <Column field="productName" header="제품명"></Column>
-            <Column field="specification" header="규격"></Column>
-            <Column field="productPrice" header="단가"></Column>
+        <DataTable :value="products" selectionMode="single" @row-select="selectProduct">
+            <Column field="code" header="제품코드" />
+            <Column field="name" header="제품명" />
+            <Column field="spec" header="규격" />
+            <Column field="stock" header="재고" />
         </DataTable>
     </Dialog>
 </template>
@@ -412,12 +387,12 @@ onMounted(() => {
 <style scoped>
 /* PrimeVue DataTable 선택된 행 포커스 스타일 */
 :deep(.p-datatable .p-datatable-tbody > tr.p-highlight) {
-    background-color: #e3f2fd !important; /* light blue background */
-    color: #1565c0 !important; /* dark blue text */
+    background-color: #e3f2fd !important;
+    color: #1565c0 !important;
     font-weight: bold;
 }
 :deep(.p-datatable .p-datatable-tbody > tr:hover) {
-    background-color: #e8eaf6 !important; /* light hover effect */
+    background-color: #e8eaf6 !important;
     cursor: pointer;
 }
 </style>
