@@ -60,17 +60,17 @@ const onRowSelect = async (event) => {
     // const rowData = items.value[rowIdx]; // 해당 인덱스의 데이터 가져오기
     // console.log('선택된 행의 데이터:', rowData);
     const response = await axios.get(`/api/production/checkWoStatus?wo_no=${selectedData.wo_no}`);
-     if (selectedData.status == '대기' &&response.data.status == '진행') {
-            alert('해당 작업지시에 이미 진행 중인 공정이 있어요!');
-            return;
-    } 
-        
-        try {
+    if (selectedData.status == '대기' && response.data.status == '진행') {
+        alert('해당 작업지시에 이미 진행 중인 공정이 있어요!');
+        return;
+    }
+
+    try {
         // 선택된 데이터에서 필요한 정보를 가져와서 작업자 이름을 조회
         const insertedName = await axios.get(`/api/production/selectEname?wo_no=${selectedData.wo_no}&process_id=${selectedData.process}`);
         if (insertedName.data.success) {
             console.log('작업자 이름:', insertedName.data.e_name);
-            worker.value = insertedName.data.e_name ? insertedName.data.e_name : ""; // 작업자 이름 업데이트
+            worker.value = insertedName.data.e_name ? insertedName.data.e_name : ''; // 작업자 이름 업데이트
             wo_no.value = selectedData.wo_no;
             process.value = selectedData.process;
             process_name.value = selectedData.process_name;
@@ -84,7 +84,7 @@ const onRowSelect = async (event) => {
             status.value = selectedData.status;
         } else {
             console.error('작업자를 등록하지 않았거나 조회를 실패하였습니다.');
-             wo_no.value = selectedData.wo_no;
+            wo_no.value = selectedData.wo_no;
             process.value = selectedData.process;
             process_name.value = selectedData.process_name;
             inQuantity.value = selectedData.prd_noworder_qty;
@@ -96,13 +96,12 @@ const onRowSelect = async (event) => {
             equipmentCode.value = selectedData.equipment_id;
             status.value = selectedData.status;
         }
-    
     } catch (error) {
         console.error('데이터 가져오기 실패:', error);
         return;
-    }finally {
+    } finally {
         loading.value = false;
-  }
+    }
     console.log('선택된 항목:', selectedData);
 };
 const onCellEditComplete = (event) => {
@@ -281,26 +280,24 @@ const registEndPerformance = async () => {
     if (status.value == '완료' || status.value == '대기') {
         alert('이미 실적이 등록되었거나 작업대기중입니다');
         return;
-    }else{
+    } else {
         performanceInsEndDate.value = new Date();
         console.log('def_qty:', def_qty.value);
-        
-        const setData ={
+
+        const setData = {
             wo_no: wo_no.value,
             qty: in_qty.value - def_qty.value, // 투입량에서 불량량을 제외한 생산량
-            status:3,
+            status: 3,
             w_ed_date: performanceInsEndDate.value
         };
-      const result =  await axios.put('/api/production/updatePerform',setData);
-            if (result) {
-                alert('작업이 종료되었습니다.');
-                resetData();
-                fetchProductionProcess();
-            } else {
-                console.error('작업 종료 실패:', response.data.message);
-            }
-        
-           
+        const result = await axios.put('/api/production/updatePerform', setData);
+        if (result) {
+            alert('작업이 종료되었습니다.');
+            resetData();
+            fetchProductionProcess();
+        } else {
+            console.error('작업 종료 실패:', result.data.message);
+        }
     }
 };
 const resetData = () => {
