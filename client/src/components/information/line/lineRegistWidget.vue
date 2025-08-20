@@ -124,6 +124,35 @@ const registLine = async () => {
         alert('등록 실패');
     }
 };
+
+const modifyLine = async () => {
+    try {
+        const res = await axios.post('/api/information/line/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('라인수정실패');
+    }
+}
+
+const resetRegist = async () => {
+    if (form.value.lineId?.trim()) {
+        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+        if (props.items && props.items.length) {
+            form.value = { ...props.items[0], lineId: props.items[0].lineId?.trim() || '' };
+        }
+    } else {
+        // 등록 상태: 전체 필드 초기화
+        form.value = {
+            lineId: '',
+    lineName: '',
+    flowId: '',
+    productId: '',
+    productName: '',
+    note: '',
+    status: ''
+        };
+    }
+};
 </script>
 
 <template>
@@ -131,8 +160,8 @@ const registLine = async () => {
         <div>등록</div>
         <div class="space-x-2">
             <Button label=" 등록 " rounded @click="registLine()" :disabled="form.lineId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.lineId?.trim() === ''" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 수정 " rounded :disabled="form.lineId?.trim() === ''" @click="modifyLine()" />
+            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">

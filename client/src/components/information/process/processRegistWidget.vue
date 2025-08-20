@@ -16,6 +16,31 @@ const form = ref({
     status: ''
 });
 
+const modifyProcess = async () => {
+    try {
+        const res = await axios.post('/api/information/process/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('공정수정실패');
+    }
+}
+
+const resetRegist = async () => {
+    if (form.value.processId?.trim()) {
+        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+        if (props.items && props.items.length) {
+            form.value = { ...props.items[0], processId: props.items[0].processId?.trim() || '' };
+        }
+    } else {
+        // 등록 상태: 전체 필드 초기화
+        form.value = {
+            processId: '',
+    processName: '',
+    isInspection: '',
+    status: ''
+        };
+    }
+};
 watch(
     () => props.items,
     (newVal) => {
@@ -56,8 +81,8 @@ const registProcess = async () => {
         <div>등록/수정</div>
         <div class="space-x-2">
             <Button label=" 등록 " rounded @click="registProcess()" :disabled="form.processId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.processId?.trim() === ''" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 수정 " rounded :disabled="form.processId?.trim() === ''" @click="modifyProcess()" />
+            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">

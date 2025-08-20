@@ -120,6 +120,34 @@ const registBom = async () => {
         alert('등록 실패');
     }
 };
+
+const modifyBom = async () => {
+    try {
+        const res = await axios.post('/api/information/bom/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('bom 수정실패');
+    }
+}
+
+const resetRegist = () => {
+    if (form.value.bomId?.trim()) {
+        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+        if (props.items && props.items.length) {
+            form.value = { ...props.items[0], bomId: props.items[0].bomId?.trim() || '' };
+        }
+    } else {
+        // 등록 상태: 전체 필드 초기화
+        form.value = {
+            bomId: '',
+    prodId: '',
+    prodName: '',
+    prodForm: '',
+    prodType: '',
+    status: ''
+        };
+    }
+};
 </script>
 
 <template>
@@ -127,8 +155,8 @@ const registBom = async () => {
         <div>등록</div>
         <div class="space-x-2">
             <Button label=" 등록 " rounded @click="registBom()" :disabled="form.bomId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.bomId?.trim() === ''" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 수정 " rounded :disabled="form.bomId?.trim() === ''" @click="modifyBom()"/>
+            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card p-4 border rounded">
