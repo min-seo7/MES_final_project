@@ -1,5 +1,5 @@
 const mariadb = require("../database/mapper.js");
-const sqlList = require("../database/sqlList.js");
+// const sqlList = require("../database/sqlList.js");
 /* ---------- 공통 유틸 ---------- */
 const norm = (v) => {
   if (v === undefined || v === null) return null;
@@ -454,6 +454,66 @@ const updateEquipment = async (data = {}) => {
 
 // 설비정보 등록/수정페이지 설비코드 자동생성
 
+// 비가동 페이지
+
+/* ===== 비가동 목록 조회 ===== */
+async function getDowntimeList({ eq_id, offset, size }) {
+  // 데이터 목록
+  const rows = await mariadb.query("selectDowntimeList", [
+    eq_id,
+    eq_id,
+    offset,
+    size,
+  ]);
+
+  // 전체 건수
+  const totalRows = await mariadb.query("countDowntimeList", [eq_id, eq_id]);
+
+  return { rows, total: totalRows[0].cnt };
+}
+
+// 비가동
+
+// 설비코드모달 목록 조회
+// 설비코드 목록
+async function getCodeList(page, size) {
+  const offset = (page - 1) * size;
+  const rows = await mariadb.query("selectCodeList", [offset, size]);
+  const total = (await mariadb.query("countEquipment2"))[0].cnt;
+  return { items: rows, total, page, size };
+}
+
+// 비가동 등록
+async function registDowntime(form) {
+  const result = await mariadb.query("insertDowntime", [
+    form.equipment_id,
+    form.repair_id,
+    form.inspection_id,
+    form.fault_type,
+    form.fault_dtime,
+    form.restart_dtime,
+    form.note,
+    form.status,
+  ]);
+  return { id: result.insertId };
+}
+
+// 비가동 수정
+async function updateDowntime(form) {
+  await mariadb.query("updateDowntime", [
+    form.equipment_id,
+    form.repair_id,
+    form.inspection_id,
+    form.fault_type,
+    form.fault_dtime,
+    form.restart_dtime,
+    form.note,
+    form.status,
+    form.id,
+  ]);
+  return { id: form.id };
+}
+
 module.exports = {
   /* 설비점검(기존) */
   findInspectionList,
@@ -475,4 +535,10 @@ module.exports = {
   findEquipmentInfoDistinct,
   findOneEquipment,
   searchEquipment2,
+
+  //비가동
+  getDowntimeList,
+  updateDowntime, // 비가동 수정
+  getCodeList,
+  registDowntime,
 };
