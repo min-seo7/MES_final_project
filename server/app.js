@@ -1,6 +1,28 @@
 //app.js : 시작파일 -> 관련파일 끌어옴
 const express = require("express");
+const cors = require("cors");
 const app = express();
+const session = require("express-session");
+
+//로그인용
+app.use(
+  cors({
+    origin: "http://localhost:5173", // 프론트 주소
+    credentials: true, // 쿠키/세션 공유 허용
+  })
+);
+
+//로그인세션
+let sessionSetting = session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    httpOnly: true,
+    secure: false, //배포시에 true로 바꿔줄것. //SESSION_SECRET=your_secret_key => env파일 추가
+    maxAge: 60000,
+  },
+});
 
 // 2.미들웨어(제공하는 서비스 따라 제공.) 위치따라 몇개의 라우팅 동작 x 미들웨어 위 라우팅은 아래
 // 컨텐트타입 다루면 body-parse

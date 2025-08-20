@@ -209,13 +209,6 @@ export default {
 
     <!--자재모달-->
     <commModal v-model="materialModal" header="자재목록" style="width: 30rem">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="matCode">자재코드</label>
-            <InputText id="matCode" type="text" />
-            <label for="matrName">자재명</label>
-            <InputText id="matrName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="matCode" header="자재코드" headerStyle="width: 8rem"></Column>

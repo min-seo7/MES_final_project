@@ -140,38 +140,35 @@ export default {
                 // if (!this.dueDate || !this.partnerId || !this.empName) {
                 //     alert('필수정보입력');
                 //     return;
-                
+
                 //재고체크
-                let checkStock = this.selectOutWaitPrds.map(row => row.w_prdCode);
+                let checkStock = this.selectOutWaitPrds.map((row) => row.w_prdCode);
 
                 // 객체 형태로 보냄 { productIds: [...] }
                 let prdStotalStock = await axios.post('/api/stock/checkStock', { productIds: checkStock });
                 console.log('재고조회결과:', prdStotalStock);
 
-
                 //재고비교
                 let shortage = [];
                 for (let row of this.selectOutWaitPrds) {
-                    let stockInfo = prdStotalStock.data.find(item => item.product_id === row.w_prdCode);
+                    let stockInfo = prdStotalStock.data.find((item) => item.product_id === row.w_prdCode);
                     let available = stockInfo ? stockInfo.total_qty : 0;
                     if (row.w_outQty > available) {
                         shortage.push({
-                        code: row.w_prdCode,
-                        name: row.w_prdName,
-                        have: available
-                    });
+                            code: row.w_prdCode,
+                            name: row.w_prdName,
+                            have: available
+                        });
                     }
                 }
 
-            if (shortage.length > 0) {
-                    let msg = shortage.map(s => 
-                    `${s.name}(${s.code}): 보유 ${s.have}`
-                    ).join('\n');
-                alert("재고 부족:\n" + msg);
-                return; // 출고 등록 중단
-            }
+                if (shortage.length > 0) {
+                    let msg = shortage.map((s) => `${s.name}(${s.code}): 보유 ${s.have}`).join('\n');
+                    alert('재고 부족:\n' + msg);
+                    return; // 출고 등록 중단
+                }
 
-            //출고등록
+                //출고등록
                 let prdOutInfo = this.selectOutWaitPrds.map((row) => ({
                     shipment_id: row.w_shipmentId || null,
                     product_id: row.w_prdCode,
@@ -335,8 +332,8 @@ export default {
                 <div class="flex items-center gap-2">
                     <label for="prdCode" class="whitespace-nowrap">제품코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode"  />
-                        <InputIcon class="pi pi-search" @click="openPrdModal()"/>
+                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" />
+                        <InputIcon class="pi pi-search" @click="openPrdModal()" />
                     </IconField>
                 </div>
 
@@ -388,13 +385,6 @@ export default {
 
     <!--제품모달-->
     <commModal v-model="productModal" header="제품목록" style="width: 50rem">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="prdCode">제품코드</label>
-            <InputText id="prdCode" type="text" />
-            <label for="prdName">제품명</label>
-            <InputText id="prdName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="prdType" header="제품유형" Style="width: 5rem"></Column>
@@ -412,13 +402,6 @@ export default {
 
     <!--거래처모달-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">거래처코드</label>
-            <InputText id="partnerId" type="text" />
-            <label for="partnerName">거래처명</label>
-            <InputText id="partnerName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
         <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
