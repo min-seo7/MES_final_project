@@ -157,7 +157,7 @@ INSERT INTO equipment_inspection (
 
 const insertInspectionDetail = `
 INSERT INTO equipment_inspection_detail (
-  inspection_id, item, result, action
+  inspection_id, inspection_item, inspection_result, corrective_action
 ) VALUES (?, ?, ?, ?)
 `;
 
@@ -404,10 +404,16 @@ async function getInspectionById(inspCode) {
 
 // 마지막 설비코드 조회
 const selectMaxEqId = `
-  SELECT 
-  MAX(CAST(REGEXP_REPLACE(equipment_id, '[^0-9]', '') AS UNSIGNED)) AS max_num
-FROM equipment;
+  SELECT MAX(equipment_id) AS max_eq_id
+  FROM equipment
+  FOR UPDATE;
 `;
+
+// 마지막 점검코드 조회
+const selectMaxInspId = `
+  SELECT MAX(inspection_id) AS max_insp_id
+  FROM equipment_inspection
+  FOR UPDATE;`;
 
 // 시저
 
@@ -500,6 +506,7 @@ module.exports = {
   countDistinctNextDate,
 
   /* ★ 설비점검 단건/등록/수정 + 디테일 */
+  selectMaxInspId,
   selectInspectionOne,
   selectInspectionDetails,
   insertInspection,

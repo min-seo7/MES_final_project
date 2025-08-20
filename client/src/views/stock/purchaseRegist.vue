@@ -254,12 +254,12 @@ export default {
         <div class="md:w-1/2">
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
-                <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
-                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
-                    <Column field="low_matName" header="자재명" style="min-width: 100px"></Column>
-                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px"></Column>
-                    <Column field="low_nowStock" header="현재고" style="min-width: 80px"></Column>
-                    <Column field="low_shortage" header="부족" style="min-width: 80px"></Column>
+                <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%" sortMode="multiple">
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold" sortable></Column>
+                    <Column field="low_matName" header="자재명" style="min-width: 100px" sortable></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_nowStock" header="현재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_shortage" header="부족" style="min-width: 80px" sortable></Column>
                     <Column field="low_unit" header="단위" style="min-width: 80px"></Column>
                 </DataTable>
             </div>
@@ -285,8 +285,8 @@ export default {
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerId">공급처코드</label>
                             <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" @click="openPatenrModal()" />
-                                <InputIcon class="pi pi-search" />
+                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" />
+                                <InputIcon class="pi pi-search" @click="openPatenrModal()" />
                             </IconField>
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
@@ -340,13 +340,13 @@ export default {
     <!--모달영역-->
     <!--공급처모달-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="partnerId">거래처코드</label>
             <InputText id="partnerId" type="text" />
             <label for="partnerName">거래처명</label>
             <InputText id="partnerName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
         <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
@@ -367,13 +367,6 @@ export default {
 
     <!--자재모달-->
     <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="matCode">자재코드</label>
-            <InputText id="matCode" type="text" />
-            <label for="matrName">자재명</label>
-            <InputText id="matrName" type="text" />
-            <Button label="검색" />
-        </div>
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>

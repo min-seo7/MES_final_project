@@ -32,6 +32,7 @@ export default {
             this.prdCode = '';
             this.prdName = '';
             this.warehouse = '';
+            this.getPrdSearchList();
         },
         //조회
         async onSearch() {
@@ -187,20 +188,20 @@ export default {
             <Column field="prdCode" header="제품코드" sortable></Column>
             <Column field="prdName" header="제품명" sortable></Column>
             <Column field="prdQty" header="재고수량" sortable></Column>
-            <Column field="unit" header="단위" sortable></Column>
+            <Column field="unit" header="단위"></Column>
             <Column field="warehouse" header="보관위치" sortable></Column>
             <Column field="status" header="상태" sortable></Column>
         </DataTable>
     </div>
     <!--제품모달-->
     <commModal v-model="productModal" header="제품목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="prdCode">제품코드</label>
             <InputText id="prdCode" type="text" />
             <label for="prdName">제품명</label>
             <InputText id="prdName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
@@ -217,13 +218,13 @@ export default {
     </commModal>
     <!--보관장소 모달-->
     <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
-        <div class="mt-5 mb-4 space-x-2">
+        <!-- <div class="mt-5 mb-4 space-x-2">
             <label for="wareCode">창고코드</label>
             <InputText id="wareCode" type="text" />
             <label for="wareName">창고명</label>
             <InputText id="warerName" type="text" />
             <Button label="검색" />
-        </div>
+        </div> -->
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
