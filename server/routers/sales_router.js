@@ -1,53 +1,44 @@
 const express = require("express");
 const router = express.Router();
-// const { generatePdf, sendEmail } = require("../services/sales_service");
 const salesService = require("../services/sales_service.js");
 
-//주문등록
+// ------------------
+// 주문 등록
+// ------------------
 router.post("/orderRegist", async (req, res) => {
   try {
-    console.log("BODY:", req.body);
     const orderData = req.body;
     const result = await salesService.InsertOrder(orderData, orderData.orders);
-    // console.log(orderData);
-    console.log(orderData.orders);
     res.status(200).json({ message: "주문서등록성공", result });
   } catch (error) {
-    console.error("주문등록 실패:sales_router. js", error);
+    console.error("주문등록 실패:sales_router.js", error);
     res.status(500).json({ message: "주문등록 실패", error: error.message });
   }
 });
-// //주문조회
-// router.get("/orderSearch", async (req, res) => {
-//   try {
-//     let list = await salesService.selectRegisList();
-//     res.json({ list });
-//   } catch (err) {
-//     console.error("주문조회내역조회" + err);
-//     res.status(500).json({ message: "서버오류" });
-//   }
-// });
-//주문등록모달조회
+
+// ------------------
+// 주문 관련 조회
+// ------------------
 router.get("/ordPaModalList", async (req, res) => {
   try {
     let list = await salesService.selectOrdRegistModal();
     res.json({ list });
   } catch (err) {
-    console.err(err);
-    res.status(500).json({ message: "서버오류" });
+    console.error(err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
   }
 });
-//주문제품조회선택모달
+
 router.get("/ordModalPrdList", async (req, res) => {
   try {
     let list = await salesService.selectOrderProductModal();
     res.json({ list });
   } catch (err) {
-    console.err(err);
-    res.status(500).json({ message: "서버오류" });
+    console.error(err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
   }
 });
-//주문내역
+
 router.get("/orderSearch", async (req, res) => {
   try {
     const filter = {
@@ -66,7 +57,6 @@ router.get("/orderSearch", async (req, res) => {
   }
 });
 
-//이메일 관련 주문내역
 router.get("/pdfEmail", async (req, res) => {
   try {
     const filter = {
@@ -74,6 +64,7 @@ router.get("/pdfEmail", async (req, res) => {
       orderStatus: req.query.orderStatus || null,
       productName: req.query.productName || null,
       partnerId: req.query.partnerId || null,
+      delDate: req.query.delDate || null,
       startDate: req.query.startDate || null,
       endDate: req.query.endDate || null,
     };
@@ -85,7 +76,9 @@ router.get("/pdfEmail", async (req, res) => {
   }
 });
 
-//반품정보관련 주문내역
+// ------------------
+// 반품 관련
+// ------------------
 router.get("/returnRegist", async (req, res) => {
   try {
     const filter = {
@@ -104,120 +97,6 @@ router.get("/returnRegist", async (req, res) => {
   }
 });
 
-//출하요청내역(주문서목록조회)
-router.get("/shipReqOrders", async (req, res) => {
-  try {
-    const filters = {
-      partnerId: req.query.partnerId || null,
-      productId: req.query.productId || null,
-      startDate: req.query.startDate || null,
-      endDate: req.query.endDate || null,
-    };
-    const filteredData = await salesService.selectFilteredShips(filters);
-    res.json({ list: filteredData });
-  } catch (error) {
-    console.error("주문서 조회 실패:sales_router.js", error);
-    res
-      .status(500)
-      .json({ error: "주문서 데이터를 가져오는 데 실패했습니다." });
-  }
-});
-
-//출하선택된주문서 주문상세내역
-router.get("/shipReqRegist/:orderId", async (req, res) => {
-  try {
-    const orderId = req.params.orderId;
-    const list = await salesService.selectOrderDetails(orderId);
-    console.log("프론트엔드에서 주문 상세 내역 조회 요청 받음:", orderId);
-    res.status(200).json({ message: "주문목록불러오기 성공", list });
-  } catch (err) {
-    console.error("주문상세내역조회실패:", err);
-    res
-      .status(500)
-      .json({ error: "주문상세 데이터를 가져오는 데 실패했습니다." });
-  }
-});
-// 출하 등록
-router.post("/shipReqRegist", async (req, res) => {
-  try {
-    const shipmentItems = req.body.shipmentItems;
-    if (!shipmentItems || shipmentItems.length === 0) {
-      return res.status(400).json({ message: "출하할 항목이 없습니다." });
-    }
-    const result = await salesService.insertShipment(shipmentItems);
-    if (result.success) {
-      res.status(200).json({
-        message: "출하 등록 성공",
-        createdCount: result.createdCount,
-      });
-    } else {
-      res.status(500).json({ message: "출하 등록 실패", error: result.error });
-    }
-  } catch (error) {
-    console.error("출하 등록 실패:", error);
-    res.status(500).json({ message: "출하 등록 실패", error: error.message });
-  }
-});
-
-//출하조회 (필터링 적용)
-router.get("/shipReqSearch", async (req, res) => {
-  try {
-    const filters = {
-      partnerId: req.query.partnerId || null,
-      productId: req.query.productId || null,
-      shipStatus: req.query.shipStatus || null,
-      startDate: req.query.startDate || null,
-      endDate: req.query.endDate || null,
-    };
-    const filteredData = await salesService.shipList(filters);
-    res.json({ list: filteredData });
-  } catch (err) {
-    console.error("출하조회 실패:", err);
-    res.status(500).json({ message: "서버 오류" });
-  }
-});
-// 납기일 수정 및 이력 등록
-router.put("/updateOrderDelivery", async (req, res) => {
-  try {
-    const delDateInfo = req.body;
-    const result = await salesService.modifyUpdate(delDateInfo);
-    if (result.success) {
-      res
-        .status(200)
-        .json({ message: "납기일 변경이 성공적으로 완료되었습니다." });
-    } else {
-      res
-        .status(500)
-        .json({ message: "납기일 변경에 실패했습니다.", error: result.error });
-    }
-  } catch (err) {
-    console.error("납기일 수정 실패:", err);
-    res.status(500).json({ message: "서버 오류가 발생했습니다." });
-  }
-});
-// 납기일 변경 내역 조회 라우터
-router.get("/orderModify", async (req, res) => {
-  try {
-    const filter = {
-      orderId: req.query.orderId || null,
-      orderStatus: req.query.orderStatus || null,
-      productName: req.query.productName || null,
-      partnerId: req.query.partnerId || null,
-      delDate: req.query.delDate || null,
-    };
-
-    const result = await salesService.modifyList(filter);
-
-    if (result && result.length > 0) {
-      res.json({ list: result });
-    } else {
-      res.status(404).json({ message: "납기일 변경 내역이 없습니다." });
-    }
-  } catch (err) {
-    console.error("Error fetching modified list:", err);
-    res.status(500).json({ error: "납기일 변경 내역 조회 실패" });
-  }
-});
 //반품내역 조회 라우터
 router.get("/returnSearch", async (req, res) => {
   try {
@@ -236,7 +115,6 @@ router.get("/returnSearch", async (req, res) => {
   }
 });
 
-//반품등록
 router.post("/returnRegist", async (req, res) => {
   try {
     const returnItems = req.body.returnItems;
@@ -258,36 +136,169 @@ router.post("/returnRegist", async (req, res) => {
   }
 });
 
-// PDF 생성 및 다운로드 (기존 코드가 올바르게 동작하므로 그대로 둡니다.)
-router.post("/pdf/generate", async (req, res) => {
+// ------------------
+// 출하 관련
+// ------------------
+router.get("/shipReqOrders", async (req, res) => {
   try {
-    const { filePath, fileName } = await salesService.generatePdf(req.body);
+    const filters = {
+      partnerId: req.query.partnerId || null,
+      productId: req.query.productId || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.selectFilteredShips(filters);
+    res.json({ list: filteredData });
+  } catch (error) {
+    console.error("주문서 조회 실패:sales_router.js", error);
+    res
+      .status(500)
+      .json({ error: "주문서 데이터를 가져오는 데 실패했습니다." });
+  }
+});
+
+router.get("/shipReqRegist/:orderId", async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const list = await salesService.selectOrderDetails(orderId);
+    res.status(200).json({ message: "주문목록불러오기 성공", list });
+  } catch (err) {
+    console.error("주문상세내역조회실패:", err);
+    res
+      .status(500)
+      .json({ error: "주문상세 데이터를 가져오는 데 실패했습니다." });
+  }
+});
+
+router.post("/shipReqRegist", async (req, res) => {
+  try {
+    const shipmentItems = req.body.shipmentItems;
+    if (!shipmentItems || shipmentItems.length === 0) {
+      return res.status(400).json({ message: "출하할 항목이 없습니다." });
+    }
+    const result = await salesService.insertShipment(shipmentItems);
+    if (result.success) {
+      res.status(200).json({
+        message: "출하 등록 성공",
+        createdCount: result.createdCount,
+      });
+    } else {
+      res.status(500).json({ message: "출하 등록 실패", error: result.error });
+    }
+  } catch (error) {
+    console.error("출하 등록 실패:", error);
+    res.status(500).json({ message: "출하 등록 실패", error: error.message });
+  }
+});
+
+router.get("/shipReqSearch", async (req, res) => {
+  try {
+    const filters = {
+      partnerId: req.query.partnerId || null,
+      productId: req.query.productId || null,
+      shipStatus: req.query.shipStatus || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.shipList(filters);
+    res.json({ list: filteredData });
+  } catch (err) {
+    console.error("출하조회 실패:", err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
+  }
+});
+
+// ------------------
+// 납기일 수정 및 조회
+// ------------------
+router.put("/updateOrderDelivery", async (req, res) => {
+  try {
+    const delDateInfo = req.body;
+    const result = await salesService.modifyUpdate(delDateInfo);
+    if (result.success) {
+      res
+        .status(200)
+        .json({ message: "납기일 변경이 성공적으로 완료되었습니다." });
+    } else {
+      res
+        .status(500)
+        .json({ message: "납기일 변경에 실패했습니다.", error: result.error });
+    }
+  } catch (err) {
+    console.error("납기일 수정 실패:", err);
+    res
+      .status(500)
+      .json({ message: "서버 오류가 발생했습니다.", error: err.message });
+  }
+});
+
+router.get("/orderModify", async (req, res) => {
+  try {
+    const filter = {
+      orderId: req.query.orderId || null,
+      orderStatus: req.query.orderStatus || null,
+      productName: req.query.productName || null,
+      partnerId: req.query.partnerId || null,
+      delDate: req.query.delDate || null,
+    };
+    const result = await salesService.modifyList(filter);
+    if (result && result.length > 0) {
+      res.json({ list: result });
+    } else {
+      // 404 대신 200 OK와 빈 배열을 반환
+      res.status(200).json({ list: [] });
+    }
+  } catch (err) {
+    console.error("납기일 변경 조회 실패:", err);
+    res
+      .status(500)
+      .json({ error: "납기일 변경 내역 조회 실패", error: err.message });
+  }
+});
+
+// ------------------
+// PDF 다운로드
+// ------------------
+router.get("/pdf/download/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { filePath, fileName } = await salesService.generatePdfAndDownload(
+      orderId
+    );
+
     res.download(filePath, fileName, (err) => {
       if (err) {
         console.error("PDF 다운로드 중 오류 발생:", err);
-        res.status(500).json({ message: "PDF 다운로드 실패" });
-      }
-      require("fs").unlink(filePath, (unlinkErr) => {
+        return res.status(500).json({ message: "PDF 다운로드 실패" });
+      } // 임시 파일 삭제
+      const fs = require("fs");
+      fs.unlink(filePath, (unlinkErr) => {
         if (unlinkErr) console.error("임시 파일 삭제 실패:", unlinkErr);
       });
     });
   } catch (err) {
-    console.error("PDF 생성 실패:", err);
-    res.status(500).json({ message: "PDF 생성 실패" });
+    console.error("PDF 생성 및 다운로드 실패:", err);
+    res
+      .status(500)
+      .json({ message: "PDF 생성 및 다운로드 실패", error: err.message });
   }
 });
 
-// 이메일 전송 라우터 수정
-// sales_service.js의 generatePdfAndSendEmail 함수를 사용하도록 변경합니다.
+// ------------------
+// 이메일 전송
+// ------------------
 router.post("/email/send", async (req, res) => {
   try {
-    // sales_service.js의 generatePdfAndSendEmail 함수를 호출하여
-    // PDF 생성 및 이메일 전송을 한 번에 처리합니다.
+    const { orderId, emailDetails } = req.body;
+    if (!orderId || !emailDetails) {
+      return res
+        .status(400)
+        .json({ message: "주문 번호와 이메일 정보가 필요합니다." });
+    }
     const result = await salesService.generatePdfAndSendEmail(
-      req.body,
-      req.body
+      orderId,
+      emailDetails
     );
-    // 결과에 따라 응답을 보냅니다.
     if (result.success) {
       res.json({ message: "이메일 전송 완료" });
     } else {
@@ -298,7 +309,8 @@ router.post("/email/send", async (req, res) => {
     }
   } catch (err) {
     console.error("이메일 전송 실패:", err);
-    res.status(500).json({ message: "이메일 전송 실패" });
+    res.status(500).json({ message: "이메일 전송 실패", error: err.message });
   }
 });
+
 module.exports = router;

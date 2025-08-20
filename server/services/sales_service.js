@@ -6,6 +6,23 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
 
+// .env 파일 로드
+require("dotenv").config({
+  path: path.join(__dirname, "../email/.env"),
+});
+
+// 본인의 Gmail 주소와 앱 비밀번호로 변경
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 // 객체를 배열로 변환
 function convertToArray(obj, columns) {
   return columns.map((col) => obj[col]);
@@ -22,224 +39,9 @@ function formatDateToYMD(isoDate) {
   return `${year}-${month}-${day}`;
 }
 
-// 납기일 변경 및 이력 등록
-const modifyUpdate = async (delDateInfo) => {
-  const conn = await getConnection();
-  try {
-    await conn.beginTransaction();
-    const [lastHistoryRow] = await conn.query(sqlList.SelectMaxHistoryId);
-    let newHistoryId;
-    if (lastHistoryRow && lastHistoryRow.max_history_id) {
-      const lastNum = parseInt(
-        lastHistoryRow.max_history_id.replace("HIST", ""),
-        10
-      );
-      const newNum = lastNum + 1;
-      const formattedNum = String(newNum).padStart(3, "0");
-      newHistoryId = `HIST${formattedNum}`;
-    } else {
-      newHistoryId = "HIST001";
-    }
-    const updateParams = [
-      formatDateToYMD(delDateInfo.changeDeliveryDate),
-      delDateInfo.orderDetailId,
-    ];
-    await conn.query(sqlList["modifyDelDate"], updateParams);
-    const insertHistoryParams = [
-      newHistoryId,
-      formatDateToYMD(delDateInfo.orderDate),
-      formatDateToYMD(delDateInfo.changeDeliveryDate),
-      delDateInfo.changeReason,
-      delDateInfo.orderDetailId,
-    ];
-    await conn.query(sqlList["modifyInsert"], insertHistoryParams);
-    await conn.commit();
-    return { success: true };
-  } catch (err) {
-    await conn.rollback();
-    console.error("Modify Update Error:", err);
-    return { success: false, error: err.message };
-  } finally {
-    conn.release();
-  }
-};
-
-//주문수정내역 조회 필터링
-const modifyList = (filter) => {
-  const params = [
-    filter.orderId,
-    filter.orderId,
-    filter.orderId,
-    filter.orderStatus,
-    filter.orderStatus,
-    filter.orderStatus,
-    filter.productName,
-    filter.productName,
-    filter.productName,
-    filter.partnerId,
-    filter.partnerId,
-    filter.partnerId,
-    filter.delDate,
-    filter.delDate,
-  ];
-  let list = query("modifyNextList", params);
-  return list;
-};
-
-// 주문 내역 조회 필터링
-const selectFilteredOrders = (filter) => {
-  const params = [
-    filter.orderId,
-    filter.orderId,
-    filter.orderId,
-    filter.orderStatus,
-    filter.orderStatus,
-    filter.orderStatus,
-    filter.productName,
-    filter.productName,
-    filter.productName,
-    filter.partnerId,
-    filter.partnerId,
-    filter.partnerId,
-    filter.delDate,
-    filter.delDate,
-  ];
-  let list = query("selectOrderDetail", params);
-  return list;
-};
-
-//이메일 포함된 주문내역 조회
-const selectFilterInfoEmail = (filter) => {
-  const params = [
-    filter.orderId,
-    filter.orderId,
-    filter.orderId,
-    filter.orderStatus,
-    filter.orderStatus,
-    filter.orderStatus,
-    filter.productName,
-    filter.productName,
-    filter.productName,
-    filter.partnerId,
-    filter.partnerId,
-    filter.partnerId,
-    filter.delDate,
-    filter.delDate,
-  ];
-  let list = query("mailPdfOrderList", params);
-  return list;
-};
-
-//출하요청등록대상 조회
-const selectFilteredShips = (filters) => {
-  const params = [
-    filters.partnerId,
-    filters.partnerId,
-    filters.partnerId,
-    filters.productId,
-    filters.productId,
-    filters.productId,
-    filters.startDate,
-    filters.startDate,
-    filters.startDate,
-    filters.endDate,
-    filters.endDate,
-    filters.endDate,
-  ];
-  let list = query("selectShipOrders", params);
-  return list;
-};
-
-// 주문서 클릭 시 주문 상세 내역 조회
-const selectOrderDetails = async (orderId) => {
-  const list = await query("selectShipDetail", [orderId]);
-  return list;
-};
-
-// 출하 등록
-const insertShipment = async (shipmentItems) => {
-  const conn = await getConnection();
-  let createdCount = 0;
-  try {
-    await conn.beginTransaction();
-    const [lastShipmentRow] = await conn.query(sqlList.SelectMaxShipId);
-    let lastNum = 0;
-    if (lastShipmentRow && lastShipmentRow.max_shipment_id) {
-      lastNum = parseInt(
-        lastShipmentRow.max_shipment_id.replace("SHIP", ""),
-        10
-      );
-    }
-    for (const item of shipmentItems) {
-      lastNum += 1;
-      const newShipmentId = `SHIP${String(lastNum).padStart(3, "0")}`;
-      const params = [
-        newShipmentId,
-        item.item_seq,
-        item.product_code,
-        item.shipment_qty,
-        item.shipment_date,
-        item.ship_status,
-        item.order_manager,
-        item.product_name,
-        item.order_detail_id,
-      ];
-      await conn.query(sqlList["insertShip"], params);
-      createdCount++;
-    }
-    await conn.commit();
-    return { success: true, createdCount };
-  } catch (err) {
-    await conn.rollback();
-    if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
-      console.error("Duplicate entry detected. (order_detail_id)");
-      return {
-        success: false,
-        error: "선택된 항목 중 이미 출하 등록된 내역이 있습니다.",
-      };
-    } else {
-      console.error("InsertShipment Error:", err);
-      return { success: false, error: err.message };
-    }
-  } finally {
-    conn.release();
-  }
-};
-
-//출하내역조회
-const shipList = (filter) => {
-  const params = [
-    filter.partnerId,
-    filter.partnerId,
-    filter.partnerId,
-    filter.productId,
-    filter.productId,
-    filter.productId,
-    filter.shipStatus,
-    filter.shipStatus,
-    filter.shipStatus,
-    filter.startDate,
-    filter.startDate,
-    filter.startDate,
-    filter.endDate,
-    filter.endDate,
-    filter.endDate,
-  ];
-  let list = query("shipList", params);
-  return list;
-};
-
-//주문등록모달창조회
-const selectOrdRegistModal = () => {
-  let list = query("selectOrdPartnerModal");
-  return list;
-};
-
-//주문등록상세_완제품제품 조회하는 모달창
-const selectOrderProductModal = () => {
-  let list = query("selectOrderProduct");
-  return list;
-};
+// ------------------
+// 주문
+// ------------------
 
 // 주문 1: 주문상세 N
 const InsertOrder = async (orderInfo, orderItems) => {
@@ -313,7 +115,213 @@ const InsertOrder = async (orderInfo, orderItems) => {
   }
 };
 
-// 반품등록
+// ------------------
+// 주문 조회
+// ------------------
+
+// 주문 내역 조회 필터링
+const selectFilteredOrders = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
+  return query("selectOrderDetail", params);
+};
+
+// 주문서 클릭 시 주문 상세 내역 조회
+const selectOrderDetails = async (orderId) => {
+  return query("selectShipDetail", [orderId]);
+};
+
+// 주문등록 모달창 조회
+const selectOrdRegistModal = () => {
+  return query("selectOrdPartnerModal");
+};
+
+// 주문등록 상세_완제품 제품 조회 모달창
+const selectOrderProductModal = () => {
+  return query("selectOrderProduct");
+};
+
+// ------------------
+// 납기일 수정 및 조회
+// ------------------
+
+// 납기일 변경 및 이력 등록
+const modifyUpdate = async (delDateInfo) => {
+  const conn = await getConnection();
+  try {
+    await conn.beginTransaction();
+    const [lastHistoryRow] = await conn.query(sqlList.SelectMaxHistoryId);
+    let newHistoryId;
+    if (lastHistoryRow && lastHistoryRow.max_history_id) {
+      const lastNum = parseInt(
+        lastHistoryRow.max_history_id.replace("HIST", ""),
+        10
+      );
+      const newNum = lastNum + 1;
+      const formattedNum = String(newNum).padStart(3, "0");
+      newHistoryId = `HIST${formattedNum}`;
+    } else {
+      newHistoryId = "HIST001";
+    }
+    const updateParams = [
+      formatDateToYMD(delDateInfo.changeDeliveryDate),
+      delDateInfo.orderDetailId,
+    ];
+    await conn.query(sqlList["modifyDelDate"], updateParams);
+    const insertHistoryParams = [
+      newHistoryId,
+      formatDateToYMD(delDateInfo.orderDate),
+      formatDateToYMD(delDateInfo.changeDeliveryDate),
+      delDateInfo.changeReason,
+      delDateInfo.orderDetailId,
+    ];
+    await conn.query(sqlList["modifyInsert"], insertHistoryParams);
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("Modify Update Error:", err);
+    return { success: false, error: err.message };
+  } finally {
+    conn.release();
+  }
+};
+
+// 주문 수정 내역 조회 필터링
+const modifyList = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.orderStatus,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
+  return query("modifyNextList", params);
+};
+
+// ------------------
+// 출하
+// ------------------
+
+// 출하 요청 등록 대상 조회
+const selectFilteredShips = (filters) => {
+  const params = [
+    filters.partnerId,
+    filters.partnerId,
+    filters.partnerId,
+    filters.productId,
+    filters.productId,
+    filters.productId,
+    filters.startDate,
+    filters.startDate,
+    filters.startDate,
+    filters.endDate,
+    filters.endDate,
+    filters.endDate,
+  ];
+  return query("selectShipOrders", params);
+};
+
+// 출하 등록
+const insertShipment = async (shipmentItems) => {
+  const conn = await getConnection();
+  let createdCount = 0;
+  try {
+    await conn.beginTransaction();
+    const [lastShipmentRow] = await conn.query(sqlList.SelectMaxShipId);
+    let lastNum = 0;
+    if (lastShipmentRow && lastShipmentRow.max_shipment_id) {
+      lastNum = parseInt(
+        lastShipmentRow.max_shipment_id.replace("SHIP", ""),
+        10
+      );
+    }
+    for (const item of shipmentItems) {
+      lastNum += 1;
+      const newShipmentId = `SHIP${String(lastNum).padStart(3, "0")}`;
+      const params = [
+        newShipmentId,
+        item.item_seq,
+        item.product_code,
+        item.shipment_qty,
+        item.shipment_date,
+        item.ship_status,
+        item.order_manager,
+        item.product_name,
+        item.order_detail_id,
+      ];
+      await conn.query(sqlList["insertShip"], params);
+      createdCount++;
+    }
+    await conn.commit();
+    return { success: true, createdCount };
+  } catch (err) {
+    await conn.rollback();
+    if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
+      console.error("Duplicate entry detected. (order_detail_id)");
+      return {
+        success: false,
+        error: "선택된 항목 중 이미 출하 등록된 내역이 있습니다.",
+      };
+    } else {
+      console.error("InsertShipment Error:", err);
+      return { success: false, error: err.message };
+    }
+  } finally {
+    conn.release();
+  }
+};
+
+// 출하 내역 조회
+const shipList = (filter) => {
+  const params = [
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.productId,
+    filter.productId,
+    filter.productId,
+    filter.shipStatus,
+    filter.shipStatus,
+    filter.shipStatus,
+    filter.startDate,
+    filter.startDate,
+    filter.startDate,
+    filter.endDate,
+    filter.endDate,
+    filter.endDate,
+  ];
+  return query("shipList", params);
+};
+
+// ------------------
+// 반품
+// ------------------
+
+// 반품 등록
 const returnRegist = async (returnItems) => {
   const conn = await getConnection();
   let createdCount = 0;
@@ -362,7 +370,7 @@ const returnRegist = async (returnItems) => {
   }
 };
 
-//반품내역
+// 반품 내역 조회
 const returnList = (filter) => {
   const params = [
     filter.orderId,
@@ -385,7 +393,7 @@ const returnList = (filter) => {
   return list;
 };
 
-//반품등록전  조회
+// 반품 등록 전 조회
 const selectFiltereReturns = (filter) => {
   const params = [
     filter.orderId,
@@ -403,18 +411,38 @@ const selectFiltereReturns = (filter) => {
     filter.startDate,
     filter.endDate,
   ];
-  let list = query("selectReturnPreList", params);
-  return list;
+  return query("selectReturnPreList", params);
 };
+
+// ------------------
+// PDF 및 이메일 서비스
+// ------------------
 
 // 폰트 파일 경로 지정
 const fontPath = path.join(__dirname, "../fonts/NanumGothic-Regular.ttf");
 
-// PDF 생성 함수 (수정됨)
-async function generatePdf(orderData) {
-  const fileName = `${orderData.orderDate.replace(/-/g, "")}_${
-    orderData.partnerName
-  }_${orderData.orderId}_주문서.pdf`;
+// 이메일 포함된 주문내역 조회 (기존 함수)
+const selectFilterInfoEmail = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.orderDate,
+    filter.orderDate,
+  ];
+  return query("mailPdfOrderList", params);
+};
+
+/**
+ * PDF 문서 생성 핵심 로직
+ * @param {Array<Object>} orders - PDF로 만들 주문 정보 배열
+ * @returns {Promise<{fileName: string, filePath: string}>} - 생성된 PDF 파일 경로 및 이름
+ */
+const generatePdf = async (orders) => {
+  const fileName = `Orders_${Date.now()}.pdf`;
   const filePath = path.join(__dirname, "../pdfs", fileName);
 
   const doc = new PDFDocument({
@@ -422,177 +450,148 @@ async function generatePdf(orderData) {
     margins: { top: 50, bottom: 50, left: 50, right: 50 },
   });
   const stream = fs.createWriteStream(filePath);
-  doc.pipe(stream); // 한글 폰트 등록
+  doc.pipe(stream);
 
   doc.registerFont("NanumGothic", fontPath);
-  doc.font("NanumGothic"); // 제목
+  doc.font("NanumGothic");
 
-  doc.fontSize(18).text("주 문 서", { align: "center" }); // 우측 상단 박스 (결재 라인)
+  for (const [index, order] of orders.entries()) {
+    if (index > 0) {
+      doc.addPage();
+    }
 
-  const headerX = 380;
-  const headerY = 50;
-  const headerWidth = 180;
-  const headerHeight = 60;
-  doc.rect(headerX, headerY, headerWidth, headerHeight).stroke();
-  doc
-    .fontSize(8)
-    .text("담당", headerX + 15, headerY + 5, { width: 30, align: "center" });
-  doc.text("부서장", headerX + 50, headerY + 5, { width: 30, align: "center" });
-  doc.text("김원", headerX + 85, headerY + 5, { width: 30, align: "center" });
-  doc.text("사장", headerX + 120, headerY + 5, { width: 30, align: "center" });
-  doc.text("/", headerX + 25, headerY + 20, { width: 10, align: "center" });
-  doc.text("/", headerX + 60, headerY + 20, { width: 10, align: "center" });
-  doc.text("/", headerX + 95, headerY + 20, { width: 10, align: "center" });
-  doc.text("/", headerX + 130, headerY + 20, { width: 10, align: "center" }); // 거래처 정보 박스
+    doc.fontSize(18).text("주문서", { align: "center" });
+    doc.moveDown();
 
-  const partnerBoxY = 115;
-  doc.rect(50, partnerBoxY, 510, 50).stroke();
-  doc.fontSize(10);
-  doc.text("하기와 같이 주문합니다.", 60, partnerBoxY + 10);
-  doc.text("귀하", 480, partnerBoxY + 10);
-  doc.text(
-    `20 ${new Date().getFullYear().toString().substring(2)} 년 ${
-      new Date().getMonth() + 1
-    } 월 ${new Date().getDate()} 일`,
-    440,
-    partnerBoxY + 25
-  );
-  doc.moveDown(); // 주요 주문 정보 박스
+    doc.fontSize(10).text(`거래처: ${order.partnerName}`);
+    doc.text(`주문번호: ${order.orderId}`);
+    doc.text(`주문일자: ${formatDateToYMD(order.orderDate)}`);
+    doc.text(`총수량: ${order.totalQty}`);
+    doc.text(`총금액: ${order.supplyPrice}`);
+    doc.moveDown(); // 테이블 헤더
 
-  const detailsBoxY = 170;
-  doc.rect(50, detailsBoxY, 510, 80).stroke();
-  doc.fontSize(10);
-  doc.text("● 품 명 : " + orderData.productName, 60, detailsBoxY + 10);
-  doc.text("● 납기기한 : " + orderData.delDate, 60, detailsBoxY + 30);
-  doc.text("● 납품장소 : " + orderData.deliveryAddr, 60, detailsBoxY + 50); // 테이블 헤더 (1줄)
+    const tableTop = doc.y;
+    const colWidths = [150, 80, 80, 50, 80, 80];
+    let currentX = 50;
+    doc.fontSize(10);
+    doc.text("품명", currentX, tableTop, { width: colWidths[0] });
+    currentX += colWidths[0];
+    doc.text("제품코드", currentX, tableTop, { width: colWidths[1] });
+    currentX += colWidths[1];
+    doc.text("규격", currentX, tableTop, { width: colWidths[2] });
+    currentX += colWidths[2];
+    doc.text("수량", currentX, tableTop, { width: colWidths[3] });
+    currentX += colWidths[3];
+    doc.text("단가", currentX, tableTop, { width: colWidths[4] });
+    currentX += colWidths[4];
+    doc.text("금액", currentX, tableTop, { width: colWidths[5] }); // 테이블 내용
 
-  const tableTop = 260;
-  const tableX = 50;
-  const tableWidth = 510;
-  const rowHeight = 20;
-  const cellPadding = 5;
-  const headers = [
-    { label: "품명", width: 100 },
-    { label: "제품코드", width: 80 },
-    { label: "규격/크기", width: 70 },
-    { label: "수량", width: 50 },
-    { label: "단가", width: 70 },
-    { label: "금액", width: 70 },
-    { label: "지급조건", width: 70 },
-  ];
-
-  let currentX = tableX;
-  doc.fontSize(10);
-  headers.forEach((header) => {
-    doc.text(header.label, currentX, tableTop + cellPadding, {
-      width: header.width,
-      align: "center",
-    });
-    currentX += header.width;
-  }); // 테이블 내용 (주문 상세) - 동적으로 추가
-
-  let contentY = tableTop + rowHeight;
-  const item = orderData; // 단일 주문이므로 orderData를 직접 사용
-  currentX = tableX;
-  doc.text(item.productName, currentX, contentY + cellPadding, {
-    width: headers[0].width,
-    align: "center",
-  });
-  currentX += headers[0].width;
-  doc.text(item.productId, currentX, contentY + cellPadding, {
-    width: headers[1].width,
-    align: "center",
-  });
-  currentX += headers[1].width;
-  doc.text(item.spec, currentX, contentY + cellPadding, {
-    width: headers[2].width,
-    align: "center",
-  });
-  currentX += headers[2].width;
-  doc.text(item.quantity, currentX, contentY + cellPadding, {
-    width: headers[3].width,
-    align: "center",
-  });
-  currentX += headers[3].width;
-  doc.text(item.price, currentX, contentY + cellPadding, {
-    width: headers[4].width,
-    align: "center",
-  });
-  currentX += headers[4].width;
-  doc.text(item.supplyPrice, currentX, contentY + cellPadding, {
-    width: headers[5].width,
-    align: "center",
-  }); // 지급조건, 비고는 데이터에 없으므로 빈칸으로 둠 // 테이블 라인 그리기
-  doc.rect(tableX, tableTop, tableWidth, 400).stroke(); // 전체 테이블 테두리
-  doc
-    .moveTo(tableX, tableTop + rowHeight)
-    .lineTo(tableX + tableWidth, tableTop + rowHeight)
-    .stroke(); // 헤더 아래 가로선
-  for (let i = 0; i < 20; i++) {
-    // 가로 줄
-    doc
-      .moveTo(tableX, tableTop + rowHeight * (i + 2))
-      .lineTo(tableX + tableWidth, tableTop + rowHeight * (i + 2))
-      .stroke();
+    let contentY = tableTop + 20;
+    for (const item of order.items) {
+      let x = 50;
+      doc.text(item.productName, x, contentY, { width: colWidths[0] });
+      x += colWidths[0];
+      doc.text(item.productId, x, contentY, { width: colWidths[1] });
+      x += colWidths[1];
+      doc.text(item.specification, x, contentY, { width: colWidths[2] });
+      x += colWidths[2];
+      doc.text(item.quantity, x, contentY, { width: colWidths[3] });
+      x += colWidths[3];
+      doc.text(item.productPrice, x, contentY, { width: colWidths[4] });
+      x += colWidths[4];
+      doc.text(item.supplyPrice, x, contentY, { width: colWidths[5] });
+      contentY += 20;
+    }
   }
-  currentX = tableX;
-  headers.forEach((header) => {
-    doc
-      .moveTo(currentX, tableTop)
-      .lineTo(currentX, tableTop + 400)
-      .stroke();
-    currentX += header.width;
-  }); // 푸터
-
-  const footerY = tableTop + 420;
-  // 주문 회사: orderData.partnerName 또는 유사한 필드를 사용
-  doc.text(`주문 회사: ${orderData.partnerName}`, 400, footerY);
-
-  // 주문 책임자: orderData.manager 또는 유사한 필드를 사용
-  doc.text(`주문 책임자: ${orderData.manager}`, 400, footerY + 15);
-
-  // 주소 및 전화번호: orderData.partnerAddress, orderData.partnerTel 등 유사한 필드를 사용
-  doc.text(
-    `주소 및 전화번호: ${orderData.deliveryAddr}, ${orderData.partnerName}`,
-    400,
-    footerY + 30
-  );
   doc.end();
 
   return new Promise((resolve, reject) => {
     stream.on("finish", () => resolve({ fileName, filePath }));
     stream.on("error", reject);
   });
-}
+};
 
-// 이메일 전송 함수
-async function generatePdfAndSendEmail(orderData, emailDetails) {
-  const { fileName, filePath } = await generatePdf(orderData); // 이 함수는 이제 경로를 반환합니다.
+/**
+ * 단일 주문에 대한 PDF를 생성하고 다운로드 경로를 반환합니다.
+ * @param {string} orderId - 주문 번호
+ * @returns {Promise<{fileName: string, filePath: string}>} - PDF 파일 정보
+ */
+const generatePdfAndDownload = async (orderId) => {
+  const orderDetails = await selectOrderDetails(orderId);
+  if (!orderDetails || orderDetails.length === 0) {
+    throw new Error("주문 정보를 찾을 수 없습니다.");
+  } // PDF 생성 함수에 전달할 형식으로 데이터 재구성
+  const orderData = {
+    orderId: orderId,
+    partnerName: orderDetails[0].partner_name,
+    orderDate: orderDetails[0].order_date,
+    totalQty: orderDetails[0].total_qty,
+    supplyPrice: orderDetails[0].supply_price,
+    items: orderDetails.map((item) => ({
+      productName: item.product_name,
+      productId: item.product_id,
+      specification: item.specification,
+      quantity: item.quantity,
+      productPrice: item.product_price,
+      supplyPrice: item.supply_price,
+    })),
+  };
+  return await generatePdf([orderData]);
+};
+
+/**
+ * 단일 주문에 대한 PDF를 생성하고 이메일로 전송합니다.
+ * @param {string} orderId - 주문 번호
+ * @param {Object} emailDetails - 이메일 정보 (to, subject, text 등)
+ * @returns {Promise<{success: boolean, error?: string}>} - 성공 여부
+ */
+const generatePdfAndSendEmail = async (orderId, emailDetails) => {
+  const orderDetails = await selectOrderDetails(orderId);
+  if (!orderDetails || orderDetails.length === 0) {
+    throw new Error("주문 정보를 찾을 수 없습니다.");
+  }
+
+  const orderData = {
+    orderId: orderId,
+    partnerName: orderDetails[0].partner_name,
+    orderDate: orderDetails[0].order_date,
+    totalQty: orderDetails[0].total_qty,
+    supplyPrice: orderDetails[0].supply_price,
+    items: orderDetails.map((item) => ({
+      productName: item.product_name,
+      productId: item.product_id,
+      specification: item.specification,
+      quantity: item.quantity,
+      productPrice: item.product_price,
+      supplyPrice: item.supply_price,
+    })),
+  };
+
+  const { fileName, filePath } = await generatePdf([orderData]);
 
   try {
-    await sendEmail({
-      to: emailDetails.partnerEmail,
-      from: emailDetails.managerEmail, // 담당자 이메일이 발신자라고 가정합니다.
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: emailDetails.to,
       subject: emailDetails.subject,
       text: emailDetails.body,
-      attachmentPath: filePath,
-      attachmentName: fileName,
+      attachments: [
+        {
+          filename: fileName,
+          path: filePath,
+        },
+      ],
     });
-    console.log(
-      `이메일이 첨부파일과 함께 성공적으로 전송되었습니다: ${fileName}`
-    );
-    return { success: true, message: "이메일이 성공적으로 전송되었습니다." };
-  } catch (error) {
-    console.error("이메일 전송 실패:", error);
-    return { success: false, error: "이메일 전송에 실패했습니다." };
+    return { success: true };
+  } catch (err) {
+    console.error("이메일 전송 실패:", err);
+    return { success: false, error: err.message };
   } finally {
-    // 임시 PDF 파일 정리
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      console.log(`임시 파일이 삭제되었습니다: ${filePath}`);
     }
   }
-}
+};
 
 module.exports = {
   InsertOrder,
@@ -609,6 +608,6 @@ module.exports = {
   selectFilterInfoEmail,
   returnRegist,
   selectFiltereReturns,
-  generatePdf,
+  generatePdfAndDownload,
   generatePdfAndSendEmail,
 };

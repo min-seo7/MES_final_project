@@ -252,36 +252,66 @@ WHERE
     AND (? IS NULL OR DATE(i.del_date) = ?)
 `;
 
-//이메일+pdf관련 주문내역
+//이메일+pdf관련 주문서조회
 const mailPdfOrderList = `
   SELECT
     o.order_id,
     o.partner_id,
     o.partner_name,
-    i.product_id,
-    i.product_name,
-    o.order_manager,
-    i.quantity,
     o.delivery_addr,
+    o.total_qty,
+    o.order_manager,
     DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
-    DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
-    i.ord_status,
     p.email AS partner_email,
-    e.email AS order_manager_email
-FROM
+    e.email AS order_manager_email,
+    GROUP_CONCAT(DISTINCT i.product_name ORDER BY i.item_seq SEPARATOR ', ') AS product_name,
+    GROUP_CONCAT(DISTINCT DATE_FORMAT( i.del_date, '%Y-%m-%d') ORDER BY i.item_seq SEPARATOR ', ') AS del_date
+  FROM
     orders o
-JOIN
-    order_items i ON o.order_id = i.order_id
-JOIN
+  JOIN
     partner p ON o.partner_id = p.partner_id
- LEFT JOIN
+  LEFT JOIN
     employee e ON o.order_manager = e.employee_id
-WHERE
+  LEFT JOIN
+    order_items i ON o.order_id = i.order_id
+  WHERE
     (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR ? = '' OR i.ord_status = ?)
-    AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR DATE(i.del_date) = ?)
+    AND (? IS NULL OR DATE(o.order_date) = ?)
+  GROUP BY
+    o.order_id, o.partner_id, o.partner_name, o.delivery_addr, o.total_qty, o.order_manager, o.order_date, p.email, e.email
+`;
+
+//주문서목록 클릭 호출되는 상세 정보
+const selectOrderDetailsByOrderId = `
+SELECT
+  o.order_id,
+  o.partner_id,
+  p.partner_name,
+  p.email AS partner_email,
+  o.delivery_addr,
+  o.order_manager,
+  o.manager,
+  e.email AS order_manager_email,
+  o.total_qty,
+  DATE_FORMAT(o.order_date, '%Y-%m-%d') AS order_date,
+  DATE_FORMAT(i.del_date, '%Y-%m-%d') AS del_date,
+  i.product_name,
+  i.specification,
+  i.quantity,
+  i.product_price,
+  i.supply_price,
+  e.phone
+FROM
+  orders o
+JOIN
+  partner p ON o.partner_id = p.partner_id
+JOIN
+  order_items i ON o.order_id = i.order_id
+LEFT JOIN
+  employee e ON o.manager = e.name
+WHERE
+  o.order_id = ?
 `;
 
 //반품내역
@@ -441,4 +471,5 @@ module.exports = {
   returnRegist,
   SelectMaxReturnId,
   selectReturnPreList,
+  selectOrderDetailsByOrderId,
 };
