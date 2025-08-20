@@ -6,6 +6,7 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import 'primeicons/primeicons.css';
 import axios from 'axios';
+import { useUserStore } from '@/store/index';
 
 export default {
     components: { commModal, DataTable, Column, InputText, Button },
@@ -236,6 +237,11 @@ export default {
         let today = new Date();
         this.reDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         this.getLessMatList();
+        let userInfo = useUserStore();
+        console.log(userInfo)
+        if (userInfo .user) {
+           this.empName = userInfo .user.name   // 로그인된 사용자 이름 세팅
+    }
     }
 };
 </script>
