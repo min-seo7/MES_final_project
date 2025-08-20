@@ -3,6 +3,16 @@ const router = express.Router();
 
 const productionService = require("../services/production_service.js");
 
+router.get("/orderSearch", async (req, res) => {
+  try {
+    let list = await productionService.findAllOrder();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
 router.post("/productionOrder", async (req, res) => {
   try {
     // // 세션에서 로그인한 사용자의 이름을 가져옵니다.
@@ -81,8 +91,8 @@ router.put("/updatePerform", async (req, res) => {
 // 실적등록된 이름 조회
 router.get("/selectEname", async (req, res) => {
   try {
-    const {wo_no,process_id} = req.query; // 쿼리 파라미터에서 wo_no, process_id를 가져옵니다.
-    const insertedName = await productionService.selectEname(wo_no,process_id);
+    const { wo_no, process_id } = req.query; // 쿼리 파라미터에서 wo_no, process_id를 가져옵니다.
+    const insertedName = await productionService.selectEname(wo_no, process_id);
     res.status(200).json({ success: true, e_name: insertedName });
   } catch (error) {
     console.error("작업자 이름 조회 실패:", error);
@@ -91,14 +101,17 @@ router.get("/selectEname", async (req, res) => {
 });
 // 작업지시 상태 조회
 router.get("/checkWoStatus", async (req, res) => {
-    try {
-        const { wo_no } = req.query;
-        const woStatus = await productionService.checkWoStatus(wo_no);
-        
-        res.status(200).json({ status: woStatus });
-    } catch (error) {
-        console.error("작업지시 상태 조회 실패:", error);
-        res.status(500).json({ status: 'error', message: "작업지시 상태조회 중 서버 오류 발생!!" });
-    }
+  try {
+    const { wo_no } = req.query;
+    const woStatus = await productionService.checkWoStatus(wo_no);
+
+    res.status(200).json({ status: woStatus });
+  } catch (error) {
+    console.error("작업지시 상태 조회 실패:", error);
+    res.status(500).json({
+      status: "error",
+      message: "작업지시 상태조회 중 서버 오류 발생!!",
+    });
+  }
 });
 module.exports = router;

@@ -149,7 +149,7 @@ const notRegistPrcList = `select ld.use_order AS use_order,
     ON ld.process_id = prc.process_id
     order by pod.wo_no desc, ld.use_order;
 `;
-const updatePerform=`
+const updatePerform = `
 UPDATE performance
 SET status = ?,
     qty = ?,
@@ -169,7 +169,12 @@ SELECT
 FROM performance
 WHERE wo_no = ?`;
 
+const selectAllOrder = `
+SELECT ord_no, director, order_date, status
+FROM production_order`;
+
 module.exports = {
+  selectAllOrder,
   insertPrdOrderDetail,
   insertPrdOrder,
   SelectMaxOrdNo,
