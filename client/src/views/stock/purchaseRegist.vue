@@ -340,13 +340,6 @@ export default {
     <!--모달영역-->
     <!--공급처모달-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">거래처코드</label>
-            <InputText id="partnerId" type="text" />
-            <label for="partnerName">거래처명</label>
-            <InputText id="partnerName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
         <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
