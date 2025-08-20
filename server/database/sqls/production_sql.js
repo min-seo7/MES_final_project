@@ -149,6 +149,26 @@ const notRegistPrcList = `select ld.use_order AS use_order,
     ON ld.process_id = prc.process_id
     order by pod.wo_no desc, ld.use_order;
 `;
+const updatePerform=`
+UPDATE performance
+SET status = ?,
+    qty = ?,
+    w_ed_date = ?
+WHERE wo_no = ?;`;
+
+const selectEname = `
+SELECT e_name 
+FROM performance 
+WHERE wo_no = ?
+AND process_id = ?;
+`;
+const selectStatusCheck = `
+SELECT
+  SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS "in_progress_count",
+  SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS "completed_count"
+FROM performance
+WHERE wo_no = ?`;
+
 module.exports = {
   insertPrdOrderDetail,
   insertPrdOrder,
@@ -159,4 +179,7 @@ module.exports = {
   insertPrdFlow,
   selectOrderList,
   notRegistPrcList,
+  updatePerform,
+  selectEname,
+  selectStatusCheck,
 };
