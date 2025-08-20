@@ -1,10 +1,5 @@
-//const mariadb = require("../database/mapper.js");
-const {
-  query,
-  getConnection,
-  sqlList,
-  mariadb,
-} = require("../database/mapper.js");
+const mariadb = require("../database/mapper.js");
+const { query, getConnection, sqlList } = require("../database/mapper.js");
 
 // 객체를 배열로 변환하는 매서드
 function convertToArray(obj, columns) {
@@ -215,11 +210,11 @@ const updatePerform = async (payload) => {
     if (conn) conn.release();
   }
 };
-const selectEname = async (wo_no,process_id) => {
+const selectEname = async (wo_no, process_id) => {
   let conn;
   try {
     conn = await getConnection();
-    const result = await conn.query(sqlList.selectEname, [wo_no,process_id]);
+    const result = await conn.query(sqlList.selectEname, [wo_no, process_id]);
     if (result.length > 0) {
       return result[0].e_name; // 첫 번째 행의 e_name 반환
     } else {
@@ -240,13 +235,12 @@ const checkWoStatus = async (wo_no) => {
     const { in_progress_count, completed_count } = result[0];
     // 상태를 결정하는 로직
     if (in_progress_count > 0) {
-        return '진행';
+      return "진행";
     } else if (completed_count > 0) {
-        return '완료';
+      return "완료";
     } else {
-        return '대기';
+      return "대기";
     }
-    
   } catch (error) {
     throw error;
   } finally {
@@ -255,7 +249,13 @@ const checkWoStatus = async (wo_no) => {
   }
 };
 
+const findAllOrder = async () => {
+  let list = await mariadb.query("selectAllOrder");
+  return list;
+};
+
 module.exports = {
+  findAllOrder,
   startWork,
   //  insertProductionFlow
   selectOrderList,
