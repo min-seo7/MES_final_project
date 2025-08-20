@@ -296,7 +296,7 @@ const registEndPerformance = async () => {
             resetData();
             fetchProductionProcess();
         } else {
-            console.error('작업 종료 실패:', response.data.message);
+            console.error('작업 종료 실패:', result.data.message);
         }
     }
 };
