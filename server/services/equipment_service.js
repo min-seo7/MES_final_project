@@ -94,40 +94,106 @@ const findInspectionOne = async (inspId) => {
   };
 };
 
-const registerInspection = async (data = {}) => {
-  if (!(data.equipmentCode || "").trim()) throw new Error("설비코드 필수");
-  if (!(data.inspectionType || "").trim()) throw new Error("점검유형 필수");
-  if (!data.inspectionDate) throw new Error("점검일 필수");
-  if (!(data.manager || "").trim()) throw new Error("점검책임자 필수");
+const registerInspection = async (InspInfo = {}) => {
+  // if (!(data.equipmentCode || "").trim()) throw new Error("설비코드 필수");
+  // if (!(data.inspectionType || "").trim()) throw new Error("점검유형 필수");
+  // if (!data.inspectionDate) throw new Error("점검일 필수");
+  // if (!(data.manager || "").trim()) throw new Error("점검책임자 필수");
 
-  const inspectionCode =
-    (data.inspectionCode || "").trim() && data.inspectionCode !== "자동생성"
-      ? data.inspectionCode.trim()
-      : genInspectionCode();
+  // const inspectionCode =
+  //   (data.inspectionCode || "").trim() && data.inspectionCode !== "자동생성"
+  //     ? data.inspectionCode.trim()
+  //     : genInspectionCode();
 
-  await mariadb.query("insertInspection", [
-    inspectionCode,
-    data.equipmentCode.trim(),
-    data.inspectionType.trim(),
-    data.inspectionCycle || null,
-    fmtDate(data.inspectionDate),
-    fmtDate(data.nextDate),
-    data.manager.trim(),
-    data.note || null,
-    data.lastResult || null,
-  ]);
+  // await mariadb.query("insertInspection", [
+  //   inspectionCode,
+  //   data.equipmentCode.trim(),
+  //   data.inspectionType.trim(),
+  //   data.inspectionCycle || null,
+  //   fmtDate(data.inspectionDate),
+  //   fmtDate(data.nextDate),
+  //   data.manager.trim(),
+  //   data.note || null,
+  //   data.lastResult || null,
+  // ]);
 
-  if (Array.isArray(data.details)) {
-    for (const d of data.details) {
-      await mariadb.query("insertInspectionDetail", [
-        inspectionCode,
-        d?.item || "",
-        d?.result || "",
-        d?.action || "",
-      ]);
+  // if (Array.isArray(data.details)) {
+  //   for (const d of data.details) {
+  //     await mariadb.query("insertInspectionDetail", [
+  //       inspectionCode,
+  //       d?.item || "",
+  //       d?.result || "",
+  //       d?.action || "",
+  //     ]);
+  //   }
+  // }
+  // return { inspectionCode };
+
+  let conn;
+  try {
+    console.log(InspInfo);
+    conn = await mariadb.getConnection();
+    await conn.beginTransaction();
+
+    const rows = await conn.query(sqlList.selectMaxInspId);
+    const maxId = rows?.[0]?.max_insp_id || null;
+
+    let newInspId = "INSP001";
+    if (maxId) {
+      const lastNum = parseInt(maxId.replace(/\D/g, ""), 10);
+      if (!isNaN(lastNum)) {
+        newInspId = `INSP${String(lastNum + 1).padStart(3, "0")}`;
+      }
     }
+
+    // 3. 날짜 포맷팅 함수
+    const formatDateToYMD = (isoDate) => {
+      if (!isoDate) return null;
+      const d = new Date(isoDate);
+      if (isNaN(d)) return null;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const inspectionDate = formatDateToYMD(InspInfo.inspectionDate);
+    const nextDate = formatDateToYMD(InspInfo.nextDate);
+    console.log(newInspId);
+
+    await conn.query(sqlList.insertInspection, [
+      newInspId,
+      InspInfo.equipmentCode.trim() || null,
+      InspInfo.inspectionType.trim() || null,
+      InspInfo.inspectionCycle || null,
+      inspectionDate || null,
+      nextDate || null,
+      InspInfo.manager.trim() || null,
+      InspInfo.note || null,
+      InspInfo.lastResult || null,
+    ]);
+
+    if (Array.isArray(InspInfo.details)) {
+      for (const detail of InspInfo.details) {
+        await conn.query(sqlList.insertInspectionDetail, [
+          newInspId,
+          detail?.item || "",
+          detail?.result || "",
+          detail?.action || "",
+        ]);
+      }
+    }
+
+    // 5. 커밋
+    await conn.commit();
+    return { success: true, newInspId };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("insertInspection Error:", err);
+    return { success: false, error: err.message };
+  } finally {
+    if (conn) conn.release();
   }
-  return { inspectionCode };
 };
 
 const updateInspection = async (data = {}) => {
@@ -220,20 +286,19 @@ const searchEquipment = async (q = {}, page = 1, size = 10) => {
 const insertEquipment = async (equipmentInfo) => {
   let conn;
   try {
+    console.log(equipmentInfo);
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
 
-    // 1. 마지막 equipment_id 조회 (mapper alias 사용)
-    const rows = await conn.query("selectMaxEqId"); // <-- 여기에 들어감
-    const maxNum = rows?.[0]?.max_num || 0;
+    const rows = await conn.query(sqlList.selectMaxEqId);
+    const maxId = rows?.[0]?.max_eq_id || null;
 
-    // 2. 새로운 equipment_id 생성
-    let newEqId;
-    if (!maxId) {
-      newEqId = "EQ001";
-    } else {
+    let newEqId = "EQ001";
+    if (maxId) {
       const lastNum = parseInt(maxId.replace(/\D/g, ""), 10);
-      const newEqId = `EQ${String(maxNum + 1).padStart(3, "0")}`;
+      if (!isNaN(lastNum)) {
+        newEqId = `EQ${String(lastNum + 1).padStart(3, "0")}`;
+      }
     }
 
     // 3. 날짜 포맷팅 함수
@@ -249,23 +314,20 @@ const insertEquipment = async (equipmentInfo) => {
 
     const purchaseDate = formatDateToYMD(equipmentInfo.purchaseDate);
     const startDate = formatDateToYMD(equipmentInfo.startDate);
-
-    // 4. INSERT 실행
-    const insertData = [
-      newEqId, // equipment_id
-      equipmentInfo.equipmentType, // equipment_type
-      equipmentInfo.equipmentName, // equipment_name
-      equipmentInfo.manufacturer, // manufacturer
-      equipmentInfo.serialNo, // serial_no
+    console.log(newEqId);
+    await conn.query(sqlList.insertEquipment, [
+      newEqId || null, // equipment_id
+      equipmentInfo.equipmentType || null, // equipment_type
+      equipmentInfo.equipmentName || null, // equipment_name
+      equipmentInfo.manufacturer || null, // manufacturer
+      equipmentInfo.serialNo || null, // serial_no
       equipmentInfo.safetyStandard || null, // safety_standard
       equipmentInfo.operationManual || null, // operation_manual
-      purchaseDate, // purchase_date
-      startDate, // start_date
-      equipmentInfo.location, // location
-      equipmentInfo.status, // status
-    ];
-
-    await conn.query("insertEquipment", insertData);
+      purchaseDate || null, // purchase_date
+      startDate || null, // start_date
+      equipmentInfo.location || null, // location
+      equipmentInfo.status || null, // status
+    ]);
 
     // 5. 커밋
     await conn.commit();
