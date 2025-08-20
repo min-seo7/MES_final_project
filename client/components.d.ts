@@ -159,7 +159,6 @@ declare module 'vue' {
     TabPanel: typeof import('primevue/tabpanel')['default']
     TabPanels: typeof import('primevue/tabpanels')['default']
     Tabs: typeof import('primevue/tabs')['default']
-    Tag: typeof import('primevue/tag')['default']
     Textarea: typeof import('primevue/textarea')['default']
     TieredMenu: typeof import('primevue/tieredmenu')['default']
     Timeline: typeof import('primevue/timeline')['default']
