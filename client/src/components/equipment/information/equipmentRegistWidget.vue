@@ -69,6 +69,7 @@ const registEquipment = async () => {
 
     // 서버가 생성하는 equipment_id는 빼고 필요한 값만 전송
     const payload = {
+        eeuipmentId: '',
         equipmentType: (form.value.equipmentType || '').trim(),
         equipmentName: (form.value.equipmentName || '').trim(),
         manufacturer: (form.value.manufacturer || '').trim(),

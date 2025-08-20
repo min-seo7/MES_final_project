@@ -157,7 +157,7 @@ INSERT INTO equipment_inspection (
 
 const insertInspectionDetail = `
 INSERT INTO equipment_inspection_detail (
-  inspection_id, item, result, action
+  inspection_id, inspection_item, inspection_result, corrective_action
 ) VALUES (?, ?, ?, ?)
 `;
 
@@ -404,12 +404,90 @@ async function getInspectionById(inspCode) {
 
 // 마지막 설비코드 조회
 const selectMaxEqId = `
-  SELECT 
-  MAX(CAST(REGEXP_REPLACE(equipment_id, '[^0-9]', '') AS UNSIGNED)) AS max_num
-FROM equipment;
+  SELECT MAX(equipment_id) AS max_eq_id
+  FROM equipment
+  FOR UPDATE;
 `;
 
+// 마지막 점검코드 조회
+const selectMaxInspId = `
+  SELECT MAX(inspection_id) AS max_insp_id
+  FROM equipment_inspection
+  FOR UPDATE;`;
+
 // 시저
+
+// 비가동 페이지
+/* ===== 비가동 목록 조회 ===== */
+const selectDowntimeList = `
+SELECT 
+  d.id                AS downtime_id,     -- ✅ 실제 PK(id) 맞음
+  d.equipment_id      AS eq_id,
+  e.equipment_name    AS eq_name,
+  d.fault_type,                           -- ✅ DB에 있음
+  d.fault_dtime,                           -- ✅ DB에 있음
+  d.restart_dtime,                         -- ✅ DB에 있음
+  d.note,
+  d.status,
+  r.repair_id,
+  r.reason            AS repair_reason,   -- ✅ repair 테이블에 있음
+  r.repairer,
+  r.status            AS repair_status,
+  i.inspection_id,
+  i.inspection_type,
+  i.inspector,
+  i.result            AS inspection_result
+FROM equipment_downtime d
+LEFT JOIN equipment e 
+       ON d.equipment_id = e.equipment_id
+LEFT JOIN equipment_repair r 
+       ON d.repair_id = r.repair_id
+LEFT JOIN equipment_inspection i 
+       ON d.inspection_id = i.inspection_id
+WHERE (? IS NULL OR d.equipment_id = ?)
+ORDER BY d.fault_dtime DESC
+LIMIT ?, ?;
+`;
+/* ===== 전체 건수 ===== */
+const countDowntimeList = `
+SELECT COUNT(*) AS cnt
+FROM equipment_downtime d
+WHERE (? IS NULL OR d.equipment_id = ?)
+`;
+
+// 비가동
+
+// 설비코드 목록
+const selectCodeList = `
+  SELECT equipment_id, equipment_name
+  FROM equipment
+  ORDER BY equipment_id
+  LIMIT ?, ?
+`;
+
+const countEquipment2 = `
+    SELECT COUNT(*) AS cnt FROM equipment
+  `;
+
+// 비가동 등록
+const insertDowntime = `
+      INSERT INTO equipment_downtime
+      (equipment_id, repair_id, inspection_id, fault_type, fault_dtime, restart_dtime, note, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+// 비가동 수정
+const updateDowntime = `
+     UPDATE equipment_downtime
+    SET equipment_id=?,
+    repair_id=?, 
+    inspection_id=?,
+     fault_type=?,
+      fault_dtime=?,
+       restart_dtime=?, 
+       note=?, status=?
+    WHERE id=?
+    `;
 
 module.exports = {
   /* 설비점검 목록/검색/Distinct (기존) */
@@ -428,6 +506,7 @@ module.exports = {
   countDistinctNextDate,
 
   /* ★ 설비점검 단건/등록/수정 + 디테일 */
+  selectMaxInspId,
   selectInspectionOne,
   selectInspectionDetails,
   insertInspection,
@@ -465,4 +544,11 @@ module.exports = {
   getInspectionById,
   selectMaxEqId,
   insertEquipment,
+  /* 비가동 */
+  selectDowntimeList,
+  countDowntimeList,
+  selectCodeList,
+  insertDowntime,
+  countEquipment2,
+  updateDowntime,
 };

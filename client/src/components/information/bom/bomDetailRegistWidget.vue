@@ -57,7 +57,42 @@ const selectModalValue = () => {
     showModal.value = false;
 };
 
+// 숫자 이외에는 입력을 막는 코드
+const isComposing = ref(false);
+
+const sanitizeNumber = (event) => {
+    if (isComposing.value) return; // 조합 중이면 아직 필터링하지 않음
+    filterNumber(event);
+};
+
+const onCompositionEnd = (event) => {
+    isComposing.value = false;
+    filterNumber(event); // 조합 끝나면 필터링
+};
+
+const filterNumber = (event) => {
+    let value = event.target.value;
+    value = value.replace(/[^0-9.]/g, ''); // 숫자 + 소수점만 남기기
+    const parts = value.split('.');
+    if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
+    event.target.value = value;
+    form.value.mixRatio = value;
+};
+
 const addBOMdetail = () => {
+    if (!form.value.materialId) {
+        alert('자재코드를 선택해주세요.');
+        return;
+    } else if (!form.value.requiredQty) {
+        alert('소요량을 선택해주세요.');
+        return;
+    } else if (!form.value.totalQty) {
+        alert('총소요량을 선택해주세요.');
+        return;
+    } else if (!form.value.mixRatio) {
+        alert('혼합율를 선택해주세요.');
+        return;
+    }
     emits('bomDetail', form.value);
 };
 </script>
@@ -98,7 +133,7 @@ const addBOMdetail = () => {
                 </div>
                 <div>
                     <label class="block mb-1">혼합율</label>
-                    <InputText v-model="form.mixRatio" class="w-full" />
+                    <InputText v-model="form.mixRatio" class="w-full" placeholder="숫자 입력 (소수점 가능)" @input="sanitizeNumber" @compositionstart="isComposing = true" @compositionend="onCompositionEnd" />
                 </div>
             </div>
             <div class="flex flex-col gap-4 w-full">
