@@ -218,6 +218,7 @@ const startProduction = async () => {
     //     plan_detail_no: search.value.productPlanCode || null,
     //     details: selectedProducts.value
     // };
+    //
     const formatForDB = (date) => {
         if ((!date) instanceof Date) {
             return null;
