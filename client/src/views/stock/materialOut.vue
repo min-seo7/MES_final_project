@@ -26,7 +26,7 @@ export default {
             materialModal: false,
             //(모달)선택된 자재
             selectMat: null,
-            
+
             //모달용-테이블행선택rowIdex
             selectRow: null,
 
@@ -39,7 +39,7 @@ export default {
                 { field: 'w_dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
                 { field: 'w_purNo', header: '지시번호', headerStyle: 'width: 18rem' },
                 { field: 'w_matCode', header: '자재코드', headerStyle: 'width: 20rem' },
-                { field: 'w_matName', header: '자재명', headerStyle: 'width: 13rem', inputTextWM: true, onClick:this.rowOpenMatModal},
+                { field: 'w_matName', header: '자재명', headerStyle: 'width: 13rem', inputTextWM: true, onClick: this.rowOpenMatModal },
                 { field: 'w_reqQty', header: '요청수량', headerStyle: 'width: 15rem' },
                 { field: 'w_receiptQty', header: '출고수량', headerStyle: 'width: 15rem', inputNumber: true },
                 { field: 'w_unit', header: '단위', headerStyle: 'width: 13rem' },
@@ -70,7 +70,7 @@ export default {
             this.MatLotNo = '';
         },
         //행추가버튼
-         addNewRow() {
+        addNewRow() {
             let newRow = {
                 id: `temp-${Date.now()}`,
                 w_dueDate: '',
@@ -80,11 +80,11 @@ export default {
                 w_reqQty: '',
                 w_receiptQty: 0,
                 w_unit: '',
-                w_memo: '',
+                w_memo: ''
             };
             this.matOutWait.unshift(newRow);
         },
-         //행삭제버튼
+        //행삭제버튼
         removeRow() {
             // 자재코드가 비어있는 행을 찾아서 한줄씩 삭제
             let index = this.matOutWait.findIndex((row) => !row.w_reqQty);
@@ -160,7 +160,7 @@ export default {
             this.materialModal = true;
             this.getMatList();
         },
-       onSelectMat() {
+        onSelectMat() {
             if (this.selectRow !== null) {
                 this.matOutWait[this.selectRow].w_matCode = this.selectMat.matCode;
                 this.matOutWait[this.selectRow].w_matName = this.selectMat.matName;
@@ -189,11 +189,11 @@ export default {
                 console.error('자재목록 불러오기 실패:', error);
             }
         },
-         rowOpenMatModal(rowIndex) {
+        rowOpenMatModal(rowIndex) {
             this.selectRow = rowIndex; // 클릭한 테이블 행 index
             this.materialModal = true;
             this.getMatList();
-        },
+        }
     },
     mounted() {
         console.log('자재출고');
@@ -228,7 +228,7 @@ export default {
                     <label for="materialCode" class="whitespace-nowrap">자재코드</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                        <InputIcon class="pi pi-search"  @click="openMatModal()"/>
+                        <InputIcon class="pi pi-search" @click="openMatModal()" />
                     </IconField>
                 </div>
 
@@ -275,13 +275,6 @@ export default {
 
     <!--자재모달-->
     <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 40rem">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="matCode">자재코드</label>
-            <InputText id="matCode" type="text" />
-            <label for="matrName">자재명</label>
-            <InputText id="matrName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>

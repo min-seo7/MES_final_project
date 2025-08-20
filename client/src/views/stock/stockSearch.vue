@@ -215,14 +215,14 @@ export default {
                 <div class="flex items-center gap-2">
                     <label for="warehouse" class="whitespace-nowrap">보관위치</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="warehouse" type="text" class="w-60" v-model="warehouse"  />
-                        <InputIcon class="pi pi-search" @click="openWhModal"/>
+                        <InputText id="warehouse" type="text" class="w-60" v-model="warehouse" />
+                        <InputIcon class="pi pi-search" @click="openWhModal" />
                     </IconField>
                 </div>
                 <div class="flex items-center gap-2">
                     <label for="artner" class="whitespace-nowrap">처리업체</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="partner" type="text" class="w-60" v-model="partner"  />
+                        <InputText id="partner" type="text" class="w-60" v-model="partner" />
                         <InputIcon class="pi pi-search" @click="openPModal" />
                     </IconField>
                 </div>
@@ -269,13 +269,6 @@ export default {
 
     <!--거래처-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">거래처코드</label>
-            <InputText id="partnerId" type="text" />
-            <label for="partnerName">거래처명</label>
-            <InputText id="partnerName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 30rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="partnerType" header="거래처유형" headerStyle="width: 10rem"></Column>
@@ -293,13 +286,6 @@ export default {
     </commModal>
     <!--보관장소 모달-->
     <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
-        <!-- <div class="mt-5 mb-4 space-x-2">
-            <label for="wareCode">창고코드</label>
-            <InputText id="wareCode" type="text" />
-            <label for="wareName">창고명</label>
-            <InputText id="warerName" type="text" />
-            <Button label="검색" />
-        </div> -->
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="wareCode" header="창고코드" headerStyle="width: 5rem"></Column>

@@ -24,13 +24,32 @@ router.get("/modal", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  try {
-    const purchaseNo = await stockService.masterInfo(req.body);
-    res.json({ pur_no: purchaseNo });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "(서버)마스터 저장 실패" });
-  }
-});
+  let loginInfo = req.body;
 
+  console.log("loginInfo:", loginInfo);
+
+  let resInfo = await modalService
+    .login(loginInfo)
+    .catch((err) => console.log(err));
+
+  console.log("여기?");
+  console.log("DB list:", resInfo.userInfo ? [resInfo.userInfo] : []);
+});
 module.exports = router;
+
+// if (resInfo.result) {
+//   // 로그인 성공 했으면 세션에 저장
+//   req.session.user = resInfo.userInfo.email;
+//   req.session.save(function (err) {
+//     if (err) throw err;
+//     res.send({
+//       result: true,
+//       email: resInfo.userInfo.email,
+//       name: resInfo.userInfo.name,
+//       auth: resInfo.userInfo.auth,
+//     });
+//   });
+// } else {
+//   // 로그인 실패
+//   res.send({ result: false, message: "회원 정보가 존재하지 않습니다." });
+// }
