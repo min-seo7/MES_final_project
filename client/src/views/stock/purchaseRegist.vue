@@ -254,12 +254,12 @@ export default {
         <div class="md:w-1/2">
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
-                <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
-                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
-                    <Column field="low_matName" header="자재명" style="min-width: 100px"></Column>
-                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px"></Column>
-                    <Column field="low_nowStock" header="현재고" style="min-width: 80px"></Column>
-                    <Column field="low_shortage" header="부족" style="min-width: 80px"></Column>
+                <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%" sortMode="multiple">
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold" sortable></Column>
+                    <Column field="low_matName" header="자재명" style="min-width: 100px" sortable></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_nowStock" header="현재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_shortage" header="부족" style="min-width: 80px" sortable></Column>
                     <Column field="low_unit" header="단위" style="min-width: 80px"></Column>
                 </DataTable>
             </div>
@@ -285,8 +285,8 @@ export default {
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerId">공급처코드</label>
                             <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId"  />
-                                <InputIcon class="pi pi-search" @click="openPatenrModal()"/>
+                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" />
+                                <InputIcon class="pi pi-search" @click="openPatenrModal()" />
                             </IconField>
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">

@@ -160,7 +160,7 @@ let prdLotInsert = async (prdInfoList) => {
 };
 //제품lot리스트(입고)
 let prdLotList = async () => {
-  let prdLotList = await pool.query("prdLotListQuerty");
+  let prdLotList = await mariadb.query("prdLotListQuerty");
   return prdLotList;
 };
 //입고취소
@@ -205,13 +205,12 @@ async function getCheckStock(productIds) {
   let params = [];
 
   if (Array.isArray(productIds) && productIds.length > 0) {
-    const placeholders = productIds.map(() => '?').join(', ');
+    const placeholders = productIds.map(() => "?").join(", ");
     sql += ` AND pl.product_id IN (${placeholders})`;
     params.push(...productIds);
   }
 
   sql += ` GROUP BY pl.product_id`;
-
 
   const conn = await mariadb.getConnection();
   try {
@@ -457,5 +456,5 @@ module.exports = {
   returnList,
   returnInfoUpdate,
   wasteInfoRe,
-  getCheckStock
+  getCheckStock,
 };

@@ -23,7 +23,7 @@ export default {
             selectWare: [],
 
             //테이블 데이터
-            matLotList: [],
+            matLotList: []
         };
     },
     methods: {
@@ -41,7 +41,7 @@ export default {
                 // 검색조건 객체 생성
                 const filters = {
                     matLotNo: this.matLotNo || null,
-                    matCode : this.matCode || null,
+                    matCode: this.matCode || null,
                     matName: this.matName || null,
                     warehouse: this.warehouse || null
                 };
@@ -49,15 +49,15 @@ export default {
                 console.log(filters);
 
                 const res = await axios.post('/api/stock/searchMatLotList', filters);
-                //조회결과 
+                //조회결과
                 this.matLotList = res.data.map((item) => ({
-                     id: `${item.lot_no}-${item.material_id}`,
+                    id: `${item.lot_no}-${item.material_id}`,
                     reDate: item.open_date,
                     matNo: item.lot_no,
                     matCode: item.material_id,
-                    matName:item.material_name,
-                    matQty:item.curr_qty,
-                    unit:item.unit,
+                    matName: item.material_name,
+                    matQty: item.curr_qty,
+                    unit: item.unit,
                     warehouse: item.warehouse,
                     status: item.pro_status
                 }));
@@ -66,7 +66,7 @@ export default {
             }
         },
         //데이터테이블 영역=========================================================================
-         async getMatSearchLotList() {
+        async getMatSearchLotList() {
             try {
                 const res = await axios.get('/api/stock/matSearchList');
                 this.matLotList = res.data.map((item) => ({
@@ -74,9 +74,9 @@ export default {
                     reDate: item.open_date,
                     matNo: item.lot_no,
                     matCode: item.material_id,
-                    matName:item.material_name,
-                    matQty:item.curr_qty,
-                    unit:item.unit,
+                    matName: item.material_name,
+                    matQty: item.curr_qty,
+                    unit: item.unit,
                     warehouse: item.warehouse,
                     status: item.pro_status
                 }));
@@ -85,7 +85,7 @@ export default {
             }
         },
         //모달 ==========================================================================
-         //(모달)자재
+        //(모달)자재
         openMatModal() {
             this.materialModal = true;
             this.getMatList();
@@ -114,14 +114,13 @@ export default {
             }
         },
         //보관창고(모달)========================================================
-       openWarehouseeModal() {
+        openWarehouseeModal() {
             this.WarehouseModal = true;
             this.getWareList();
         },
         onSelectWare() {
             this.warehouse = this.selectWare.warerName;
-            this.selectWare = [],
-            this.WarehouseModal = false;
+            (this.selectWare = []), (this.WarehouseModal = false);
         },
         //창고목록
         async getWareList() {
@@ -135,8 +134,8 @@ export default {
             } catch (error) {
                 console.error('창고목록 불러오기 실패:', error);
             }
-        },
-    },     
+        }
+    },
 
     mounted() {
         console.log('자재조회페이지');
@@ -160,9 +159,9 @@ export default {
             </div>
             <div class="flex items-center gap-2">
                 <label for="matCode" class="whitespace-nowrap">자재코드</label>
-                <IconField iconPosition="left" class="w-full" >
+                <IconField iconPosition="left" class="w-full">
                     <InputText id="matCode" type="text" class="w-60" v-model="matCode" />
-                    <InputIcon class="pi pi-search" @click=" openMatModal"/>
+                    <InputIcon class="pi pi-search" @click="openMatModal" />
                 </IconField>
             </div>
             <div class="flex items-center gap-2">
@@ -171,9 +170,9 @@ export default {
             </div>
             <div class="flex items-center gap-2">
                 <label for="warehouse" class="whitespace-nowrap">보관창고</label>
-                <IconField iconPosition="left" class="w-full" >
+                <IconField iconPosition="left" class="w-full">
                     <InputText id="warehouse" type="text" class="w-60" v-model="warehouse" />
-                    <InputIcon class="pi pi-search" @click="openWarehouseeModal"/>
+                    <InputIcon class="pi pi-search" @click="openWarehouseeModal" />
                 </IconField>
             </div>
         </div>
@@ -183,17 +182,16 @@ export default {
     <div class="card w-full">
         <DataTable :value="matLotList" sortMode="multiple" tableStyle="min-width: 50rem" crollable scrollHeight="400px">
             <Column field="id" header="-" style="display: none"></Column>
-            <Column field="reDate" header="등록일" sortable ></Column>
+            <Column field="reDate" header="등록일" sortable></Column>
             <Column field="matNo" header="자재LOT번호" sortable></Column>
             <Column field="matCode" header="자재코드" sortable></Column>
             <Column field="matName" header="자재명" sortable></Column>
             <Column field="matQty" header="재고수량" sortable></Column>
-            <Column field="unit" header="단위" sortable></Column>
+            <Column field="unit" header="단위"></Column>
             <Column field="warehouse" header="보관위치" sortable></Column>
             <Column field="status" header="상태" sortable></Column>
         </DataTable>
     </div>
-
 
     <!--자재모달-->
     <commModal v-model="materialModal" header="자재목록" style="width: 40rem">

@@ -24,6 +24,7 @@ const stockRouter = require("./routers/stock_router.js");
 const productionRouter = require("./routers/production_router.js");
 const equipmentRouter = require("./routers/equipment_router.js");
 const testRouter = require("./routers/test_router.js");
+const modalRouter = require("./routers/modal_router.js");
 
 //기본라우팅
 app.get("/", (req, res) => {
@@ -36,3 +37,4 @@ app.use("/api/stock", stockRouter);
 app.use("/api/production", productionRouter);
 app.use("/api/equipment", equipmentRouter);
 app.use("/api/test", testRouter);
+app.use("/api/modal", modalRouter);

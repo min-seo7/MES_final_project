@@ -173,7 +173,7 @@ export default {
                 <label for="materialCode" class="whitespace-nowrap">자재코드</label>
                 <IconField iconPosition="left" class="w-full">
                     <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                    <InputIcon class="pi pi-search"  @click="openMatModal()"/>
+                    <InputIcon class="pi pi-search" @click="openMatModal()" />
                 </IconField>
             </div>
 
@@ -189,21 +189,21 @@ export default {
 
     <!--목록 테이블 -->
     <div class="card w-full">
-        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem" scrollable scrollHeight="400px">
+        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" sortMode="multiple" tableStyle="min-width: 50rem" scrollable scrollHeight="400px">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
             <Column field="id" header="-" style="display: none"></Column>
-            <Column field="reDate" header="등록일"></Column>
-            <Column field="purNo" header="발주번호"></Column>
-            <Column field="matCode" header="자재코드"></Column>
-            <Column field="matName" header="자재명"></Column>
-            <Column field="purQty" header="발주량"></Column>
+            <Column field="reDate" header="등록일" sortable></Column>
+            <Column field="purNo" header="발주번호" sortable></Column>
+            <Column field="matCode" header="자재코드" sortable></Column>
+            <Column field="matName" header="자재명" sortable></Column>
+            <Column field="purQty" header="발주량" sortable></Column>
             <Column field="unit" header="단위"></Column>
-            <Column field="supPatner" header="공급처"></Column>
-            <Column field="eName" header="담당자"></Column>
-            <Column field="dueDate" header="납기요청일"></Column>
-            <Column field="status" header="진행상태"></Column>
-            <Column field="memo" header="비고"></Column>
+            <Column field="supPatner" header="공급처" sortable></Column>
+            <Column field="eName" header="담당자" sortable></Column>
+            <Column field="dueDate" header="납기요청일" sortable></Column>
+            <Column field="status" header="진행상태" sortable></Column>
+            <Column field="memo" header="비고" sortable></Column>
         </DataTable>
     </div>
 
