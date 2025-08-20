@@ -249,7 +249,8 @@ router.get("/downtime-list", async (req, res) => {
 // 설비코드 모달 조회
 router.get("/code-list", async (req, res) => {
   try {
-    const { page = 1, size = 5 } = req.query;
+    const page = Math.max(parseInt(req.query.page || "1"), 1);
+    const size = Math.max(parseInt(req.query.size || "5"), 1);
     const result = await equipmentService.getCodeList(page, size);
     res.json(result);
   } catch (err) {
@@ -259,7 +260,6 @@ router.get("/code-list", async (req, res) => {
 });
 
 // 비가동 등록
-// downtime 등록
 router.post("/downtime/regist", async (req, res) => {
   try {
     const result = await equipmentService.registDowntime(req.body);
@@ -271,7 +271,6 @@ router.post("/downtime/regist", async (req, res) => {
 });
 
 // 비가동 수정
-// downtime 수정
 router.put("/downtime/update", async (req, res) => {
   try {
     const result = await equipmentService.updateDowntime(req.body);
