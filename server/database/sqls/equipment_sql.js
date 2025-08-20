@@ -421,16 +421,16 @@ const selectMaxInspId = `
 /* ===== 비가동 목록 조회 ===== */
 const selectDowntimeList = `
 SELECT 
-  d.id                AS downtime_id,     -- ✅ 실제 PK(id) 맞음
+  d.id                AS id,              -- ✅ alias를 downtime_id → id 로 변경
   d.equipment_id      AS eq_id,
   e.equipment_name    AS eq_name,
-  d.fault_type,                           -- ✅ DB에 있음
-  d.fault_dtime,                           -- ✅ DB에 있음
-  d.restart_dtime,                         -- ✅ DB에 있음
+  d.fault_type,
+  d.fault_dtime,
+  d.restart_dtime,
   d.note,
   d.status,
   r.repair_id,
-  r.reason            AS repair_reason,   -- ✅ repair 테이블에 있음
+  r.reason            AS repair_reason,
   r.repairer,
   r.status            AS repair_status,
   i.inspection_id,
@@ -459,35 +459,31 @@ WHERE (? IS NULL OR d.equipment_id = ?)
 
 // 설비코드 목록
 const selectCodeList = `
-  SELECT equipment_id, equipment_name
-  FROM equipment
-  ORDER BY equipment_id
-  LIMIT ?, ?
+  SELECT 
+  equipment_id   AS eq_id,
+  equipment_name AS eq_name
+FROM equipment
+ORDER BY equipment_id
+LIMIT ?, ?
 `;
 
 const countEquipment2 = `
     SELECT COUNT(*) AS cnt FROM equipment
   `;
 
-// 비가동 등록
 const insertDowntime = `
-      INSERT INTO equipment_downtime
-      (equipment_id, repair_id, inspection_id, fault_type, fault_dtime, restart_dtime, note, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+  INSERT INTO equipment_downtime
+    (equipment_id, repair_id, inspection_id, fault_type, fault_dtime, restart_dtime, note, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`;
 
 // 비가동 수정
+// downtime 수정 쿼리
 const updateDowntime = `
-     UPDATE equipment_downtime
-    SET equipment_id=?,
-    repair_id=?, 
-    inspection_id=?,
-     fault_type=?,
-      fault_dtime=?,
-       restart_dtime=?, 
-       note=?, status=?
-    WHERE id=?
-    `;
+  UPDATE equipment_downtime
+  SET equipment_id=?, repair_id=?, inspection_id=?, fault_type=?, fault_dtime=?, restart_dtime=?, note=?, status=?
+  WHERE id=?;
+`;
 
 module.exports = {
   /* 설비점검 목록/검색/Distinct (기존) */
@@ -543,7 +539,6 @@ module.exports = {
   selectEquipmentOne,
   getInspectionById,
   selectMaxEqId,
-  insertEquipment,
   /* 비가동 */
   selectDowntimeList,
   countDowntimeList,

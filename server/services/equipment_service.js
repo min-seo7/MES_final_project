@@ -474,17 +474,16 @@ async function getDowntimeList({ eq_id, offset, size }) {
 
 // 비가동
 
-// 설비코드모달 목록 조회
-// 설비코드 목록
-async function getCodeList(page, size) {
+// 설비코드 목록 조회 (단순 페이지네이션)
+const getCodeList = async (page = 1, size = 5) => {
   const offset = (page - 1) * size;
-  const rows = await mariadb.query("selectCodeList", [offset, size]);
+  const items = await mariadb.query("selectCodeList", [offset, size]); // eq_id, eq_name
   const total = (await mariadb.query("countEquipment2"))[0].cnt;
-  return { items: rows, total, page, size };
-}
+  return { items, total, page, size };
+};
 
-// 비가동 등록
-async function registDowntime(form) {
+// 비가동 등록 (id 자동증가라 id 제외)
+const registDowntime = async (form = {}) => {
   const result = await mariadb.query("insertDowntime", [
     form.equipment_id,
     form.repair_id,
@@ -496,10 +495,10 @@ async function registDowntime(form) {
     form.status,
   ]);
   return { id: result.insertId };
-}
+};
 
-// 비가동 수정
-async function updateDowntime(form) {
+// 비가동 수정 (WHERE id=?)
+const updateDowntime = async (form = {}) => {
   await mariadb.query("updateDowntime", [
     form.equipment_id,
     form.repair_id,
@@ -512,7 +511,7 @@ async function updateDowntime(form) {
     form.id,
   ]);
   return { id: form.id };
-}
+};
 
 module.exports = {
   /* 설비점검(기존) */
