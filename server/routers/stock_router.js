@@ -251,9 +251,22 @@ router.get("/prdWOutList", async (req, res) => {
     res.status(500).json({ message: "(서버)출고대기목록 오류" });
   }
 });
+//제품재고확인
+router.post("/checkStock", async (req, res) => {
+  const { productIds } = req.body;  // 구조분해로 바로 꺼내기
+  console.log("받은 productIds:", productIds);
+  console.log("배열인가?:", Array.isArray(productIds));
+  try {
+    const result = await stockService.getCheckStock(productIds);
+    res.json(result);
+    console.log(result)
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "재고 확인 실패" });
+  }
+});
 //제품출고등록
 router.post("/rePrdOut", async (req, res) => {
-  console.log("Received details:", req.body);
   try {
     await stockService.prdOusR(req.body);
     res.json({ message: "success" });
