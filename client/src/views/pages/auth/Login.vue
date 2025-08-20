@@ -21,7 +21,8 @@ const loginInfo = ref({});
 // 로그인 함수
 const userLogin = async () => {
     try {
-        const result = await axios.post('/login', loginInfo.value);
+        console.log(loginInfo.value);
+        const result = await axios.post('/api/modal/login', loginInfo.value);
         const loginRes = result.data;
 
         if (loginRes.result) {

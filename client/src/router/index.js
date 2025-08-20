@@ -230,6 +230,11 @@ const router = createRouter({
                     component: () => import('@/views//equipment/equipStatus.vue')
                 },
                 {
+                    path: '/production/productOrderSearch',
+                    name: 'productOrderSearch',
+                    component: () => import('@/views//production/productOrderSearch.vue')
+                },
+                {
                     path: '/production/processSearch',
                     name: 'processSearch',
                     component: () => import('@/views//production/processSearch.vue')
