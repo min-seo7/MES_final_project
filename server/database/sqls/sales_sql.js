@@ -98,24 +98,27 @@ WHERE
 `;
 //주문서클릭시 하단(주문상세)
 const selectShipDetail = `
-  SELECT
-      o.order_id,
-      o.partner_id,
-      o.partner_name,
-      i.product_id,
-      i.product_name,
-      o.manager,
-      i.quantity,
-      o.delivery_addr,
-      DATE_FORMAT( o.order_date, '%Y-%m-%d') as order_date,
-      DATE_FORMAT( i.del_date, '%Y-%m-%d') as del_date,
-      i.ord_status,
-      o.order_manager,
-      i.order_detail_id,
-      i.item_seq
-  FROM orders o
-  JOIN order_items i
-      ON o.order_id = i.order_id
+SELECT
+    o.order_id,
+    o.partner_id,
+    o.partner_name,
+    i.product_id,
+    i.product_name,
+    o.manager,
+    i.quantity,
+    o.delivery_addr,
+    DATE_FORMAT(o.order_date, '%Y-%m-%d') AS order_date,
+    DATE_FORMAT(i.del_date, '%Y-%m-%d') AS del_date,
+    i.ord_status,
+    o.order_manager,
+    i.order_detail_id,
+    i.item_seq,
+    pl.curr_qty
+FROM orders o
+JOIN order_items i
+    ON o.order_id = i.order_id
+JOIN tbl_prd_lot pl
+    ON i.product_id = pl.product_id
    WHERE o.order_id = ?
  `;
 //출하요청등록대상(주문서)조회,(등록일의 처음과 끝을 별칭으로 구분)
