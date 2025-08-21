@@ -10,6 +10,7 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import 'primeicons/primeicons.css';
 import axios from 'axios';
+import { useUserStore } from '@/store/index';
 
 export default {
     components: { stockCommButton, commModal, stockCommRowBtn, Tabs, TabList, Tab, TabPanels, TabPanel, stockCommTable },
@@ -299,6 +300,8 @@ export default {
         console.log('자재입고');
         this.getMatPandigList();
         this.getMatLotLIst();
+        let userInfo = useUserStore();
+        console.log(userInfo.user);
     }
 };
 </script>

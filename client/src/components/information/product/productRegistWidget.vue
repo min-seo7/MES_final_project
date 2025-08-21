@@ -60,7 +60,16 @@ const registProduct = async () => {
     }
 };
 
-const resetRegist = () => {
+const modifyProduct = async () => {
+    try {
+        const res = await axios.post('/api/information/product/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('제품수정실패');
+    }
+}
+
+const resetRegist = async () => {
     if (form.value.productId?.trim()) {
         // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
         if (props.items && props.items.length) {
@@ -92,7 +101,7 @@ const resetRegist = () => {
         <div>등록/수정</div>
         <div class="space-x-2">
             <Button label=" 등록 " rounded @click="registProduct()" :disabled="form.productId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.productId?.trim() === ''" />
+            <Button label=" 수정 " rounded :disabled="form.productId?.trim() === ''" @click="modifyProduct()" />
             <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
