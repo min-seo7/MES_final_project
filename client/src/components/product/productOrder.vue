@@ -426,16 +426,16 @@ const dropContent = () => {
             </DataTable>
         </div>
 
-        <div class="w-1/3 card">
+        <!-- <div class="w-1/3 card">
             <h3 class="font-bold text-lg mb-4">BOM 소요 정보</h3>
             <div class="mt-4">
                 <label class="block text-sm font-medium text-gray-700">제품코드</label>
                 <InputText class="mt-1 block w-full" />
             </div>
-            <!-- <div class="mt-2">
+            <div class="mt-2">
                 <Button label="저장" class="w-full mt-4" />
-            </div> -->
-        </div>
+            </div>
+        </div> -->
     </div>
 
     <Dialog v-model:visible="showModal" modal header="생산계획코드 리스트" :style="{ width: '40vw' }" @hide="closeModal">
