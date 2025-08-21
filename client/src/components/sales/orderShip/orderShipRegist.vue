@@ -229,7 +229,7 @@ const saveShipment = async () => {
         searchOrders();
     } catch (error) {
         console.error('출하 등록 실패:', error);
-        alert('출하 등록에 실패했습니다. 다시 시도해주세요.');
+        alert('이미 출하되었습니다.');
     } finally {
         isSaving.value = false;
     }
@@ -368,7 +368,7 @@ onMounted(() => {
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">출하수량</label>
-                    <InputNumber v-model="computedShipmentQuantity" />
+                    <InputNumber v-model="computedShipmentQuantity" disabled />
                 </div>
             </div>
 
@@ -388,7 +388,7 @@ onMounted(() => {
                         <Tag :value="getStatusText(slotProps.data.ord_status)" :severity="getSeverity(getStatusText(slotProps.data.ord_status))" :rounded="true" class="px-3 py-1 text-sm" />
                     </template>
                 </Column>
-                <Column field="stock" header="재고" style="min-width: 100px" />
+                <Column field="curr_qty" header="재고" style="min-width: 100px" />
             </DataTable>
         </div>
 
