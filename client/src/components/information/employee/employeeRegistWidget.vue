@@ -61,6 +61,15 @@ const registEmployee = async () => {
     }
 };
 
+const modifyEmployee = async () => {
+    try {
+        const res = await axios.post('/api/information/employee/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('사원수정실패');
+    }
+}
+
 const onPhoneInput = (e) => {
     let value = e.target.value.replace(/\D/g, ''); // 숫자만 추출
     if (value.length > 3 && value.length <= 7) {
@@ -70,6 +79,27 @@ const onPhoneInput = (e) => {
     }
     form.value.phone = value;
 };
+
+const resetRegist = async () => {
+    if (form.value.employeeId?.trim()) {
+        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+        if (props.items && props.items.length) {
+            form.value = { ...props.items[0], employeeId: props.items[0].employeeId?.trim() || '' };
+        }
+    } else {
+        // 등록 상태: 전체 필드 초기화
+        form.value = {
+            name: '',
+    phone: '',
+    email: '',
+    hireDate: '',
+    leaveDate: '',
+    employeeId: '',
+    auth: '',
+    department: ''
+        };
+    }
+};
 </script>
 
 <template>
@@ -77,8 +107,8 @@ const onPhoneInput = (e) => {
         <div>등록/수정</div>
         <div class="space-x-2">
             <Button label=" 등록 " rounded @click="registEmployee()" :disabled="form.employeeId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.employeeId?.trim() === ''" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 수정 " rounded :disabled="form.employeeId?.trim() === ''" @click="modifyEmployee()" />
+            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">
