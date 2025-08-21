@@ -125,6 +125,36 @@ const registFlowchart = async () => {
         alert('등록 실패');
     }
 };
+
+const modifyFlow = async () => {
+    try {
+        const res = await axios.post('/api/information/flowchart/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('흐름도 수정실패');
+    }
+}
+
+const resetRegist = async () => {
+    if (form.value.flowId?.trim()) {
+        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+        if (props.items && props.items.length) {
+            form.value = { ...props.items[0], flowId: props.items[0].flowId?.trim() || '' };
+        }
+    } else {
+        // 등록 상태: 전체 필드 초기화
+        form.value = {
+            flowId: '',
+    flowName: '',
+    productId: '',
+    productName: '',
+    note: '',
+    status: '',
+    flowchart: ''
+        };
+    }
+};
+
 </script>
 
 <template>
@@ -132,8 +162,8 @@ const registFlowchart = async () => {
         <div>등록</div>
         <div class="space-x-2">
             <Button label=" 등록 " rounded @click="registFlowchart()" :disabled="form.flowId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.flowId?.trim() === ''" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 수정 " rounded :disabled="form.flowId?.trim() === ''" @click="modifyFlow()" />
+            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">
