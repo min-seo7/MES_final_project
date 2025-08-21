@@ -84,7 +84,7 @@ function onReset() {
                     <InputText :value="form.repairCode" />
                 </div>
 
-                <!-- 2행: 점검유형 / 점검주기 -->
+                <!-- 2행: 비가동일시 / 점검주기 -->
                 <div class="bg-gray-50 border-r border-b px-3 py-4 text-[14px] font-medium flex items-center justify-center whitespace-nowrap"><span class="text-red-500 mr-1">*</span>점검유형</div>
                 <div class="border-r border-b px-3 py-4">
                     <div class="flex items-center gap-6 flex-wrap text-[14px]">
