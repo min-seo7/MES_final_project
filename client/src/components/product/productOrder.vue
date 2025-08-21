@@ -376,47 +376,65 @@ const dropContent = () => {
         <Button label=" 선택삭제 " severity="danger" rounded @click="hideSelected" />
     </div>
 
-    <div class="flex-auto card">
-        <DataTable v-model:selection="selectedProducts" :value="filteredProducts" :paginator="true" :rows="4" scrollable scrollHeight="400px" @selection-change="onSelectionChange" editMode="cell" @cell-edit-complete="onCellEditComplete" dataKey="id">
-            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-            <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
-                <template #body="{ data, field }">
-                    <span v-if="['startDatetime', 'endDatetime'].includes(field)">
-                        {{ formatDate(data[field]) }}
-                    </span>
-                    <span v-else>{{ data[field] }}</span>
-                    <!-- <span>{{ data[field].toISOString() }}</span> -->
-                </template>
+    <div class="flex flex-row gap-4 h-full">
+        <div class="flex-grow card">
+            <DataTable
+                v-model:selection="selectedProducts"
+                :value="filteredProducts"
+                :paginator="true"
+                :rows="4"
+                scrollable
+                scrollHeight="400px"
+                @selection-change="onSelectionChange"
+                editMode="cell"
+                @cell-edit-complete="onCellEditComplete"
+                dataKey="id"
+            >
+                <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
+                    <template #body="{ data, field }">
+                        <span v-if="['startDatetime', 'endDatetime'].includes(field)">
+                            {{ formatDate(data[field]) }}
+                        </span>
+                        <span v-else>{{ data[field] }}</span>
+                    </template>
+                    <template #editor="{ data, field }">
+                        <template v-if="['startDatetime', 'endDatetime'].includes(field)">
+                            <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" />
+                        </template>
+                        <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
+                            <InputNumber v-model="data[field]" autofocus fluid />
+                        </template>
+                        <template v-else-if="['productname'].includes(field)">
+                            <InputText
+                                v-model="data[field]"
+                                @click="
+                                    () => {
+                                        productInstance = data;
+                                        openModal('productNameInputModal');
+                                    }
+                                "
+                                readonly
+                            />
+                        </template>
+                        <template v-else>
+                            <InputText v-model="data[field]" autofocus fluid />
+                        </template>
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
 
-                <template #editor="{ data, field }">
-                    <template v-if="['startDatetime', 'endDatetime'].includes(field)">
-                        <!-- <input type="datetime-local" /> -->
-                        <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" />
-                    </template>
-                    <!--  -->
-                    <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
-                        <InputNumber v-model="data[field]" autofocus fluid />
-                    </template>
-                    <!--  -->
-                    <template v-else-if="['productname'].includes(field)">
-                        <InputText
-                            v-model="data[field]"
-                            @click="
-                                () => {
-                                    productInstance = data;
-                                    openModal('productNameInputModal');
-                                }
-                            "
-                            readonly
-                        />
-                    </template>
-                    <!--  -->
-                    <template v-else>
-                        <InputText v-model="data[field]" autofocus fluid />
-                    </template>
-                </template>
-            </Column>
-        </DataTable>
+        <div class="w-1/3 card">
+            <h3 class="font-bold text-lg mb-4">BOM 소요 정보</h3>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700">제품코드</label>
+                <InputText class="mt-1 block w-full" />
+            </div>
+            <!-- <div class="mt-2">
+                <Button label="저장" class="w-full mt-4" />
+            </div> -->
+        </div>
     </div>
 
     <Dialog v-model:visible="showModal" modal header="생산계획코드 리스트" :style="{ width: '40vw' }" @hide="closeModal">

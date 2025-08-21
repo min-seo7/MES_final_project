@@ -1,5 +1,5 @@
 const mariadb = require("../database/mapper.js");
-const sqlList = require("../database/sqlList.js");
+// const sqlList = require("../database/sqlList.js");
 /* ---------- 공통 유틸 ---------- */
 const norm = (v) => {
   if (v === undefined || v === null) return null;
@@ -94,40 +94,106 @@ const findInspectionOne = async (inspId) => {
   };
 };
 
-const registerInspection = async (data = {}) => {
-  if (!(data.equipmentCode || "").trim()) throw new Error("설비코드 필수");
-  if (!(data.inspectionType || "").trim()) throw new Error("점검유형 필수");
-  if (!data.inspectionDate) throw new Error("점검일 필수");
-  if (!(data.manager || "").trim()) throw new Error("점검책임자 필수");
+const registerInspection = async (InspInfo = {}) => {
+  // if (!(data.equipmentCode || "").trim()) throw new Error("설비코드 필수");
+  // if (!(data.inspectionType || "").trim()) throw new Error("점검유형 필수");
+  // if (!data.inspectionDate) throw new Error("점검일 필수");
+  // if (!(data.manager || "").trim()) throw new Error("점검책임자 필수");
 
-  const inspectionCode =
-    (data.inspectionCode || "").trim() && data.inspectionCode !== "자동생성"
-      ? data.inspectionCode.trim()
-      : genInspectionCode();
+  // const inspectionCode =
+  //   (data.inspectionCode || "").trim() && data.inspectionCode !== "자동생성"
+  //     ? data.inspectionCode.trim()
+  //     : genInspectionCode();
 
-  await mariadb.query("insertInspection", [
-    inspectionCode,
-    data.equipmentCode.trim(),
-    data.inspectionType.trim(),
-    data.inspectionCycle || null,
-    fmtDate(data.inspectionDate),
-    fmtDate(data.nextDate),
-    data.manager.trim(),
-    data.note || null,
-    data.lastResult || null,
-  ]);
+  // await mariadb.query("insertInspection", [
+  //   inspectionCode,
+  //   data.equipmentCode.trim(),
+  //   data.inspectionType.trim(),
+  //   data.inspectionCycle || null,
+  //   fmtDate(data.inspectionDate),
+  //   fmtDate(data.nextDate),
+  //   data.manager.trim(),
+  //   data.note || null,
+  //   data.lastResult || null,
+  // ]);
 
-  if (Array.isArray(data.details)) {
-    for (const d of data.details) {
-      await mariadb.query("insertInspectionDetail", [
-        inspectionCode,
-        d?.item || "",
-        d?.result || "",
-        d?.action || "",
-      ]);
+  // if (Array.isArray(data.details)) {
+  //   for (const d of data.details) {
+  //     await mariadb.query("insertInspectionDetail", [
+  //       inspectionCode,
+  //       d?.item || "",
+  //       d?.result || "",
+  //       d?.action || "",
+  //     ]);
+  //   }
+  // }
+  // return { inspectionCode };
+
+  let conn;
+  try {
+    console.log(InspInfo);
+    conn = await mariadb.getConnection();
+    await conn.beginTransaction();
+
+    const rows = await conn.query(sqlList.selectMaxInspId);
+    const maxId = rows?.[0]?.max_insp_id || null;
+
+    let newInspId = "INSP001";
+    if (maxId) {
+      const lastNum = parseInt(maxId.replace(/\D/g, ""), 10);
+      if (!isNaN(lastNum)) {
+        newInspId = `INSP${String(lastNum + 1).padStart(3, "0")}`;
+      }
     }
+
+    // 3. 날짜 포맷팅 함수
+    const formatDateToYMD = (isoDate) => {
+      if (!isoDate) return null;
+      const d = new Date(isoDate);
+      if (isNaN(d)) return null;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const inspectionDate = formatDateToYMD(InspInfo.inspectionDate);
+    const nextDate = formatDateToYMD(InspInfo.nextDate);
+    console.log(newInspId);
+
+    await conn.query(sqlList.insertInspection, [
+      newInspId,
+      InspInfo.equipmentCode.trim() || null,
+      InspInfo.inspectionType.trim() || null,
+      InspInfo.inspectionCycle || null,
+      inspectionDate || null,
+      nextDate || null,
+      InspInfo.manager.trim() || null,
+      InspInfo.note || null,
+      InspInfo.lastResult || null,
+    ]);
+
+    if (Array.isArray(InspInfo.details)) {
+      for (const detail of InspInfo.details) {
+        await conn.query(sqlList.insertInspectionDetail, [
+          newInspId,
+          detail?.item || "",
+          detail?.result || "",
+          detail?.action || "",
+        ]);
+      }
+    }
+
+    // 5. 커밋
+    await conn.commit();
+    return { success: true, newInspId };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("insertInspection Error:", err);
+    return { success: false, error: err.message };
+  } finally {
+    if (conn) conn.release();
   }
-  return { inspectionCode };
 };
 
 const updateInspection = async (data = {}) => {
@@ -220,20 +286,19 @@ const searchEquipment = async (q = {}, page = 1, size = 10) => {
 const insertEquipment = async (equipmentInfo) => {
   let conn;
   try {
+    console.log(equipmentInfo);
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
 
-    // 1. 마지막 equipment_id 조회 (mapper alias 사용)
-    const rows = await conn.query("selectMaxEqId"); // <-- 여기에 들어감
-    const maxNum = rows?.[0]?.max_num || 0;
+    const rows = await conn.query(sqlList.selectMaxEqId);
+    const maxId = rows?.[0]?.max_eq_id || null;
 
-    // 2. 새로운 equipment_id 생성
-    let newEqId;
-    if (!maxId) {
-      newEqId = "EQ001";
-    } else {
+    let newEqId = "EQ001";
+    if (maxId) {
       const lastNum = parseInt(maxId.replace(/\D/g, ""), 10);
-      const newEqId = `EQ${String(maxNum + 1).padStart(3, "0")}`;
+      if (!isNaN(lastNum)) {
+        newEqId = `EQ${String(lastNum + 1).padStart(3, "0")}`;
+      }
     }
 
     // 3. 날짜 포맷팅 함수
@@ -249,23 +314,20 @@ const insertEquipment = async (equipmentInfo) => {
 
     const purchaseDate = formatDateToYMD(equipmentInfo.purchaseDate);
     const startDate = formatDateToYMD(equipmentInfo.startDate);
-
-    // 4. INSERT 실행
-    const insertData = [
-      newEqId, // equipment_id
-      equipmentInfo.equipmentType, // equipment_type
-      equipmentInfo.equipmentName, // equipment_name
-      equipmentInfo.manufacturer, // manufacturer
-      equipmentInfo.serialNo, // serial_no
+    console.log(newEqId);
+    await conn.query(sqlList.insertEquipment, [
+      newEqId || null, // equipment_id
+      equipmentInfo.equipmentType || null, // equipment_type
+      equipmentInfo.equipmentName || null, // equipment_name
+      equipmentInfo.manufacturer || null, // manufacturer
+      equipmentInfo.serialNo || null, // serial_no
       equipmentInfo.safetyStandard || null, // safety_standard
       equipmentInfo.operationManual || null, // operation_manual
-      purchaseDate, // purchase_date
-      startDate, // start_date
-      equipmentInfo.location, // location
-      equipmentInfo.status, // status
-    ];
-
-    await conn.query("insertEquipment", insertData);
+      purchaseDate || null, // purchase_date
+      startDate || null, // start_date
+      equipmentInfo.location || null, // location
+      equipmentInfo.status || null, // status
+    ]);
 
     // 5. 커밋
     await conn.commit();
@@ -392,6 +454,65 @@ const updateEquipment = async (data = {}) => {
 
 // 설비정보 등록/수정페이지 설비코드 자동생성
 
+// 비가동 페이지
+
+/* ===== 비가동 목록 조회 ===== */
+async function getDowntimeList({ eq_id, offset, size }) {
+  // 데이터 목록
+  const rows = await mariadb.query("selectDowntimeList", [
+    eq_id,
+    eq_id,
+    offset,
+    size,
+  ]);
+
+  // 전체 건수
+  const totalRows = await mariadb.query("countDowntimeList", [eq_id, eq_id]);
+
+  return { rows, total: totalRows[0].cnt };
+}
+
+// 비가동
+
+// 설비코드 목록 조회 (단순 페이지네이션)
+const getCodeList = async (page = 1, size = 5) => {
+  const offset = (page - 1) * size;
+  const items = await mariadb.query("selectCodeList", [offset, size]); // eq_id, eq_name
+  const total = (await mariadb.query("countEquipment2"))[0].cnt;
+  return { items, total, page, size };
+};
+
+// 비가동 등록 (id 자동증가라 id 제외)
+const registDowntime = async (form = {}) => {
+  const result = await mariadb.query("insertDowntime", [
+    form.equipment_id,
+    form.repair_id,
+    form.inspection_id,
+    form.fault_type,
+    form.fault_dtime,
+    form.restart_dtime,
+    form.note,
+    form.status,
+  ]);
+  return { id: result.insertId };
+};
+
+// 비가동 수정 (WHERE id=?)
+const updateDowntime = async (form = {}) => {
+  await mariadb.query("updateDowntime", [
+    form.equipment_id,
+    form.repair_id,
+    form.inspection_id,
+    form.fault_type,
+    form.fault_dtime,
+    form.restart_dtime,
+    form.note,
+    form.status,
+    form.id,
+  ]);
+  return { id: form.id };
+};
+
 module.exports = {
   /* 설비점검(기존) */
   findInspectionList,
@@ -413,4 +534,10 @@ module.exports = {
   findEquipmentInfoDistinct,
   findOneEquipment,
   searchEquipment2,
+
+  //비가동
+  getDowntimeList,
+  updateDowntime, // 비가동 수정
+  getCodeList,
+  registDowntime,
 };

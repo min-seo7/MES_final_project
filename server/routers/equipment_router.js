@@ -222,6 +222,62 @@ router.get("/info2/distinct", async (req, res) => {
   }
 });
 
-// ㅅㅈ
+// 비가동 페이지
 
+// ===== 비가동 목록 조회 =====
+router.get("/downtime-list", async (req, res) => {
+  try {
+    const { eq_id, page = 1, size = 10 } = req.query;
+    const offset = (page - 1) * size;
+
+    const result = await equipmentService.getDowntimeList({
+      eq_id,
+      offset: parseInt(offset, 10),
+      size: parseInt(size, 10),
+    });
+
+    res.json({
+      items: result.rows,
+      total: result.total,
+    });
+  } catch (err) {
+    console.error("[GET /equipment/downtime-list] 실패", err);
+    res.status(500).json({ message: "비가동 목록 조회 실패" });
+  }
+});
+
+// 설비코드 모달 조회
+router.get("/code-list", async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page || "1"), 1);
+    const size = Math.max(parseInt(req.query.size || "5"), 1);
+    const result = await equipmentService.getCodeList(page, size);
+    res.json(result);
+  } catch (err) {
+    console.error("code-list error", err);
+    res.status(500).json({ message: "설비코드 목록 조회 실패" });
+  }
+});
+
+// 비가동 등록
+router.post("/downtime/regist", async (req, res) => {
+  try {
+    const result = await equipmentService.registDowntime(req.body);
+    res.json({ message: "등록 완료", ...result });
+  } catch (err) {
+    console.error("downtime regist error", err);
+    res.status(500).json({ message: "비가동 등록 실패" });
+  }
+});
+
+// 비가동 수정
+router.put("/downtime/update", async (req, res) => {
+  try {
+    const result = await equipmentService.updateDowntime(req.body);
+    res.json({ message: "수정 완료", ...result });
+  } catch (err) {
+    console.error("downtime update error", err);
+    res.status(500).json({ message: "비가동 수정 실패" });
+  }
+});
 module.exports = router;
