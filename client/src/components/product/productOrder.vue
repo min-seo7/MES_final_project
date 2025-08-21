@@ -118,15 +118,15 @@ const productPlanCodeList = ref([
     { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김관리' }
 ]);
 const productNameList = ref([
-    { code: 'P001', name: '분말형비료', type: '분말형', specification: 20, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
-    { code: 'P001', name: '분말형비료', type: '분말형', specification: 40, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
-    { code: 'P002', name: '과립형비료', type: '과립형', specification: 20, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
-    { code: 'P002', name: '과립형비료', type: '과립형', specification: 40, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
-    { code: 'P003', name: '액체형비료', type: '액체형', specification: 5, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
-    { code: 'P003', name: '액체형비료', type: '액체형', specification: 10, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
-    { code: 'P001', name: '분말형비료', type: '분말형', specification: null, unit: null, line_id: 'line001', line_name: '라인A', prd_form: '반제품' },
-    { code: 'P002', name: '과립형비료', type: '과립형', specification: null, unit: null, line_id: 'line002', line_name: '라인B', prd_form: '반제품' },
-    { code: 'P003', name: '액체형비료', type: '액체형', specification: null, unit: null, line_id: 'line003', line_name: '라인C', prd_form: '반제품' }
+    { code: 'P001', name: '분말형비료',product_cate:'P001', type: '분말형', specification: 20, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
+    { code: 'P002', name: '분말형비료',product_cate:'P001', type: '분말형', specification: 40, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
+    { code: 'P003', name: '과립형비료',product_cate:'P002', type: '과립형', specification: 20, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
+    { code: 'P004', name: '과립형비료',product_cate:'P002', type: '과립형', specification: 40, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
+    { code: 'P005', name: '액체형비료',product_cate:'P003', type: '액체형', specification: 5, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
+    { code: 'P006', name: '액체형비료',product_cate:'P003', type: '액체형', specification: 10, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
+    { code: 'P007', name: '분말형비료',product_cate:'P001', type: '분말형', specification: null, unit: null, line_id: 'line001', line_name: '라인A', prd_form: '반제품' },
+    { code: 'P008', name: '과립형비료',product_cate:'P002', type: '과립형', specification: null, unit: null, line_id: 'line002', line_name: '라인B', prd_form: '반제품' },
+    { code: 'P009', name: '액체형비료',product_cate:'P003', type: '액체형', specification: null, unit: null, line_id: 'line003', line_name: '라인C', prd_form: '반제품' }
 ]);
 const lineInfoList = ref([
     { line_id: 'line001', line_name: '라인A', productname: '분말형비료' },
@@ -138,7 +138,7 @@ const products = ref([
         id: 1,
         startDatetime: new Date('2025-08-10 10:00'),
         endDatetime: new Date('2025-08-12 10:10'),
-        productId: 'P002',
+        productId: 'P003',
         productname: '과립형비료',
         productPlanQty: 10000,
         productType: '과립형',
@@ -155,11 +155,11 @@ const products = ref([
         id: 2,
         startDatetime: new Date('2025-08-10 10:20'),
         endDatetime: new Date('2025-08-12 10:20'),
-        productId: 'P002',
+        productId: 'P004',
         productname: '과립형비료',
         productPlanQty: 10000,
         productType: '과립형',
-        specification: 20,
+        specification: 40,
         unit: 'kg',
         prd_form: '완제품',
         undefinedQty: 9000,
@@ -169,7 +169,17 @@ const products = ref([
         lastname: '김관리'
     }
 ]);
-
+const productCodeToBomId = {
+    'P001': 'BOM001',
+    'P002': 'BOM001',
+    'P003': 'BOM002',
+    'P004': 'BOM002',
+    'P005': 'BOM003',
+    'P006': 'BOM003',
+    'P007': 'BOM001',
+    'P008': 'BOM002',
+    'P009': 'BOM003'
+};
 const selectedProducts = ref([]);
 const hiddenProductIds = ref(new Set());
 const filteredProducts = computed(() => {
@@ -250,6 +260,7 @@ const startProduction = async () => {
             product_id: product.productId
         };
     });
+   
     console.log('p_st_date:', mappedDetails.p_st_date);
     // console.log('맵핑된 제품들:', mappedDetails);
     const payload = {
@@ -258,6 +269,11 @@ const startProduction = async () => {
         // details: selectedProducts.value
         details: mappedDetails
     };
+    // 3-2. BOM 요청용 payload (bom_id 포함)
+    const bomPayload = selectedProducts.value.map(product => ({
+        req_qty: product.currentQty,
+        bom_id: productCodeToBomId[product.productId] || null, // 제품코드에 해당하는 BOM ID
+    }));
     try {
         console.log('전송할 데이터:', payload.details);
         // 서버에 POST 요청을 보내기
@@ -266,9 +282,20 @@ const startProduction = async () => {
     } catch (err) {
         console.log(err);
     }
+
+    try {
+        await axios.post('/api/production/bomRequestInsert', { details: bomPayload });
+        console.log('BOM 요청 성공');
+    } catch (err) {
+        console.log('BOM 요청 실패:', err);
+    }
 };
 const onSelectionChange = (event) => {
-    selectedProducts.value = event.value;
+    //selectedProducts.value = event.value;
+    selectedProducts.value = event.value.map(product => ({
+        ...product,
+        bom_id: productCodeToBomId[product.productId] || null
+    }));
     console.log('선택된 행들:', event.value);
     alert('선택된 행들: ' + event.value.length + '개');
     // selectedProducts.value.forEach((product) => {
@@ -436,7 +463,9 @@ const dropContent = () => {
                 <Button label="저장" class="w-full mt-4" />
             </div>
         </div> -->
+        
     </div>
+
 
     <Dialog v-model:visible="showModal" modal header="생산계획코드 리스트" :style="{ width: '40vw' }" @hide="closeModal">
         <p class="font-bold mb-4 text-lg">
@@ -474,6 +503,7 @@ const dropContent = () => {
                     </template>
                 </Column>
                 <Column field="code" header="제품코드"></Column>
+                <Column field="product_cate" header="제품분류코드"></Column>
                 <Column field="type" header="제품형태"></Column>
                 <Column field="line_id" header="생산라인"></Column>
                 <Column field="line_name" header="라인명"></Column>

@@ -29,6 +29,16 @@ const insertPrdOrderDetail = `
               ?
           );
       `;
+const insertRequestBom = `
+INSERT INTO tbl_mat_req (material_id, req_qty , wo_no)
+SELECT DISTINCT bd.material_id, bd.required_qty * ? AS req_qty, pod.wo_no
+FROM bom_detail bd
+JOIN prd_order_detail pod
+ON SUBSTR(pod.ord_no, 4, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+JOIN production_order po
+ON po.ord_no = pod.ord_no
+WHERE bd.bom_id IN (?);`;
+
 const startWork = `START TRANSACTION;
  SET @master_ord_no = CONCAT(
         'ord',
@@ -147,6 +157,7 @@ const notRegistPrcList = `select ld.use_order AS use_order,
     AND pf.process_id = flow.process_id
     JOIN process prc
     ON ld.process_id = prc.process_id
+    WHERE pf.w_ed_date is null
     order by pod.wo_no desc, ld.use_order;
 `;
 const updatePerform = `
@@ -187,4 +198,5 @@ module.exports = {
   updatePerform,
   selectEname,
   selectStatusCheck,
+  insertRequestBom,
 };

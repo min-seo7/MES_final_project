@@ -150,7 +150,6 @@ const notRegistPrcList = async () => {
   } catch (error) {
     throw error;
   } finally {
-    // 9. 연결 해제
     if (conn) conn.release();
   }
 };
@@ -182,7 +181,6 @@ const insertPerform = async (payload) => {
   } catch (error) {
     throw error;
   } finally {
-    // 9. 연결 해제
     if (conn) conn.release();
   }
 };
@@ -206,7 +204,6 @@ const updatePerform = async (payload) => {
   } catch (error) {
     throw error;
   } finally {
-    // 9. 연결 해제
     if (conn) conn.release();
   }
 };
@@ -223,7 +220,6 @@ const selectEname = async (wo_no, process_id) => {
   } catch (error) {
     throw error;
   } finally {
-    // 9. 연결 해제
     if (conn) conn.release();
   }
 };
@@ -244,7 +240,6 @@ const checkWoStatus = async (wo_no) => {
   } catch (error) {
     throw error;
   } finally {
-    // 9. 연결 해제
     if (conn) conn.release();
   }
 };
@@ -254,6 +249,26 @@ const findAllOrder = async () => {
   return list;
 };
 
+const bomRequestInsert = async (details) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    // 1. 데이터베이스에 BOM 요청 데이터 삽입
+    const result = await conn.query(sqlList.insertRequestBom, [details]);
+    if (result) {
+      console.log("BOM 요청이 성공적으로 등록되었습니다.");
+      await conn.commit();
+      return { success: true, message: "BOM 요청이 성공적으로 등록되었습니다." };
+    } else {
+      console.log("BOM 요청 등록에 실패하였습니다.", result.data);
+      return { success: false, message: "BOM 요청 등록에 실패하였습니다." };
+    }
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+}
 module.exports = {
   findAllOrder,
   startWork,
@@ -264,4 +279,5 @@ module.exports = {
   updatePerform,
   selectEname,
   checkWoStatus,
+  bomRequestInsert,
 };
