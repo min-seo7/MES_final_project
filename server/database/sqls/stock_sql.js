@@ -165,7 +165,7 @@ from ztestprdresult zt
 JOIN product p
 ON zt.product_id = p.product_id
 WHERE zt.judgment = '합격'
-AND zt.pro_status ='미생성'`; 
+AND zt.pro_status ='미생성'`;
 // //쿼리 만들어진걸로 수정해야 함.
 // -> 입고처리완료 상태값 필요함 목록출력제어위해서..
 
@@ -342,7 +342,8 @@ let returnListQurey = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_
                        JOIN tbl_prd_out po
                        ON re.shipment_id = po.shipment_id
                        JOIN product p
-                       ON re.product_id = p.product_id`;
+                       ON re.product_id = p.product_id
+                       ORDER BY return_date DESC `;
 
 let returnReQuery = `UPDATE returns
                      SET in_date = now(),

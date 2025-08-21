@@ -3,7 +3,7 @@ import axios from 'axios';
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { ref } from 'vue';
 import { useUserStore } from '@/store/index';
-import { useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 
 // const eId = ref('');
 // const password = ref('');
@@ -13,7 +13,7 @@ import { useRoute } from 'vue-router';
 const userStore = useUserStore();
 
 // 라우터 사용
-const router = useRoute();
+const router = useRouter();
 
 // 로그인 정보 (양방향 바인딩용)
 const loginInfo = ref({});
@@ -26,7 +26,7 @@ const userLogin = async () => {
         const loginRes = result.data;
 
         if (loginRes.result) {
-            userStore.addLoginId(loginRes.id); // Pinia action 호출
+            userStore.setUser(loginRes); // Pinia action 호출
             router.push({ name: 'dashboard' }); //로그인 후 이동경로
         } else {
             alert(loginRes.message);
@@ -62,7 +62,7 @@ const userLogin = async () => {
                             </g>
                         </svg>
                         <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome!</div>
-                    </div>
+                    </div> 
 
                     <div>
                         <form>
@@ -71,7 +71,7 @@ const userLogin = async () => {
 
                             <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">비밀번호</label>
                             <Password id="password1" v-model="loginInfo.password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
-                            <Button label="로그인" class="w-full mt-3" as="router-link" @click="userLogin" to="/"></Button>
+                            <Button label="로그인" class="w-full mt-3"  @click="userLogin" ></Button>
                         </form>
                     </div>
                 </div>

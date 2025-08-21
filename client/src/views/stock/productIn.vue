@@ -43,7 +43,7 @@ export default {
                 { field: 'p_testPassQty', header: '검수수량', headerStyle: 'width: 15rem' },
                 { field: 'p_receiptQty', header: '입고수량', headerStyle: 'width: 15rem', inputNumber: true },
                 { field: 'p_unit', header: '단위', headerStyle: 'width: 13rem' },
-                { field: 'p_exp', header: '유통기한', headerStyle: 'width: 20rem' },
+                //{ field: 'p_exp', header: '유통기한', headerStyle: 'width: 20rem' },
                 { field: 'p_warehouse', header: '보관창고', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.openWarehouseeModal }, //창고위치모달.
                 { field: 'p_memo', header: '비고', headerStyle: 'width: 50rem', inputText: true }
             ],

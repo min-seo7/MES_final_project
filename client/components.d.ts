@@ -126,6 +126,7 @@ declare module 'vue' {
     Search: typeof import('./src/components/common/Search.vue')['default']
     Select: typeof import('primevue/select')['default']
     SelectButton: typeof import('primevue/selectbutton')['default']
+    Slider: typeof import('primevue/slider')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
     Slider: typeof import('primevue/slider')['default']
     SplitButton: typeof import('primevue/splitbutton')['default']

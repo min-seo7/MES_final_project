@@ -6,6 +6,7 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import 'primeicons/primeicons.css';
 import axios from 'axios';
+import { useUserStore } from '@/store/index';
 
 export default {
     components: { commModal, DataTable, Column, InputText, Button },
@@ -236,6 +237,11 @@ export default {
         let today = new Date();
         this.reDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         this.getLessMatList();
+        let userInfo = useUserStore();
+        console.log(userInfo);
+        if (userInfo.user) {
+            this.empName = userInfo.user.name; // 로그인된 사용자 이름 세팅
+        }
     }
 };
 </script>
@@ -274,7 +280,7 @@ export default {
                     <div class="flex flex-wrap gap-4 my-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="reDate">등록일</label>
-                            <InputText id="reDate" type="text" v-model="reDate" class="w-full" dateFormat="yy-mm-dd" />
+                            <InputText id="reDate" type="text" v-model="reDate" class="w-full" dateFormat="yy-mm-dd" readonly />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="dueDate">납기요청일</label>
@@ -285,13 +291,13 @@ export default {
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerId">공급처코드</label>
                             <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" />
+                                <InputText id="partnerId" type="text" class="w-full" v-model="partnerId" />
                                 <InputIcon class="pi pi-search" @click="openPatenrModal()" />
                             </IconField>
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerName">공급처</label>
-                            <InputText id="partnerName" type="text" class="w-full" readonly v-model="partnerName" />
+                            <InputText id="partnerName" type="text" class="w-full" v-model="partnerName" />
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-4 my-4">
@@ -301,7 +307,7 @@ export default {
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="empName">담당자</label>
-                            <InputText id="empName" type="text" v-model="empName" />
+                            <InputText id="empName" type="text" v-model="empName" readonly />
                         </div>
                     </div>
                 </div>
