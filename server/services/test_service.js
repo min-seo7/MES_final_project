@@ -116,8 +116,7 @@ const getUnits = async () => await mariadb.query("getUnits");
 
 // 제품유형별검사항목조회
 const findItemsByProductType = async (info) => {
-  console.log(info);
-  const list = await mariadb.query("selectTestItemByProductType");
+  const list = await mariadb.query("selectTestItemByProductType", info);
   return list;
 };
 
