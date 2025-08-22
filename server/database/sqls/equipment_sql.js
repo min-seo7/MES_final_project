@@ -485,6 +485,52 @@ const updateDowntime = `
   WHERE id=?;
 `;
 
+// 설비수리 페이지
+// 설비수리 목록 조회 (조건검색 + 페이지네이션)
+/* ===== 조건검색 ===== */
+const searchRepairList = `
+SELECT 
+  r.repair_id,
+  r.equipment_id AS eq_id,
+  e.equipment_name AS eq_name,
+  r.insp_code,
+  r.reason,
+  r.repairer,
+  r.start_date,
+  r.end_date,
+  r.status
+FROM equipment_repair r
+LEFT JOIN equipment e ON r.equipment_id = e.equipment_id
+WHERE (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.insp_code = ?)
+  AND (? IS NULL OR r.start_date >= ?)
+  AND (? IS NULL OR r.end_date <= ?)
+ORDER BY r.repair_id DESC
+LIMIT ? OFFSET ?
+`;
+
+const countRepairListWithFilter = `
+SELECT COUNT(*) AS total
+FROM equipment_repair r
+WHERE (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.insp_code = ?)
+  AND (? IS NULL OR r.start_date >= ?)
+  AND (? IS NULL OR r.end_date <= ?)
+`;
+
+/* ===== DISTINCT ===== */
+const distinctRepair = (field) => `
+  SELECT DISTINCT ${field} AS value
+  FROM equipment_repair
+  ORDER BY ${field}
+  LIMIT ? OFFSET ?
+`;
+
+const countDistinctRepair = (field) => `
+  SELECT COUNT(DISTINCT ${field}) AS total
+  FROM equipment_repair
+`;
+
 module.exports = {
   /* 설비점검 목록/검색/Distinct (기존) */
   selectInspectionList,
@@ -546,4 +592,9 @@ module.exports = {
   insertDowntime,
   countEquipment2,
   updateDowntime,
+  // 설비수리
+  searchRepairList,
+  countRepairListWithFilter,
+  distinctRepair,
+  countDistinctRepair,
 };
