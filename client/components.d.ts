@@ -74,7 +74,6 @@ declare module 'vue' {
     InputGroup: typeof import('primevue/inputgroup')['default']
     InputGroupAddon: typeof import('primevue/inputgroupaddon')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
-    InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     InspectionListWidget: typeof import('./src/components/equipment/inspection/inspectionListWidget.vue')['default']
     InspectionRegistWidget: typeof import('./src/components/equipment/inspection/inspectionRegistWidget.vue')['default']
@@ -115,9 +114,12 @@ declare module 'vue' {
     PartnerListWidget: typeof import('./src/components/information/partner/partnerListWidget.vue')['default']
     PartnerRegistWidget: typeof import('./src/components/information/partner/partnerRegistWidget.vue')['default']
     PartnerSearchWidget: typeof import('./src/components/information/partner/partnerSearchWidget.vue')['default']
+<<<<<<< HEAD
+=======
     Password: typeof import('primevue/password')['default']
     PickList: typeof import('primevue/picklist')['default']
     Popover: typeof import('primevue/popover')['default']
+>>>>>>> main
     PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']
     ProcessListWidget: typeof import('./src/components/information/process/processListWidget.vue')['default']
     ProcessRegistWidget: typeof import('./src/components/information/process/processRegistWidget.vue')['default']
@@ -144,11 +146,14 @@ declare module 'vue' {
     Search: typeof import('./src/components/common/Search.vue')['default']
     Select: typeof import('primevue/select')['default']
     SelectButton: typeof import('primevue/selectbutton')['default']
+<<<<<<< HEAD
+=======
     Skeleton: typeof import('primevue/skeleton')['default']
     Slider: typeof import('primevue/slider')['default']
     SplitButton: typeof import('primevue/splitbutton')['default']
     Splitter: typeof import('primevue/splitter')['default']
     SplitterPanel: typeof import('primevue/splitterpanel')['default']
+>>>>>>> main
     StatsWidget: typeof import('./src/components/dashboard/StatsWidget.vue')['default']
     Step: typeof import('primevue/step')['default']
     StepList: typeof import('primevue/steplist')['default']
@@ -158,6 +163,10 @@ declare module 'vue' {
     StockCommRowBtn: typeof import('./src/components/stock/stockCommRowBtn.vue')['default']
     StockCommSearchBox: typeof import('./src/components/stock/stockCommSearchBox.vue')['default']
     StockCommTable: typeof import('./src/components/stock/stockCommTable.vue')['default']
+<<<<<<< HEAD
+    Textarea: typeof import('primevue/textarea')['default']
+    Toast: typeof import('primevue/toast')['default']
+=======
     Tab: typeof import('primevue/tab')['default']
     TabList: typeof import('primevue/tablist')['default']
     TabPanel: typeof import('primevue/tabpanel')['default']
@@ -170,6 +179,7 @@ declare module 'vue' {
     Toast: typeof import('primevue/toast')['default']
     ToggleButton: typeof import('primevue/togglebutton')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
+>>>>>>> main
     Toolbar: typeof import('primevue/toolbar')['default']
     TopbarWidget: typeof import('./src/components/landing/TopbarWidget.vue')['default']
     Tree: typeof import('primevue/tree')['default']

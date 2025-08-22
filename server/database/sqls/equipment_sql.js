@@ -486,49 +486,105 @@ const updateDowntime = `
 `;
 
 // 설비수리 페이지
-// 설비수리 목록 조회 (조건검색 + 페이지네이션)
-/* ===== 조건검색 ===== */
-const searchRepairList = `
+/* =========================
+   설비수리 SQL MAPPER
+   ========================= */
+
+/* 목록 조회 */
+/* ✅ 설비수리 목록 */
+const selectRepairList = `
 SELECT 
-  r.repair_id,
-  r.equipment_id AS eq_id,
-  e.equipment_name AS eq_name,
-  r.insp_code,
-  r.reason,
-  r.repairer,
-  r.start_date,
-  r.end_date,
-  r.status
+    r.repair_id,
+    r.equipment_id,
+    e.equipment_name,
+    d.fault_dtime,
+    d.restart_dtime,
+    r.start_date,
+    r.end_date,
+    r.repairer,
+    r.reason,
+    r.status,
+    rd.repair_item,
+    rd.repair_result,
+    rd.corrective_action
 FROM equipment_repair r
-LEFT JOIN equipment e ON r.equipment_id = e.equipment_id
-WHERE (? IS NULL OR r.equipment_id = ?)
-  AND (? IS NULL OR r.insp_code = ?)
-  AND (? IS NULL OR r.start_date >= ?)
-  AND (? IS NULL OR r.end_date <= ?)
+LEFT JOIN equipment e 
+       ON r.equipment_id = e.equipment_id
+LEFT JOIN equipment_downtime d 
+       ON r.repair_id = d.repair_id
+LEFT JOIN equipment_repair_detail rd 
+       ON r.repair_id = rd.repair_id
+WHERE 1=1
+  AND (? IS NULL OR r.repair_id = ?)
+  AND (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.status = ?)
+  AND (? IS NULL OR DATE(r.start_date) >= ?)
+  AND (? IS NULL OR DATE(r.end_date) <= ?)
 ORDER BY r.repair_id DESC
-LIMIT ? OFFSET ?
+LIMIT ? OFFSET ?;
 `;
 
-const countRepairListWithFilter = `
+/* 조건검색 */
+const searchRepairList = `
+SELECT
+    r.repair_id,
+    r.equipment_id      AS eq_id,
+    d.fault_dtime,
+    d.restart_dtime,
+    r.start_date        AS start_dtime,
+    r.end_date          AS end_dtime,
+    r.repairer,
+    r.reason,
+    rd.repair_item      AS item,
+    rd.repair_result    AS result,
+    rd.corrective_action AS action
+FROM equipment_repair r
+LEFT JOIN equipment_downtime d 
+       ON r.repair_id = d.repair_id
+LEFT JOIN equipment_repair_detail rd 
+       ON r.repair_id = rd.repair_id
+WHERE 1=1
+  AND (? IS NULL OR r.repair_id = ?)
+  AND (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.status = ?)
+  AND (? IS NULL OR DATE(r.start_date) >= ?)
+  AND (? IS NULL OR DATE(r.end_date) <= ?)
+ORDER BY r.repair_id DESC
+LIMIT ? OFFSET ?;
+`;
+
+/* ===== DISTINCT (모달용) ===== */
+const distinctRepair = `
+  SELECT DISTINCT repair_id
+  FROM equipment_repair
+  ORDER BY repair_id DESC
+  LIMIT ? OFFSET ?;
+`;
+
+/* COUNT (단순조회용) */
+const countRepairList = `
 SELECT COUNT(*) AS total
 FROM equipment_repair r
-WHERE (? IS NULL OR r.equipment_id = ?)
-  AND (? IS NULL OR r.insp_code = ?)
-  AND (? IS NULL OR r.start_date >= ?)
-  AND (? IS NULL OR r.end_date <= ?)
+LEFT JOIN equipment_downtime d ON r.repair_id = d.repair_id
+LEFT JOIN equipment_repair_detail rd ON r.repair_id = rd.repair_id
+WHERE (? IS NULL OR r.repair_id = ?)
+  AND (? IS NULL OR r.equipment_id = ?)
 `;
 
-/* ===== DISTINCT ===== */
-const distinctRepair = (field) => `
-  SELECT DISTINCT ${field} AS value
-  FROM equipment_repair
-  ORDER BY ${field}
-  LIMIT ? OFFSET ?
-`;
-
-const countDistinctRepair = (field) => `
-  SELECT COUNT(DISTINCT ${field}) AS total
-  FROM equipment_repair
+/* ===== 설비수리 COUNT (조건검색 포함) ===== */
+const countRepairListWithFilter = `
+SELECT COUNT(DISTINCT r.repair_id) AS total
+FROM equipment_repair r
+LEFT JOIN equipment_downtime d 
+       ON r.repair_id = d.repair_id
+LEFT JOIN equipment_repair_detail rd 
+       ON r.repair_id = rd.repair_id
+WHERE 1=1
+  AND (? IS NULL OR r.repair_id = ?)
+  AND (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.status = ?)
+  AND (? IS NULL OR DATE(r.start_date) >= ?)
+  AND (? IS NULL OR DATE(r.end_date) <= ?);
 `;
 
 module.exports = {
@@ -594,7 +650,8 @@ module.exports = {
   updateDowntime,
   // 설비수리
   searchRepairList,
-  countRepairListWithFilter,
   distinctRepair,
-  countDistinctRepair,
+  selectRepairList,
+  countRepairList,
+  countRepairListWithFilter,
 };

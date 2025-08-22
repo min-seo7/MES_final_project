@@ -171,7 +171,7 @@ const registerInspection = async (InspInfo = {}) => {
       InspInfo.manager.trim() || null,
       InspInfo.note || null,
       InspInfo.lastResult || null,
-    ]);
+    ]); // 여기가 insert 부분
 
     if (Array.isArray(InspInfo.details)) {
       for (const detail of InspInfo.details) {
@@ -515,76 +515,62 @@ const updateDowntime = async (form = {}) => {
 
 // 설비수리 페이지
 
-// 페이지/사이즈 안전 파서
-const num = (v, d) => Math.max(parseInt(v ?? d, 10) || d, 1);
-
-// (1) 기본 목록
+/* ===== 설비수리: 목록(기본) ===== */
 const getRepairList = async (page = 1, size = 10) => {
-  const _page = num(page, 1);
-  const _size = num(size, 10);
-  const offset = (_page - 1) * _size;
-
-  const items = await mariadb.query("repair.selectList", [_size, offset]);
-  const total = (await mariadb.query("repair.countList"))[0]?.total ?? 0;
-  return { items, total, page: _page, size: _size };
+  const offset = (page - 1) * size;
+  const items = await mariadb.query("selectRepairList", [
+    null,
+    null,
+    null,
+    null,
+    size,
+    offset,
+  ]);
+  const total =
+    (await mariadb.query("countRepairList", [null, null, null, null]))[0]
+      ?.total ?? 0;
+  return { items, total, page, size };
 };
 
-// (2) 조건 검색
+/* ===== 설비수리 조건검색 조회 ===== */
 const searchRepairList = async (q = {}) => {
-  const page = num(q.page, 1);
-  const size = num(q.size, 10);
+  const page = Math.max(parseInt(q.page || 1, 10), 1);
+  const size = Math.max(parseInt(q.size || 10, 10), 1);
   const offset = (page - 1) * size;
 
-  // repairCode로 와도 대응 (search 위젯)
-  const eq_id = q.eq_id ?? null;
-  const repair_id = q.repair_id ?? q.repairCode ?? null;
-  const status = q.status ?? null;
-  const insp_code = q.insp_code ?? null;
-  const date_from = q.date_from ?? null;
-  const date_to = q.date_to ?? null;
-
-  const paramsSel = [
-    eq_id,
-    eq_id,
-    repair_id,
-    repair_id,
-    status,
-    status,
-    insp_code,
-    insp_code,
-    date_from,
-    date_from,
-    date_to,
-    date_to,
+  const params = [
+    q.repair_id ?? null,
+    q.repair_id ?? null,
+    q.eq_id ?? null,
+    q.eq_id ?? null,
+    q.status ?? null,
+    q.status ?? null,
+    q.date_from ?? null,
+    q.date_from ?? null,
+    q.date_to ?? null,
+    q.date_to ?? null,
     size,
     offset,
   ];
-  const paramsCnt = paramsSel.slice(0, -2);
 
-  const items = await mariadb.query("repair.searchList", paramsSel);
+  const items = await mariadb.query("searchRepairList", params);
   const total =
-    (await mariadb.query("repair.countSearch", paramsCnt))[0]?.total ?? 0;
+    (await mariadb.query("countRepairListWithFilter", params.slice(0, -2)))[0]
+      ?.total ?? 0;
+
   return { items, total, page, size };
 };
 
-// (3) DISTINCT (모달)
+/* ===== DISTINCT (설비수리모달) ===== */
 const getRepairDistinct = async (field, page = 1, size = 5) => {
-  const map = {
-    repairCode: "repair_id",
-    eq_id: "equipment_id",
-    insp_code: "insp_code",
-    status: "status",
-  };
-  const col = map[field];
-  if (!col) return { items: [], total: 0, page, size };
-
-  const items = (
-    await mariadb.query(`repair.distinct.${col}`, [size, (page - 1) * size])
-  ).map((r) => r.value);
-  const total =
-    (await mariadb.query(`repair.countDistinct.${col}`))[0]?.total ?? 0;
+  if (field !== "repair_id") return { items: [], total: 0, page, size };
+  const offset = (page - 1) * size;
+  const rows = await mariadb.query("distinctRepair", [size, offset]);
+  const items = rows.map((r) => Object.values(r)[0]);
+  const total = rows.length; // 간단 카운트
   return { items, total, page, size };
 };
+
 module.exports = {
   /* 설비점검(기존) */
   findInspectionList,
@@ -617,4 +603,5 @@ module.exports = {
   getRepairList,
   searchRepairList,
   getRepairDistinct,
+  searchRepairList,
 };
