@@ -113,7 +113,7 @@ const process = ref('');
 const wo_no = ref('');
 const in_qty = ref(0);
 const def_qty = ref(0);
-const qty = ref(0);
+//const qty = ref(0);
 const process_name = ref('');
 const productId = ref('');
 const productName = ref('');
@@ -129,7 +129,7 @@ const productionQuantity = ref(0);
 const performanceInsStartDate = ref('');
 const performanceInsEndDate = ref('');
 const status = ref('');
-const counter = ref(1); // 실적번호용 카운트 (3자리)
+//const counter = ref(1); // 실적번호용 카운트 (3자리)
 const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -140,32 +140,31 @@ const formatDate = (dateString) => {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
-const generateCode = () => {
-    // 현재 날짜를 YYYYMMDD 형식으로 가져오기
-    const now = new Date();
-    console.log(now);
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const dateString = `${year}${month}${day}`;
+// const generateCode = () => {
+//     // 현재 날짜를 YYYYMMDD 형식으로 가져오기
+//     const now = new Date();
+//     console.log(now);
+//     const year = now.getFullYear();
+//     const month = (now.getMonth() + 1).toString().padStart(2, '0');
+//     const day = now.getDate().toString().padStart(2, '0');
+//     const dateString = `${year}${month}${day}`;
 
-    // 3자리 일련번호를 문자열로 변환 (001, 002...)
-    const sequenceNumber = String(counter.value).padStart(3, '0');
+//     // 3자리 일련번호를 문자열로 변환 (001, 002...)
+//     const sequenceNumber = String(counter.value).padStart(3, '0');
 
-    // 최종 코드 생성
-    const newCode = `PF${dateString}-${sequenceNumber}`;
-    // 다음 일련번호를 위해 카운터 증가
-    counter.value++;
+//     // 최종 코드 생성
+//     const newCode = `PF${dateString}-${sequenceNumber}`;
+//     // 다음 일련번호를 위해 카운터 증가
+//     counter.value++;
 
-    return newCode;
+//     return newCode;
 
-    // 이거 DB에서 seq로 자동 부여되게 할수는 있음 현재는 이 코드로 만들어진 더미데이터가 있어서 DB단에서 생성이 불가 PK제약조건위배
-    // concat(CONCAT('PF', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR pf_code_seq, 3, '0'))
-};
+//     // 이거 DB에서 seq로 자동 부여되게 할수는 있음 현재는 이 코드로 만들어진 더미데이터가 있어서 DB단에서 생성이 불가 PK제약조건위배
+//     // concat(CONCAT('PF', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR pf_code_seq, 3, '0'))
+// };
 const fetchProductionOrderList = async () => {
     try {
         const response = await axios.get('/api/production/productionOrderList');
-        // Check if response.data exists and has a 'list' property that is an array
 
         if (response.data && Array.isArray(response.data.list)) {
             productionOrderList.value = response.data.list.map((item) => ({
@@ -181,12 +180,10 @@ const fetchProductionOrderList = async () => {
             }));
             console.log(response);
         } else {
-            // This case handles when the server sends an unexpected format
             console.error('서버 응답 형식이 올바르지 않습니다:', response.data);
             productionOrderList.value = [];
         }
     } catch (error) {
-        // This handles network errors or server response status codes like 4xx, 5xx
         console.error('실패:', error);
     } finally {
         loading.value = false;
@@ -246,11 +243,11 @@ const registStartPerformance = async () => {
         // const dateString = `${year}-${month}-${day} ${hour}:${minute}`;
         // step 1. 작업시작 일시가 먼저 디스플레이에 기입
         performanceInsStartDate.value = new Date();
-        const newCode = generateCode();
+        //const newCode = generateCode();
         try {
             const payload = {
                 wo_no: wo_no.value,
-                pf_code: newCode,
+                // pf_code: newCode,
                 e_name: worker.value,
                 process_id: process.value,
                 in_qty: inQuantity.value,
@@ -326,7 +323,7 @@ const resetData = () => {
             <!-- <Button label=" 실적등록 " rounded @click="performanceInsert" /> -->
             <Button label=" 작업시작 " rounded @click="registStartPerformance" />
             <Button label=" 작업종료 " rounded @click="registEndPerformance" />
-            <Button label=" 지시목록 " rounded @click="openModal('orderList')" />
+            <Button label=" 지시목록 " rounded @click="openModal('orderList')" severity="help" />
             <Button label=" 초기화 " severity="info" rounded @click="resetData" />
         </div>
     </div>
