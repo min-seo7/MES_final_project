@@ -34,7 +34,7 @@ const fetchPicker = async (p) => {
     try {
         page.value = p;
         const { data } = await axios.get('/api/equipment/repair/distinct', {
-            params: { field: 'repairCode', page: p, size }
+            params: { field: 'repair_id', page: p, size }
         });
         pickerList.value = data?.items ?? [];
         total.value = data?.total ?? pickerList.value.length;
