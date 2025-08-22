@@ -513,6 +513,78 @@ const updateDowntime = async (form = {}) => {
   return { id: form.id };
 };
 
+// 설비수리 페이지
+
+// 페이지/사이즈 안전 파서
+const num = (v, d) => Math.max(parseInt(v ?? d, 10) || d, 1);
+
+// (1) 기본 목록
+const getRepairList = async (page = 1, size = 10) => {
+  const _page = num(page, 1);
+  const _size = num(size, 10);
+  const offset = (_page - 1) * _size;
+
+  const items = await mariadb.query("repair.selectList", [_size, offset]);
+  const total = (await mariadb.query("repair.countList"))[0]?.total ?? 0;
+  return { items, total, page: _page, size: _size };
+};
+
+// (2) 조건 검색
+const searchRepairList = async (q = {}) => {
+  const page = num(q.page, 1);
+  const size = num(q.size, 10);
+  const offset = (page - 1) * size;
+
+  // repairCode로 와도 대응 (search 위젯)
+  const eq_id = q.eq_id ?? null;
+  const repair_id = q.repair_id ?? q.repairCode ?? null;
+  const status = q.status ?? null;
+  const insp_code = q.insp_code ?? null;
+  const date_from = q.date_from ?? null;
+  const date_to = q.date_to ?? null;
+
+  const paramsSel = [
+    eq_id,
+    eq_id,
+    repair_id,
+    repair_id,
+    status,
+    status,
+    insp_code,
+    insp_code,
+    date_from,
+    date_from,
+    date_to,
+    date_to,
+    size,
+    offset,
+  ];
+  const paramsCnt = paramsSel.slice(0, -2);
+
+  const items = await mariadb.query("repair.searchList", paramsSel);
+  const total =
+    (await mariadb.query("repair.countSearch", paramsCnt))[0]?.total ?? 0;
+  return { items, total, page, size };
+};
+
+// (3) DISTINCT (모달)
+const getRepairDistinct = async (field, page = 1, size = 5) => {
+  const map = {
+    repairCode: "repair_id",
+    eq_id: "equipment_id",
+    insp_code: "insp_code",
+    status: "status",
+  };
+  const col = map[field];
+  if (!col) return { items: [], total: 0, page, size };
+
+  const items = (
+    await mariadb.query(`repair.distinct.${col}`, [size, (page - 1) * size])
+  ).map((r) => r.value);
+  const total =
+    (await mariadb.query(`repair.countDistinct.${col}`))[0]?.total ?? 0;
+  return { items, total, page, size };
+};
 module.exports = {
   /* 설비점검(기존) */
   findInspectionList,
@@ -540,4 +612,9 @@ module.exports = {
   updateDowntime, // 비가동 수정
   getCodeList,
   registDowntime,
+
+  // 설비수리
+  getRepairList,
+  searchRepairList,
+  getRepairDistinct,
 };

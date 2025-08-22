@@ -289,7 +289,7 @@ onMounted(() => fetchOrders());
                 <template #footer>
                     <div class="flex justify-end space-x-2">
                         <Button label="전송" rounded @click="sendEmail" :disabled="selectedOrders.length === 0 || selectedOrders.length > 1" />
-                        <Button label="다중 전송" rounded severity="success" @click="sendEmailMultiple" :disabled="!selectedOrders.length" />
+                        <!-- <Button label="다중 전송" rounded severity="success" @click="sendEmailMultiple" :disabled="!selectedOrders.length" /> -->
                         <Button label="초기화" rounded severity="secondary" @click="resetFilters" />
                     </div>
                 </template>

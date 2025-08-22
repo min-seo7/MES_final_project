@@ -23,7 +23,7 @@ const modifyProcess = async () => {
     } catch (err) {
         console.log('공정수정실패');
     }
-}
+};
 
 const resetRegist = async () => {
     if (form.value.processId?.trim()) {
@@ -35,9 +35,9 @@ const resetRegist = async () => {
         // 등록 상태: 전체 필드 초기화
         form.value = {
             processId: '',
-    processName: '',
-    isInspection: '',
-    status: ''
+            processName: '',
+            isInspection: '',
+            status: ''
         };
     }
 };
@@ -66,23 +66,15 @@ const registProcess = async () => {
         console.log('공정등록실패');
     }
 };
-// const modifyProcess = async () => {
-//     try {
-//         const res = await axios.post('/api/information/process/modify', form.value);
-//         alert(res.data.message);
-//     } catch (err) {
-//         console.log('공정수정실패');
-//     }
-// };
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div>등록/수정</div>
+        <div></div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registProcess()" :disabled="form.processId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.processId?.trim() === ''" @click="modifyProcess()" />
-            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
+            <Button label=" 등록 " size="small" rounded @click="registProcess()" :disabled="form.processId?.trim() !== ''" />
+            <Button label=" 수정 " size="small" rounded :disabled="form.processId?.trim() === ''" @click="modifyProcess()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">

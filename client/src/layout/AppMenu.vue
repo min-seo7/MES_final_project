@@ -175,11 +175,11 @@ const model = ref([
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/production/productionOrder'
                     },
-                    {
-                        label: '제품재고조회',
-                        icon: 'pi pi-fw pi-bookmark',
-                        to: '/production/prodStockSearch'
-                    },
+                    // {
+                    //     label: '제품재고조회',
+                    //     icon: 'pi pi-fw pi-bookmark',
+                    //     to: '/production/prodStockSearch'
+                    // },
                     {
                         label: '실적등록',
                         icon: 'pi pi-fw pi-bookmark',

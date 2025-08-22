@@ -20,6 +20,11 @@ const findInspWait = async () => {
   let list = await mariadb.query("selectInspecWaitList");
   return list;
 };
+// 제품검사대기목록
+const findpdInspWait = async () => {
+  let list = await mariadb.query("selectpdInspecWaitList");
+  return list;
+};
 
 // 자재입고검사완료목록
 const findInspFin = async () => {
@@ -86,10 +91,28 @@ const insertInsp = async (inspInfo) => {
   }
 };
 
+const deleteTestItem = async (testitem_code) => {
+  if (!testitem_code) throw new Error("testitem_code가 필요합니다.");
+  try {
+    // test_sql.js에 정의된 deleteTestItem 쿼리 사용
+    const result = await mariadb.query("deleteTestItem", [testitem_code]);
+    return result;
+  } catch (err) {
+    console.error("삭제 실패:", err);
+    throw err;
+  }
+};
+
 // 객체를 배열로 변환하는 메서드
 function convertToArray(obj, columns) {
   return columns.map((col) => obj[col]);
 }
+
+const getProductTypes = async () => await mariadb.query("getProductTypes");
+const getInspPurposes = async () => await mariadb.query("getInspPurposes");
+const getInspItems = async () => await mariadb.query("getInspItems");
+const getOperators = async () => await mariadb.query("getOperators");
+const getUnits = async () => await mariadb.query("getUnits");
 
 module.exports = {
   findAllItemsWithFilter,
@@ -99,4 +122,11 @@ module.exports = {
   findInspFin,
   findPD,
   insertInsp,
+  deleteTestItem,
+  getProductTypes,
+  getInspPurposes,
+  getInspItems,
+  getOperators,
+  getUnits,
+  findpdInspWait,
 };

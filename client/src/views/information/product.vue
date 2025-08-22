@@ -21,7 +21,7 @@ const productSearchData = ref(
         expiration: '\u00A0',
         storageCondition: '\u00A0',
         safetyStock: '\u00A0',
-        manual: '\u00A0',
+        productCategory: '\u00A0',
         status: '\u00A0'
     })
 );
@@ -37,7 +37,7 @@ const handleSearch = (result) => {
         expiration: item.expiration_date + item.expiration_date_unit,
         storageCondition: item.storage_condition,
         safetyStock: item.safety_stock + item.safety_stock_unit,
-        manual: item.product_manual,
+        productCategory: item.product_category,
         status: item.status
     }));
 
@@ -53,7 +53,7 @@ const handleSearch = (result) => {
             expiration: '\u00A0',
             storageCondition: '\u00A0',
             safetyStock: '\u00A0',
-            manual: '\u00A0',
+            productCategory: '\u00A0',
             status: '\u00A0'
         });
     }
@@ -95,7 +95,7 @@ const handleSelect = (row) => {
             safetyStock: stock.number,
             safetyStockUnit: stock.unit,
 
-            manual: row.manual,
+            productCategory: row.productCategory,
             status: row.status
         }
     ];
@@ -111,6 +111,7 @@ onUnmounted(() => {
     <section class="product-container">
         <productSearchWidget @productFilterSearch="handleSearch" @resetForm="handleResetForm" />
         <productListWidget :items="productSearchData" @productSelected="handleSelect" />
+        <div class="mt-2"></div>
         <productRegistWidget :items="productSelectedData" />
     </section>
 </template>

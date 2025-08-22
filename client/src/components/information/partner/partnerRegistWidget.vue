@@ -36,7 +36,7 @@ const modifyPartner = async () => {
     } catch (err) {
         console.log('거래처 수정실패');
     }
-}
+};
 
 const resetRegist = async () => {
     if (form.value.partnerId?.trim()) {
@@ -48,15 +48,15 @@ const resetRegist = async () => {
         // 등록 상태: 전체 필드 초기화
         form.value = {
             partnerType: '',
-    partnerId: '',
-    partnerName: '',
-    businessNo: '',
-    manager: '',
-    address: '',
-    email: '',
-    emailDomain: '',
-    mainTel: '',
-    status: ''
+            partnerId: '',
+            partnerName: '',
+            businessNo: '',
+            manager: '',
+            address: '',
+            email: '',
+            emailDomain: '',
+            mainTel: '',
+            status: ''
         };
     }
 };
@@ -147,71 +147,71 @@ const onBusinessNoInput = (e) => {
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div>등록/수정</div>
+        <div></div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registPartner()" :disabled="form.partnerId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.partnerId?.trim() === ''" @click="modifyPartner()" />
-            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
+            <Button label=" 등록 " size="small" rounded @click="registPartner()" :disabled="form.partnerId?.trim() !== ''" />
+            <Button label=" 수정 " size="small" rounded :disabled="form.partnerId?.trim() === ''" @click="modifyPartner()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">
         <div class="flex flex-col md:flex-row gap-6">
-            <!-- 왼쪽 영역 -->
-            <div class="flex flex-col gap-4 w-full">
-                <div>
-                    <label for="partnerType" class="whitespace-nowrap">거래처유형</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="partnerType" type="text" class="w-full" v-model="form.partnerType" />
-                        <InputIcon class="pi pi-search" @click="openModal('partnerType')" />
-                    </IconField>
-                </div>
-                <div>
-                    <label class="block mb-1">거래처명</label>
-                    <InputText v-model="form.partnerName" class="w-full" />
-                </div>
-                <div>
-                    <label class="block mb-1">담당자</label>
-                    <InputText v-model="form.manager" class="w-full" />
-                </div>
-                <div>
-                    <label class="block mb-1">E-Mail</label>
-                    <div class="flex gap-2">
-                        <InputText v-model="form.email" placeholder="이메일 아이디" class="w-2/3" />
-                        <span class="self-center">@</span>
-                        <select v-model="form.emailDomain" class="w-1/3 border rounded px-2">
-                            <option value="" disabled>선택</option>
-                            <option v-for="domain in emailDomains" :key="domain" :value="domain">{{ domain }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block mb-1">상태</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2 mr-4">비활성</label>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 오른쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">거래처코드</label>
                     <InputText v-model="form.partnerId" class="w-full" readonly placeholder="자동생성" style="background-color: lightgrey" />
                 </div>
                 <div>
-                    <label class="block mb-1">사업자번호</label>
-                    <InputText :value="form.businessNo" @input="onBusinessNoInput" class="w-full" />
+                    <label class="block mb-1">거래처유형</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="partnerType" type="text" class="w-full" v-model="form.partnerType" />
+                        <InputIcon class="pi pi-search" @click="openModal('partnerType')" />
+                    </IconField>
+                </div>
+                <div>
+                    <label class="block mb-1">담당자 E-Mail</label>
+                    <div class="flex gap-2 items-center">
+                        <InputText v-model="form.email" placeholder="이메일 아이디" class="w-2/3" />
+                        <span class="self-center">@</span>
+                        <select v-model="form.emailDomain" class="w-1/3 h-[38px] border rounded px-2">
+                            <option value="" disabled>선택</option>
+                            <option v-for="domain in emailDomains" :key="domain" :value="domain">{{ domain }}</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block mb-1">거래처주소</label>
                     <InputText v-model="form.address" class="w-full" />
                 </div>
+            </div>
+
+            <div class="flex flex-col gap-4 w-full">
                 <div>
-                    <label class="block mb-1">대표번호</label>
-                    <InputText :value="form.mainTel" @input="onPhoneInput" class="w-full" />
+                    <label class="block mb-1">거래처명</label>
+                    <InputText v-model="form.partnerName" class="w-full" />
+                </div>
+                <div>
+                    <label class="block mb-1">사업자번호</label>
+                    <InputText :value="form.businessNo" @input="onBusinessNoInput" class="w-full" />
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block mb-1">담당자</label>
+                        <InputText v-model="form.manager" class="w-full" />
+                    </div>
+                    <div class="flex-1">
+                        <label class="block mb-1">대표번호</label>
+                        <InputText :value="form.mainTel" @input="onPhoneInput" class="w-full" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block mb-1">상태</label>
+                    <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">활성</label>
+                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
+                        <label for="status2" class="ml-2">비활성</label>
+                    </div>
                 </div>
             </div>
         </div>

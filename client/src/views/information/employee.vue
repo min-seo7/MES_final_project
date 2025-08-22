@@ -101,6 +101,7 @@ onUnmounted(() => {
     <section class="employee-container">
         <EmployeeSearchWidget @employeeFilterSearch="handleSearch" />
         <EmployeeListWidget :items="employeeSearchData" @employeeSelected="handleSelect" />
+        <div class="mt-2"></div>
         <EmployeeRegistWidget :items="employeeSelectedData" />
     </section>
 </template>
