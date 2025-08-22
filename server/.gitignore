@@ -1,5 +1,6 @@
 node_modules
 uploads
-sqls/.env
+database/sqls/.env
 email/.env
 /pdfs/
+.env

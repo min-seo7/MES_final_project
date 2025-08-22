@@ -89,11 +89,9 @@ export default {
                 }));
                 await axios.post('/api/stock/returnRewri', updateInfo);
             } catch (error) {
-                console.log('등록실패', error);
+                console.log('수정실패', error);
             }
-            console.log('이거');
             this.getList();
-            console.log('이거탐???');
             this.selectedReturnList = [];
         },
         //모달=============================================
