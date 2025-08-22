@@ -4,6 +4,9 @@ database/sqls/.env
 email/.env
 /pdfs/
 .env
+.env
+.env
+.env
 public/*
 *.env
 package-lock.json
@@ -148,3 +151,6 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+>>>>>>> main
+>>>>>>> main
+>>>>>>> main

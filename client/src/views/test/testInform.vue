@@ -346,7 +346,7 @@ onMounted(async () => {
         <!-- 리스트 -->
         <div class="card">
             <h2 class="text-lg font-semibold mb-3">검사 항목 리스트</h2>
-            <DataTable :value="items" :selection="selectItem" selectionMode="single" dataKey="testitem_code" @selection-change="onRowSelect" scrollable scrollHeight="360px" :paginator="true" :rows="8" class="min-w-full">
+            <DataTable :value="items" :selection="selectItem" selectionMode="single" dataKey="testitem_code" @selection-change="onRowSelect" scrollable scrollHeight="360px" :paginator="true" :rows="5" class="min-w-full">
                 <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header">
                     <template v-if="col.field === 'writeAt'" #body="{ data }">{{ formatDate(data.writeAt) }}</template>
                 </Column>

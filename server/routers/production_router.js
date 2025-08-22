@@ -115,7 +115,7 @@ router.get("/checkWoStatus", async (req, res) => {
   }
 });
 router.post("/bomRequestInsert", async (req, res) => {
-  try { 
+  try {
     const { details } = req.body; // 요청 본문에서 details를 가져옵니다.
     console.log("BOM 요청 데이터:", details);
     const result = await productionService.bomRequestInsert(details);
@@ -123,6 +123,15 @@ router.post("/bomRequestInsert", async (req, res) => {
   } catch (error) {
     console.error("BOM 요청 실패:", error);
     res.status(500).json({ message: "BOM 요청 실패", error: error.message });
+  }
+});
+router.get("/productionOrder", async (req, res) => {
+  try {
+    const productionOrderList = await productionService.productionOrderList();
+    res.status(200).json({ list: productionOrderList });
+  } catch (error) {
+    console.error("요청 실패:", error);
+    res.status(500).json({ message: "요청 실패", error: error.message });
   }
 });
 module.exports = router;

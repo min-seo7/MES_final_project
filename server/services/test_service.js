@@ -114,6 +114,13 @@ const getInspItems = async () => await mariadb.query("getInspItems");
 const getOperators = async () => await mariadb.query("getOperators");
 const getUnits = async () => await mariadb.query("getUnits");
 
+// 제품유형별검사항목조회
+const findItemsByProductType = async (info) => {
+  console.log(info);
+  const list = await mariadb.query("selectTestItemByProductType");
+  return list;
+};
+
 module.exports = {
   findAllItemsWithFilter,
   insertItem,
@@ -129,4 +136,5 @@ module.exports = {
   getOperators,
   getUnits,
   findpdInspWait,
+  findItemsByProductType,
 };
