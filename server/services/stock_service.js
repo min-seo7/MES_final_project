@@ -115,6 +115,7 @@ let matLotInsert = async (matInfoList) => {
       matInfo.comm,
       matInfo.purch_id,
       matInfo.materialOrder_num,
+      matInfo.eName,
     ]);
   }
 };
@@ -155,6 +156,7 @@ let prdLotInsert = async (prdInfoList) => {
       prdInfo.warehouse,
       prdInfo.comm,
       prdInfo.inspection_id,
+      prdInfo.e_name,
     ]);
   }
 };
@@ -183,6 +185,7 @@ let matOusR = async (matInfoList) => {
       matInfo.material_id,
       matInfo.order_qty,
       matInfo.comm,
+      matInfo.e_name,
     ]);
   }
 };
@@ -230,6 +233,7 @@ let prdOusR = async (prdoutInfoList) => {
       prdoutInfo.prtner,
       prdoutInfo.shipartner,
       prdoutInfo.comm,
+      prdoutInfo.e_name,
     ]);
   }
 };
@@ -299,7 +303,8 @@ async function getSearchPrdLotList(filters) {
     params.push(`%${filters.warehouse}%`);
   }
 
-  sql += " ORDER BY pl.open_date DESC";
+  sql +=
+    " ORDER BY case pl.pro_status when '사용중' then 1 when '등록' then 2 when '종료' then 3 when '입고취소' then 4 end asc, open_date DESC";
 
   const conn = await mariadb.getConnection();
   try {
@@ -337,7 +342,8 @@ async function getSearchMatLotList(filters) {
     params.push(`%${filters.warehouse}%`);
   }
 
-  sql += " ORDER BY ml.open_date DESC";
+  sql +=
+    " ORDER BY case ml.pro_status when '사용중' then 1 when '등록' then 2 when '종료' then 3 when '입고취소' then 4 end asc, open_date DESC";
 
   const conn = await mariadb.getConnection();
   try {
@@ -361,6 +367,12 @@ let returnInfoUpdate = async (returnInfoList) => {
       retunInfo.comm,
       retunInfo.id,
     ]);
+  }
+};
+//수정
+let returnInfoRe = async (returnInfoList) => {
+  for (let returnInfo of returnInfoList) {
+    await mariadb.query("updateReturn", [returnInfo.id]);
   }
 };
 //폐기물==================================================
@@ -409,7 +421,8 @@ async function getSearchWasteList(filters) {
     params.push(`%${filters.partner}%`);
   }
 
-  sql += "ORDER BY tw.re_date DESC";
+  sql +=
+    " ORDER BY case pro_status when '대기' then 1 when '확정' then 2 end asc, re_date DESC";
 
   const conn = await mariadb.getConnection();
   try {
@@ -457,4 +470,5 @@ module.exports = {
   returnInfoUpdate,
   wasteInfoRe,
   getCheckStock,
+  returnInfoRe,
 };

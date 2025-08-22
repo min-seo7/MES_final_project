@@ -133,7 +133,7 @@ const modifyFlow = async () => {
     } catch (err) {
         console.log('흐름도 수정실패');
     }
-}
+};
 
 const resetRegist = async () => {
     if (form.value.flowId?.trim()) {
@@ -145,25 +145,24 @@ const resetRegist = async () => {
         // 등록 상태: 전체 필드 초기화
         form.value = {
             flowId: '',
-    flowName: '',
-    productId: '',
-    productName: '',
-    note: '',
-    status: '',
-    flowchart: ''
+            flowName: '',
+            productId: '',
+            productName: '',
+            note: '',
+            status: '',
+            flowchart: ''
         };
     }
 };
-
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div>등록</div>
+        <div></div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registFlowchart()" :disabled="form.flowId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.flowId?.trim() === ''" @click="modifyFlow()" />
-            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
+            <Button label=" 등록 " size="small" rounded @click="registFlowchart()" :disabled="form.flowId?.trim() !== ''" />
+            <Button label=" 수정 " size="small" rounded :disabled="form.flowId?.trim() === ''" @click="modifyFlow()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">

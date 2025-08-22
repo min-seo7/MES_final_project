@@ -91,6 +91,7 @@ onUnmounted(() => {
     <section class="material-container">
         <materialSearchWidget @materialFilterSearch="handleSearch" />
         <materialListWidget :items="materialSearchData" @materialSelected="handleSelect" />
+        <div class="mt-2"></div>
         <materialRegistWidget :items="materialSelectedData" />
     </section>
 </template>

@@ -22,6 +22,7 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
     "pdfkit": "^0.17.1",
+    "multer": "^2.0.2",
     "pinia": "^3.0.3"
   },
   "devDependencies": {

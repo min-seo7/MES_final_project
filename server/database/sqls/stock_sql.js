@@ -126,7 +126,7 @@ let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_dat
                           ORDER BY p.due_date DESC`;
 
 //자재입고처리
-let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?)`;
+let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?, ?)`;
 
 //자재LOT목록(입고)
 let matLotListQuery = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
@@ -136,7 +136,8 @@ let matLotListQuery = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
                              l.init_qty,
                              m.unit,
                              l.warehouse, 
-                             l.comm
+                             l.comm,
+                             l.e_name
                       FROM tbl_mat_lot l
                       JOIN material m
                       ON l.material_id = m.material_id
@@ -170,7 +171,7 @@ AND zt.pro_status ='미생성'`;
 // -> 입고처리완료 상태값 필요함 목록출력제어위해서..
 
 //제품입고처리
-let prdInsertQuery = `CALL insert_prd_lot(?, ?, ?, ?, ?)`;
+let prdInsertQuery = `CALL insert_prd_lot(?, ?, ?, ?, ?, ?)`;
 //제품입고완료목록
 let prdLotListQuerty = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_date,
                           pl.prd_lot_no,
@@ -208,7 +209,7 @@ let matReqListQuery = `SELECT DATE_FORMAT(mr.req_date, '%Y-%m-%d') AS req_date,
                      WHERE pro_status = '출고대기'
                      ORDER BY mr.req_date DESC`;
 
-let matOutReQuery = `CALL mat_outbound(?, ?, ?, ?)`;
+let matOutReQuery = `CALL mat_outbound(?, ?, ?, ?, ?)`;
 
 let matOutListQuery = `SELECT DATE_FORMAT(mo.out_date, '%Y-%m-%d') AS out_date,
 		                mr.wo_no,
@@ -216,7 +217,8 @@ let matOutListQuery = `SELECT DATE_FORMAT(mo.out_date, '%Y-%m-%d') AS out_date,
                               m.material_name,
                               mo.out_qty,
                               m.unit,
-                              mo.comm
+                              mo.comm, 
+                              mo.e_name
                        from tbl_mat_out mo
                        LEFT JOIN tbl_mat_req mr
                        ON mo.req_id = mr.req_id
@@ -253,7 +255,7 @@ let checkStockQuery = `SELECT pl.product_id,
                   ON pl.product_id = p.product_id
                   WHERE 1=1`;
 //출고등록
-let prdOutRQuery = `CALL prd_outbound(?, ?, ?, ?, ?, ?)`;
+let prdOutRQuery = `CALL prd_outbound(?, ?, ?, ?, ?, ?, ?)`;
 //제품출고목록
 let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
                                     po.prd_out_no,
@@ -310,7 +312,10 @@ let searchPrdListQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_d
                            JOIN product p
                            ON pl.product_id = p.product_id
                            WHERE pl.pro_status NOT IN ('입고취소', '종료')
-                           ORDER BY pl.open_date`;
+                           ORDER BY case pl.pro_status 
+                                when '사용중' then 1
+                                when '등록' then 2 end asc,
+                            open_date DESC`;
 
 let searchPrdLotSearchQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS open_date,
                                    pl.prd_lot_no,
@@ -343,7 +348,19 @@ let returnListQurey = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_
                        ON re.shipment_id = po.shipment_id
                        JOIN product p
                        ON re.product_id = p.product_id
-                       ORDER BY return_date DESC `;
+                       ORDER BY case inbound_pro 
+                       when '대기' then 1
+                       when '확정' then 2 end asc,
+                            return_date DESC `;
+
+let updateReturn = `UPDATE returns
+                    SET inbound_pro = '대기',
+                        in_date = NULL,
+                        in_qty = NULL,
+                        in_comm = NULL,
+                        re_status = 1,
+                        warehouse_name = NULL
+                     WHERE id = ?`;
 
 let returnReQuery = `UPDATE returns
                      SET in_date = now(),
@@ -368,7 +385,10 @@ let searchMatListQuery = `SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_d
                         JOIN material m
                         ON ml.material_id = m.material_id
                         WHERE ml.pro_status NOT IN ('입고취소', '종료')
-                        ORDER BY ml.open_date`;
+                        ORDER BY case ml.pro_status 
+                            when '사용중' then 1
+                            when '등록' then 2 end asc,
+                            open_date DESC`;
 
 let searchMatLotSearchQuery = `SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_date,
                                    ml.lot_no,
@@ -401,7 +421,10 @@ let wasteListQurey = `SELECT tw.seq,
                      ON tw.warehouse_id = w.warehouse_id
                      LEFT JOIN partner p
                      ON tw.partner_id = p.partner_id
-                     ORDER BY tw.re_date DESC`;
+                     ORDER BY case pro_status 
+                        when '대기' then 1
+                        when '확정' then 2 end asc,
+                       re_date DESC`;
 //등록
 let wasteOutQuery = `UPDATE tbl_waste
                      SET out_date = ?,
@@ -411,7 +434,10 @@ let wasteOutQuery = `UPDATE tbl_waste
                      WHERE seq = ?`;
 //수정
 let wasteUpdate = `update tbl_waste
-                   set pro_status = '대기'
+                   set pro_status = '대기',
+                       partner_id = NULL,
+                       out_date = NULL,
+                       comm = NULL
                    where seq = ?`;
 
 //조회
@@ -471,4 +497,5 @@ module.exports = {
   returnReQuery,
   wasteUpdate,
   checkStockQuery,
+  updateReturn,
 };

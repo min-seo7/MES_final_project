@@ -177,7 +177,7 @@ export default {
                 }));
                 await axios.post('/api/stock/wasteRewri', updateInfo);
             } catch (error) {
-                console.lof('등록실패', error);
+                console.log('등록실패', error);
             }
             this.getWasteList();
             this.selectedWaste = [];
@@ -233,7 +233,7 @@ export default {
         <stockCommRowBtn
             :buttons="[
                 { label: '반출등록', icon: 'pi pi-check', onClick: postOutWaste },
-                { label: '수정', icon: 'pi pi-check', onClick: postUpdate }
+                { label: '수정', icon: 'pi pi-pencil', onClick: postUpdate }
             ]"
         />
 

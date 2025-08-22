@@ -17,7 +17,7 @@ import axios from 'axios';
 
 // 상태 변수
 const ship = ref('');
-const searchFilters = ref({ prodCode: '', partCode: '', delStartDate: null, delEndDate: null });
+const searchFilters = ref({ prodCode: '', partCode: '', startDate: null, endDate: null });
 const customers2 = ref([]);
 
 // 페이징 관련 변수
@@ -49,7 +49,14 @@ const getSeverity = (status) => {
     }
 };
 
-const formatDate = (date) => (date ? new Date(date).toISOString().slice(0, 10) : '');
+const formatDate = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 // API 호출 함수 (페이징 포함)
 const fetchShipList = async () => {
@@ -58,8 +65,8 @@ const fetchShipList = async () => {
             productId: searchFilters.value.prodCode || null,
             partnerId: searchFilters.value.partCode || null,
             shipStatus: ship.value ? shipStateMapReverse.value[ship.value] : null,
-            delStartDate: searchFilters.value.delStartDate ? formatDate(searchFilters.value.delStartDate) : null,
-            delEndDate: searchFilters.value.delEndDate ? formatDate(searchFilters.value.delEndDate) : null
+            startDate: searchFilters.value.startDate ? formatDate(searchFilters.value.startDate) : null,
+            endDate: searchFilters.value.endDate ? formatDate(searchFilters.value.endDate) : null
         };
         const res = await axios.get('/api/sales/shipReqSearch', { params });
         if (res.data?.list) {
@@ -144,7 +151,7 @@ const searchOrders = () => {
 };
 
 const resetFilters = () => {
-    searchFilters.value = { prodCode: '', partCode: '', delStartDate: null, delEndDate: null };
+    searchFilters.value = { prodCode: '', partCode: '', startDate: null, endDate: null };
     ship.value = '';
     fetchShipList();
 };
@@ -199,11 +206,11 @@ onMounted(fetchShipList);
                 </div>
 
                 <div class="flex flex-col col-span-2">
-                    <label class="font-semibold text-sm">납기일</label>
+                    <label class="font-semibold text-sm">조회 납기일</label>
                     <div class="flex items-center space-x-2">
-                        <Calendar v-model="searchFilters.delStartDate" dateFormat="yy-mm-dd" placeholder="시작일" showIcon class="w-full" />
+                        <Calendar v-model="searchFilters.startDate" dateFormat="yy-mm-dd" placeholder="시작일" showIcon class="w-full" />
                         <span>~</span>
-                        <Calendar v-model="searchFilters.delEndDate" dateFormat="yy-mm-dd" placeholder="종료일" showIcon class="w-full" />
+                        <Calendar v-model="searchFilters.endDate" dateFormat="yy-mm-dd" placeholder="종료일" showIcon class="w-full" />
                     </div>
                 </div>
 
@@ -211,15 +218,15 @@ onMounted(fetchShipList);
                     <label class="font-semibold text-sm mb-1">출하상태</label>
                     <div class="flex flex-wrap gap-3">
                         <div class="flex items-center gap-2">
-                            <RadioButton v-model="ship" inputId="ship1" name="ship" value="출하대기" @change="searchOrders" />
+                            <RadioButton v-model="ship" inputId="ship1" name="ship" value="출하대기" />
                             <label for="ship1">출하대기</label>
                         </div>
                         <div class="flex items-center gap-2">
-                            <RadioButton v-model="ship" inputId="ship2" name="ship" value="출하중" @change="searchOrders" />
+                            <RadioButton v-model="ship" inputId="ship2" name="ship" value="출하중" />
                             <label for="ship2">출하중</label>
                         </div>
                         <div class="flex items-center gap-2">
-                            <RadioButton v-model="ship" inputId="ship3" name="ship" value="출하완료" @change="searchOrders" />
+                            <RadioButton v-model="ship" inputId="ship3" name="ship" value="출하완료" />
                             <label for="ship3">출하완료</label>
                         </div>
                     </div>
@@ -263,7 +270,6 @@ onMounted(fetchShipList);
                 <Column field="code" header="제품코드" />
                 <Column field="name" header="제품명" />
                 <Column field="spec" header="규격" />
-                <Column field="stock" header="재고" />
             </DataTable>
         </Dialog>
     </div>

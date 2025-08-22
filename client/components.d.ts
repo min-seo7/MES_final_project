@@ -89,7 +89,6 @@ declare module 'vue' {
     RadioButton: typeof import('primevue/radiobutton')['default']
     RecentSalesWidget: typeof import('./src/components/dashboard/RecentSalesWidget.vue')['default']
     RepairListWidget: typeof import('./src/components/equipment/repair/repairListWidget.vue')['default']
-    RepairRegistWidge: typeof import('./src/components/equipment/repair/repairRegistWidge.vue')['default']
     RepairRegistWidget: typeof import('./src/components/equipment/repair/repairRegistWidget.vue')['default']
     RepairSearchWidget: typeof import('./src/components/equipment/repair/repairSearchWidget.vue')['default']
     RevenueStreamWidget: typeof import('./src/components/dashboard/RevenueStreamWidget.vue')['default']

@@ -300,21 +300,17 @@ const shipList = (filter) => {
   const params = [
     filter.partnerId,
     filter.partnerId,
-    filter.partnerId,
-    filter.productId,
     filter.productId,
     filter.productId,
     filter.shipStatus,
     filter.shipStatus,
-    filter.shipStatus,
     filter.startDate,
     filter.startDate,
-    filter.startDate,
-    filter.endDate,
     filter.endDate,
     filter.endDate,
   ];
-  return query("shipList", params);
+  let list = query("shipList", params);
+  return list;
 };
 
 // ------------------
