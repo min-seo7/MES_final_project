@@ -21,7 +21,7 @@ const productSearchData = ref(
         expiration: '\u00A0',
         storageCondition: '\u00A0',
         safetyStock: '\u00A0',
-        manual: '\u00A0',
+        productCategory: '\u00A0',
         status: '\u00A0'
     })
 );
@@ -37,7 +37,7 @@ const handleSearch = (result) => {
         expiration: item.expiration_date + item.expiration_date_unit,
         storageCondition: item.storage_condition,
         safetyStock: item.safety_stock + item.safety_stock_unit,
-        manual: item.product_manual,
+        productCategory: item.product_category,
         status: item.status
     }));
 
@@ -53,7 +53,7 @@ const handleSearch = (result) => {
             expiration: '\u00A0',
             storageCondition: '\u00A0',
             safetyStock: '\u00A0',
-            manual: '\u00A0',
+            productCategory: '\u00A0',
             status: '\u00A0'
         });
     }
@@ -61,22 +61,45 @@ const handleSearch = (result) => {
     productSearchData.value = mapped;
 };
 
+const handleResetForm = () => {
+    productSelectedData.value = {}; // 초기화
+};
+
 const handleSelect = (row) => {
+    const parseValueUnit = (value) => {
+        if (!value) return { number: '', unit: '' };
+
+        // 숫자(정수/소수) + 문자 단위로 분리
+        const match = value.match(/^([\d.]+)\s*(\D+)$/);
+        if (match) {
+            return { number: match[1], unit: match[2] };
+        }
+        return { number: value, unit: '' }; // 단위가 없을 경우
+    };
+
+    const spec = parseValueUnit(row.specification);
+    const stock = parseValueUnit(row.safetyStock);
+    const exp = parseValueUnit(row.expiration);
+
     productSelectedData.value = [
         {
             productId: row.productId,
             productType: row.productType,
             productForm: row.productForm,
             productName: row.productName,
-            specification: row.specification,
-            expiration: row.expiration,
+            specification: spec.number,
+            unit: spec.unit,
+            expiration: exp.number,
+            expirationUnit: exp.unit,
             storageCondition: row.storageCondition,
-            safetyStock: row.safetyStock,
-            manual: row.manual,
+            safetyStock: stock.number,
+            safetyStockUnit: stock.unit,
+
+            productCategory: row.productCategory,
             status: row.status
         }
     ];
-    console.log(productSelectedData);
+    console.log(productSelectedData.value);
 };
 
 onUnmounted(() => {
@@ -86,8 +109,9 @@ onUnmounted(() => {
 
 <template>
     <section class="product-container">
-        <productSearchWidget @productFilterSearch="handleSearch" />
+        <productSearchWidget @productFilterSearch="handleSearch" @resetForm="handleResetForm" />
         <productListWidget :items="productSearchData" @productSelected="handleSelect" />
+        <div class="mt-2"></div>
         <productRegistWidget :items="productSelectedData" />
     </section>
 </template>

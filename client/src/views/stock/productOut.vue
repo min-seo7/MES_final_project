@@ -20,8 +20,6 @@ export default {
             testNumber: '',
             prdCode: '',
             prdName: '',
-            prdInDate: '',
-            prdLotNo: '',
             //모달
             productModal: false,
             partnerModal: false,
@@ -41,6 +39,7 @@ export default {
             outWaitPrdsCol: [
                 { field: 'w_dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
                 { field: 'w_shipmentId', header: '출하지시번호', headerStyle: 'width: 25rem' },
+                { field: 'w_prdType', header: '제품유형', headerStyle: 'width: 15rem' },
                 { field: 'w_prdCode', header: '제품코드', headerStyle: 'width: 15rem' },
                 { field: 'w_prdName', header: '제품명', headerStyle: 'width: 30rem', inputTextWM: true, onClick: this.rowOpenPrdModal },
                 { field: 'w_reqQty', header: '요청수량', headerStyle: 'width: 15rem' },
@@ -55,12 +54,13 @@ export default {
 
             //출고처리 테이블컬럼
             outPrdCol: [
-                { field: 'outDate', header: '출고일', headerStyle: 'width: 20rem' },
-                { field: 'shipNo', header: '출고번호', headerStyle: 'width: 25rem' },
-                { field: 'prdCode', header: '제품코드', headerStyle: 'width: 20rem' },
-                { field: 'prdName', header: '제품명', headerStyle: 'width: 13rem' },
-                { field: 'outQty', header: '출고수량', headerStyle: 'width: 13rem' },
-                { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
+                { field: 'outDate', header: '출고일', headerStyle: 'width: 13rem' },
+                { field: 'shipNo', header: '출고번호', headerStyle: 'width: 20rem' },
+                { field: 'prdType', header: '제품유형', headerStyle: 'width: 13rem' },
+                { field: 'prdCode', header: '제품코드', headerStyle: 'width: 9rem' },
+                { field: 'prdName', header: '제품명', headerStyle: 'width: 19rem' },
+                { field: 'outQty', header: '출고수량', headerStyle: 'width: 10rem' },
+                { field: 'unit', header: '단위', headerStyle: 'width: 8rem' },
                 { field: 'partnerName', header: '거래처', headerStyle: 'width: 15rem' },
                 { field: 'e_name', header: '담당자', headerStyle: 'width: 15rem' },
                 { field: 'shipEnt', header: '배송업체', headerStyle: 'width: 15rem' },
@@ -77,14 +77,43 @@ export default {
             this.testNumber = '';
             this.prdCode = '';
             this.prdName = '';
-            this.prdInDate = '';
-            this.prdLotNo = '';
+        },
+        //조회버튼
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    shipment_date: this.dateFormat(this.dueDate) || null,
+                    shipment_id: this.testNumber || null,
+                    product_code: this.prdCode || null,
+                    product_name: this.prdName || null
+                };
+
+                console.log(filters);
+
+                const res = await axios.post('/api/stock/productOutSearch', filters);
+                //조회결과
+                this.outWaitPrds = res.data.map((item) => ({
+                    id: `${item.shipment_id}-${item.product_code}`,
+                    w_dueDate: item.shipment_date,
+                    w_shipmentId: item.shipment_id,
+                    w_prdType: item.product_type,
+                    w_prdCode: item.product_code,
+                    w_prdName: item.product_name,
+                    w_reqQty: item.shipment_qty,
+                    w_partnerName: item.partner_name,
+                    w_unit: `${'EA'}`
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //중간버튼영역================================================================
         addNewRow() {
             let newRow = {
                 id: `temp-${Date.now()}`,
                 w_shipmentId: '',
+                w_prdType: '',
                 w_prdCode: '',
                 w_prdName: '',
                 w_reqQty: '',
@@ -93,18 +122,70 @@ export default {
                 w_partnerName: '',
                 w_shipEnt: '',
                 w_memo: ''
-            }; 
+            };
             this.outWaitPrds.unshift(newRow);
         },
-           removeRow() {
-            //제품코드가 비어있는 행을 찾아서 한줄씩 삭제 
-            let index = this.outWaitPrds.findIndex(row => !row.w_prdCode);
+        removeRow() {
+            //제품코드가 비어있는 행을 찾아서 한줄씩 삭제
+            let index = this.outWaitPrds.findIndex((row) => !row.w_reqQty);
 
             if (index !== -1) {
                 this.outWaitPrds.splice(index, 1);
             } else {
                 alert('삭제할 행이 없습니다.');
             }
+        },
+        async postRegistOut() {
+            try {
+                // if (!this.dueDate || !this.partnerId || !this.empName) {
+                //     alert('필수정보입력');
+                //     return;
+
+                //재고체크
+                let checkStock = this.selectOutWaitPrds.map((row) => row.w_prdCode);
+
+                // 객체 형태로 보냄 { productIds: [...] }
+                let prdStotalStock = await axios.post('/api/stock/checkStock', { productIds: checkStock });
+                console.log('재고조회결과:', prdStotalStock);
+
+                //재고비교
+                let shortage = [];
+                for (let row of this.selectOutWaitPrds) {
+                    let stockInfo = prdStotalStock.data.find((item) => item.product_id === row.w_prdCode);
+                    let available = stockInfo ? stockInfo.total_qty : 0;
+                    if (row.w_outQty > available) {
+                        shortage.push({
+                            code: row.w_prdCode,
+                            name: row.w_prdName,
+                            have: available
+                        });
+                    }
+                }
+
+                if (shortage.length > 0) {
+                    let msg = shortage.map((s) => `${s.name}(${s.code}): 보유 ${s.have}`).join('\n');
+                    alert('재고 부족:\n' + msg);
+                    return; // 출고 등록 중단
+                }
+
+                //출고등록
+                let prdOutInfo = this.selectOutWaitPrds.map((row) => ({
+                    shipment_id: row.w_shipmentId || null,
+                    product_id: row.w_prdCode,
+                    order_qty: row.w_outQty,
+                    prtner: row.w_partnerName || null,
+                    shipartner: row.w_shipEnt || null,
+                    comm: row.w_memo || null
+                }));
+                console.log(prdOutInfo);
+                await axios.post('/api/stock/rePrdOut', prdOutInfo);
+            } catch (error) {
+                console.error('등록 실패', error);
+            }
+            alert('출고등록 완료');
+            this.selectOutWaitPrds = null;
+            this.getoutPrds();
+            this.getOutList();
         },
         //테이블영역=====================================================================
         //출고대기목록
@@ -115,6 +196,7 @@ export default {
                     id: `${item.shipment_id}-${item.product_code}`,
                     w_dueDate: item.shipment_date,
                     w_shipmentId: item.shipment_id,
+                    w_prdType: item.product_type,
                     w_prdCode: item.product_code,
                     w_prdName: item.product_name,
                     w_reqQty: item.shipment_qty,
@@ -125,22 +207,48 @@ export default {
                 console.error('제품출고대기 불러오기 실패:', error);
             }
         },
+        //출고완료목록
+        async getOutList() {
+            try {
+                const res = await axios.get('/api/stock/prdOutList');
+                this.outPrds = res.data.map((item) => ({
+                    id: `${item.prd_out_no}-${item.product_id}`,
+                    outDate: item.ship_date,
+                    shipNo: item.prd_out_no,
+                    prdType: item.product_type,
+                    prdCode: item.product_id,
+                    prdName: item.product_name,
+                    outQty: item.prd_out_qty,
+                    unit: `${'EA'}`,
+                    partnerName: item.partner_name,
+                    e_name: item.e_name,
+                    shipEnt: item.ship_partner,
+                    memo: item.comm
+                }));
+                console.log(this.outWaitPrds);
+            } catch (error) {
+                console.error('제품출목록 불러오기 실패:', error);
+            }
+        },
         //모달============================================================================================
         //(모달)제품=============
-        openPrdModal() { //검색용
+        openPrdModal() {
+            //검색용
             this.productModal = true;
             this.getPrdList();
         },
-        rowOpenPrdModal(rowIndex){ //테이블행용
+        rowOpenPrdModal(rowIndex) {
+            //테이블행용
             this.selectRow = rowIndex; // 클릭한 테이블 행 index
             this.productModal = true;
             this.getPrdList();
         },
         onSelectonSelectPrd() {
-            if (this.selectRow !== null) { //선택시.
+            if (this.selectRow !== null) {
+                //선택시.
                 this.outWaitPrds[this.selectRow].w_prdCode = this.selectPrd.prdCode;
                 this.outWaitPrds[this.selectRow].w_prdName = this.selectPrd.prdName;
-            }else{
+            } else {
                 this.prdCode = this.selectPrd.prdCode;
                 this.prdName = this.selectPrd.prdName;
             }
@@ -183,11 +291,18 @@ export default {
         onSelecPartner() {
             this.outWaitPrds[this.selectRow].w_shipEnt = this.selectPartner.partnerName;
             this.partnerModal = false;
+        },
+        //날짜포멧
+        dateFormat(date) {
+            if (!date || isNaN(new Date(date).getTime())) return null;
+            let newDateFormat = new Date(date);
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
     mounted() {
         console.log('제품출고');
         this.getoutPrds();
+        this.getOutList();
     }
 };
 </script>
@@ -209,16 +324,16 @@ export default {
 
                 <!-- 생산/검수번호 -->
                 <div class="flex items-center gap-2">
-                    <label for="shipNumber" class="whitespace-nowrap">출하지시번호</label>
-                    <InputText id="shipNumber" type="text" class="w-60" v-model="shipNumber" />
+                    <label for="testNumber" class="whitespace-nowrap">출하지시번호</label>
+                    <InputText id="testNumber" type="text" class="w-60" v-model="testNumber" />
                 </div>
 
                 <!-- 제품코드 -->
                 <div class="flex items-center gap-2">
                     <label for="prdCode" class="whitespace-nowrap">제품코드</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" @click="openPrdModal()" />
-                        <InputIcon class="pi pi-search" />
+                        <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" />
+                        <InputIcon class="pi pi-search" @click="openPrdModal()" />
                     </IconField>
                 </div>
 
@@ -234,7 +349,7 @@ export default {
         <!--중간버튼-->
         <stockCommRowBtn
             :buttons="[
-                { label: '출고등록', icon: 'pi pi-check', onClick: editHandler },
+                { label: '출고등록', icon: 'pi pi-check', onClick: postRegistOut },
                 { label: '출고취소', icon: 'pi pi-trash', onClick: postCanelLot }
             ]"
         />
@@ -248,17 +363,17 @@ export default {
                 </TabList>
                 <TabPanels>
                     <TabPanel value="0">
-                        <div class ="flex justify-end mt-0 space-x-2">
-                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addNewRow" />
-                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow" />
+                        <div class="flex justify-end mt-0 space-x-2">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" @click="addNewRow" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" @click="removeRow" />
                         </div>
                         <!--0번탭 컨텐츠영역-->
                         <stockCommTable v-model:selection="selectOutWaitPrds" :columns="outWaitPrdsCol" :dataRows="outWaitPrds" />
                     </TabPanel>
                     <TabPanel value="1">
-                         <div class ="flex justify-end mt-0 space-x-2 invisible">
-                            <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  />
-                            <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  />
+                        <div class="flex justify-end mt-0 space-x-2 invisible">
+                            <Button icon="pi pi-plus" severity="success" rounded variant="outlined" />
+                            <Button icon="pi pi-minus" severity="success" rounded variant="outlined" />
                         </div>
                         <!--1번탭 컨텐츠영역-->
                         <stockCommTable v-modelselection="selectOutPrds" :columns="outPrdCol" :dataRows="outPrds" />
@@ -270,13 +385,6 @@ export default {
 
     <!--제품모달-->
     <commModal v-model="productModal" header="제품목록" style="width: 50rem">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="prdCode">제품코드</label>
-            <InputText id="prdCode" type="text" />
-            <label for="prdName">제품명</label>
-            <InputText id="prdName" type="text" />
-            <Button label="검색" />
-        </div>
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="prdType" header="제품유형" Style="width: 5rem"></Column>
@@ -294,13 +402,6 @@ export default {
 
     <!--거래처모달-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">거래처코드</label>
-            <InputText id="partnerId" type="text" />
-            <label for="partnerName">거래처명</label>
-            <InputText id="partnerName" type="text" />
-            <Button label="검색" />
-        </div>
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
         <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>

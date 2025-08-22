@@ -22,7 +22,7 @@ export default {
             selectPrd: [],
             selectWare: [],
 
-            prdLotList: [],
+            prdLotList: []
         };
     },
     methods: {
@@ -32,6 +32,7 @@ export default {
             this.prdCode = '';
             this.prdName = '';
             this.warehouse = '';
+            this.getPrdSearchList();
         },
         //조회
         async onSearch() {
@@ -39,7 +40,7 @@ export default {
                 // 검색조건 객체 생성
                 const filters = {
                     prdLotNo: this.prdLotNo || null,
-                    prdCode : this.prdCode || null,
+                    prdCode: this.prdCode || null,
                     prdName: this.prdName || null,
                     warehouse: this.warehouse || null
                 };
@@ -47,18 +48,18 @@ export default {
                 console.log(filters);
 
                 const res = await axios.post('/api/stock/searchPrdLotList', filters);
-                //조회결과 
+                //조회결과
                 this.prdLotList = res.data.map((item) => ({
                     id: `${item.prd_lot_no}-${item.product_id}`,
                     reDate: item.open_date,
                     prdNo: item.prd_lot_no,
-                    prdType:item.product_type,
+                    prdType: item.product_type,
                     prdCode: item.product_id,
                     prdName: item.product_name,
                     prdQty: item.curr_qty,
                     unit: item.unit,
                     warehouse: item.warehouse,
-                    status: item.pro_status,
+                    status: item.pro_status
                 }));
             } catch (error) {
                 console.error('조회 실패:', error);
@@ -72,32 +73,33 @@ export default {
                     id: `${item.prd_lot_no}-${item.product_id}`,
                     reDate: item.open_date,
                     prdNo: item.prd_lot_no,
-                    prdType:item.product_type,
+                    prdType: item.product_type,
                     prdCode: item.product_id,
                     prdName: item.product_name,
                     prdQty: item.curr_qty,
-                    unit: item.unit,
+                    unit: `${'EA'}`,
                     warehouse: item.warehouse,
-                    status: item.pro_status,
+                    status: item.pro_status
                 }));
             } catch (error) {
                 console.error('제품목록 불러오기 실패:', error);
             }
-        }, 
+        },
         //모달 ==========================================================================
         //(모달)제품
-        openPrdModal() { //검색용
+        openPrdModal() {
+            //검색용
             this.productModal = true;
             this.getPrdList();
         },
-        onSelectonSelectPrd(){
+        onSelectonSelectPrd() {
             this.prdCode = this.selectPrd.prdCode;
             this.prdName = this.selectPrd.prdName;
 
             this.selectPrd = [];
             this.productModal = false;
         },
-         //(모달)제품목록가지고오기
+        //(모달)제품목록가지고오기
         async getPrdList() {
             try {
                 const res = await axios.get('/api/stock/modalPrdList');
@@ -111,7 +113,7 @@ export default {
             } catch (error) {
                 console.error('제품목록 불러오기 실패:', error);
             }
-        }, 
+        },
         //보관창고(모달)
         openWarehouseeModal() {
             this.WarehouseModal = true;
@@ -119,8 +121,7 @@ export default {
         },
         onSelectWare() {
             this.warehouse = this.selectWare.warerName;
-            this.selectWare = [],
-            this.WarehouseModal = false;
+            (this.selectWare = []), (this.WarehouseModal = false);
         },
         //창고목록
         async getWareList() {
@@ -134,8 +135,8 @@ export default {
             } catch (error) {
                 console.error('창고목록 불러오기 실패:', error);
             }
-        },
-    },     
+        }
+    },
     mounted() {
         console.log('제품조회페이지');
         this.getPrdSearchList();
@@ -181,26 +182,19 @@ export default {
     <div class="card w-full">
         <DataTable :value="prdLotList" sortMode="multiple" tableStyle="min-width: 50rem" crollable scrollHeight="400px">
             <Column field="id" header="-" style="display: none"></Column>
-            <Column field="reDate" header="등록일" sortable ></Column>
+            <Column field="reDate" header="등록일" sortable></Column>
             <Column field="prdNo" header="제품LOT번호" sortable></Column>
             <Column field="prdType" header="제품유형" sortable></Column>
             <Column field="prdCode" header="제품코드" sortable></Column>
             <Column field="prdName" header="제품명" sortable></Column>
             <Column field="prdQty" header="재고수량" sortable></Column>
-            <Column field="unit" header="단위" sortable></Column>
+            <Column field="unit" header="단위"></Column>
             <Column field="warehouse" header="보관위치" sortable></Column>
             <Column field="status" header="상태" sortable></Column>
         </DataTable>
     </div>
     <!--제품모달-->
     <commModal v-model="productModal" header="제품목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="prdCode">제품코드</label>
-            <InputText id="prdCode" type="text" />
-            <label for="prdName">제품명</label>
-            <InputText id="prdName" type="text" />
-            <Button label="검색" />
-        </div>
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
@@ -217,13 +211,6 @@ export default {
     </commModal>
     <!--보관장소 모달-->
     <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="wareCode">창고코드</label>
-            <InputText id="wareCode" type="text" />
-            <label for="wareName">창고명</label>
-            <InputText id="warerName" type="text" />
-            <Button label="검색" />
-        </div>
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>

@@ -67,6 +67,7 @@ const handleSelect = (row) => {
         {
             lineId: row.lineId,
             lineName: row.lineName,
+            flowId: row.flowId,
             productId: row.productId,
             productName: row.productName,
             note: row.note,
@@ -85,11 +86,11 @@ onUnmounted(() => {
     <section class="line-container">
         <lineSearchWidget @lineFilterSearch="handleSearch" />
         <lineListWidget :items="lineSearchData" @lineSelected="handleSelect" />
-        <lineRegistWidget :items="lineSelectedData" />
+        <lineRegistWidget :detailData="lineDetailData" :items="lineSelectedData" />
 
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
-                <lineDetailWidget :detailData="lineDetailData" />
+                <lineDetailWidget :detailData="lineDetailData" :items="lineSelectedData" />
             </div>
             <div class="md:w-1/2">
                 <lineDetailRegistWidget @lineDetail="handleLineDetail" />

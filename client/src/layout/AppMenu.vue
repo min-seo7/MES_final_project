@@ -156,6 +156,11 @@ const model = ref([
                 icon: 'pi pi-fw pi-bookmark',
                 items: [
                     {
+                        label: '생산지시조회',
+                        icon: 'pi pi-fw pi-bookmark',
+                        to: '/production/productOrderSearch'
+                    },
+                    {
                         label: '공정조회',
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/production/processSearch'
@@ -170,11 +175,11 @@ const model = ref([
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/production/productionOrder'
                     },
-                    {
-                        label: '제품재고조회',
-                        icon: 'pi pi-fw pi-bookmark',
-                        to: '/production/prodStockSearch'
-                    },
+                    // {
+                    //     label: '제품재고조회',
+                    //     icon: 'pi pi-fw pi-bookmark',
+                    //     to: '/production/prodStockSearch'
+                    // },
                     {
                         label: '실적등록',
                         icon: 'pi pi-fw pi-bookmark',

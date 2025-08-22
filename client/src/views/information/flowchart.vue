@@ -8,7 +8,6 @@ import flowDetailRegistWidget from '@/components/information/flowchart/flowDetai
 import { ref, onUnmounted } from 'vue';
 const flowchartDetailData = ref([]);
 const flowchartSelectedData = ref([]);
-
 const rowsPerPage = 5;
 
 // 초기 빈 데이터 (placeholder)
@@ -81,10 +80,12 @@ onUnmounted(() => {
 <template>
     <section class="flow-container">
         <flowSearchWidget @flowchartFilterSearch="handleSearch" />
+
         <flowListWidget :items="flowchartSearchData" @flowchartSelected="handleSelect" />
+        <div class="mt-2"></div>
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
-                <flowDetailWidget :detailData="flowchartDetailData" />
+                <flowDetailWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />
             </div>
             <div class="md:w-1/2">
                 <flowRegistWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />

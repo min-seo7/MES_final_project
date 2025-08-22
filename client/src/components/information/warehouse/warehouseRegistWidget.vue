@@ -20,6 +20,36 @@ const form = ref({
     status: ''
 });
 
+const modifyWarehouse = async () => {
+    try {
+        const res = await axios.post('/api/information/warehouse/modify', form.value);
+        alert(res.data.message);
+    } catch (err) {
+        console.log('창고수정실패');
+    }
+};
+
+const resetRegist = async () => {
+    if (form.value.warehouseId?.trim()) {
+        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+        if (props.items && props.items.length) {
+            form.value = { ...props.items[0], warehouseId: props.items[0].warehouseId?.trim() || '' };
+        }
+    } else {
+        // 등록 상태: 전체 필드 초기화
+        form.value = {
+            warehouseId: '',
+            warehouse: '',
+            zone: '',
+            subZone: '',
+            floor: '',
+            location: '',
+            warehouseType: '',
+            status: ''
+        };
+    }
+};
+
 watch(
     () => props.items,
     (newVal) => {
@@ -53,11 +83,11 @@ const registWarehouse = async () => {
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div>등록/수정</div>
+        <div></div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registWarehouse()" :disabled="form.warehouseId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.warehouseId?.trim() === ''" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 등록 " size="small" rounded @click="registWarehouse()" :disabled="form.warehouseId?.trim() !== ''" />
+            <Button label=" 수정 " size="small" rounded :disabled="form.warehouseId?.trim() === ''" @click="modifyWarehouse()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">
@@ -88,7 +118,6 @@ const registWarehouse = async () => {
                     <label class="block mb-1">창고</label>
                     <div class="flex gap-2 items-center">
                         <InputText v-model="form.warehouse" class="w-full" />
-                        <!--<Button label="생성" size="small" />-->
                     </div>
                 </div>
                 <div>

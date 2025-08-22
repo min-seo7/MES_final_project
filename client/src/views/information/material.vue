@@ -52,18 +52,34 @@ const handleSearch = (result) => {
 };
 
 const handleSelect = (row) => {
+    const parseValueUnit = (value) => {
+        if (!value) return { number: '', unit: '' };
+
+        // 숫자(정수/소수) + 문자 단위로 분리
+        const match = value.match(/^([\d.]+)\s*(\D+)$/);
+        if (match) {
+            return { number: match[1], unit: match[2] };
+        }
+        return { number: value, unit: '' };
+    };
+
+    const spec = parseValueUnit(row.specification);
+    const stock = parseValueUnit(row.safetyStock);
+
     materialSelectedData.value = [
         {
             materialId: row.materialId,
             materialName: row.materialName,
             materialType: row.materialType,
             storageCondition: row.storageCondition,
-            specification: row.specification,
-            safetyStock: row.safetyStock,
+            specification: spec.number,
+            unit: spec.unit,
+            safetyStock: stock.number,
+            safetyStockUnit: stock.unit,
             status: row.status
         }
     ];
-    console.log(materialSelectedData);
+    console.log(materialSelectedData.value);
 };
 
 onUnmounted(() => {
@@ -75,6 +91,7 @@ onUnmounted(() => {
     <section class="material-container">
         <materialSearchWidget @materialFilterSearch="handleSearch" />
         <materialListWidget :items="materialSearchData" @materialSelected="handleSelect" />
+        <div class="mt-2"></div>
         <materialRegistWidget :items="materialSelectedData" />
     </section>
 </template>

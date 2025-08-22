@@ -1,4 +1,5 @@
 const mariadb = require("../database/mapper.js");
+const sqlList = require("../database/sqlList"); // SQL mapper 불러오기
 
 // 창고 조회
 const findAllWarehouse = async (warehouseInfo) => {
@@ -21,7 +22,7 @@ const insertWarehouse = async (warehouseInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 ID 조회 (락 걸림)
-    const rows = await conn.query(warehouseSql.selectMaxWarehouseId);
+    const rows = await conn.query(sqlList.selectMaxWarehouseId);
     const maxId = rows?.[0]?.max_WH_id || null;
 
     // 2. 새 ID 생성
@@ -34,7 +35,7 @@ const insertWarehouse = async (warehouseInfo) => {
     }
 
     // 3. INSERT 실행
-    await conn.query("insertWarehouse", [
+    await conn.query(sqlList.insertWarehouse, [
       newWarehouseId,
       warehouseInfo.warehouse,
       warehouseInfo.zone,
@@ -60,7 +61,7 @@ const insertWarehouse = async (warehouseInfo) => {
 // 창고 수정
 const updateWarehouse = async (warehouseInfo) => {
   const insertData = convertToArray(warehouseInfo, [
-    "warehouseName",
+    "warehouse",
     "zone",
     "subZone",
     "floor",
@@ -120,7 +121,7 @@ const insertProduct = async (productInfo) => {
       productInfo.storageCondition,
       productInfo.safetyStock,
       productInfo.safetyStockUnit,
-      productInfo.manual,
+      productInfo.productCategory,
       productInfo.status,
     ];
 
@@ -152,7 +153,7 @@ const updateProduct = async (productInfo) => {
     "storageCondition",
     "safetyStock",
     "safetyStockUnit",
-    "productManual",
+    "productCategory",
     "status",
     "productId",
   ]);
@@ -305,6 +306,24 @@ const insertPartner = async (partnerInfo) => {
   }
 };
 
+// 사원 수정
+const updateEmployee = async (employeeInfo) => {
+  const insertData = convertToArray(employeeInfo, [
+    "name",
+    "department",
+    "phone",
+    "email",
+    "hireDate",
+    "leaveDate",
+    "auth",
+    "status",
+    "employeeId",
+  ]);
+
+  const result = await mariadb.query("updateEmployee", insertData);
+  return result;
+};
+
 // 거래처 수정
 const updatePartner = async (partnerInfo) => {
   const insertData = convertToArray(partnerInfo, [
@@ -316,15 +335,25 @@ const updatePartner = async (partnerInfo) => {
     "address",
     "businessNo",
     "status",
+    "partnerId",
   ]);
 
   const result = await mariadb.query("updatePartner", insertData);
   return result;
 };
 
+// bom 수정
+const updateBom = async (bomInfo) => {
+  const insertData = convertToArray(bomInfo, ["status", "bomId"]);
+
+  const result = await mariadb.query("updateBom", insertData);
+  return result;
+};
+
 // 흐름도 Detail 조회
-const findAllDetailFlowchart = async () => {
-  let list = await mariadb.query("selectDetailFlowchart");
+const findAllDetailFlowchart = async (flowInfo) => {
+  const insertData = convertToArray(flowInfo, ["flowId"]);
+  let list = await mariadb.query("selectDetailFlowchart", insertData);
   return list;
 };
 
@@ -388,7 +417,7 @@ const insertAllFlowchart = async (flowInfo, flowDetails) => {
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
 
-    const rows = await conn.query("selectMaxFlowId");
+    const rows = await conn.query(sqlList.selectMaxFlowId);
     const maxId = rows?.[0]?.max_flow_id || null;
 
     let newFlowId = "FLOW001";
@@ -400,7 +429,7 @@ const insertAllFlowchart = async (flowInfo, flowDetails) => {
     }
 
     // 3. 흐름도 등록
-    await conn.query("insertFlowchart", [
+    await conn.query(sqlList.insertFlowchart, [
       newFlowId,
       flowInfo.flowName,
       flowInfo.productId,
@@ -410,7 +439,7 @@ const insertAllFlowchart = async (flowInfo, flowDetails) => {
 
     // 4. 흐름도 상세 등록
     for (const detail of flowDetails) {
-      await conn.query("insertDetailFlowchart", [
+      await conn.query(sqlList.insertDetailFlowchart, [
         newFlowId,
         detail.processId,
         detail.useOrder,
@@ -446,8 +475,9 @@ const updateFlowchart = async (flowInfo) => {
 };
 
 // 라인 Detail 조회
-const findAllDetailLine = async () => {
-  let list = await mariadb.query("selectDetailLine");
+const findAllDetailLine = async (lineInfo) => {
+  const insertData = convertToArray(lineInfo, ["lineId"]);
+  let list = await mariadb.query("selectDetailLine", insertData);
   return list;
 };
 
@@ -515,7 +545,7 @@ const insertAllLine = async (lineInfo, lineDetails) => {
     await conn.beginTransaction();
 
     // 1. 마지막 line_id 조회 (락)
-    const rows = await conn.query("selectMaxLineId");
+    const rows = await conn.query(sqlList.selectMaxLineId);
     const maxId = rows?.[0]?.max_line_id || null;
 
     let newLineId = "L001";
@@ -527,7 +557,7 @@ const insertAllLine = async (lineInfo, lineDetails) => {
     }
 
     // 3. 라인 등록
-    await conn.query("insertLine", [
+    await conn.query(sqlList.insertLine, [
       newLineId,
       lineInfo.lineName,
       lineInfo.flowId,
@@ -538,7 +568,7 @@ const insertAllLine = async (lineInfo, lineDetails) => {
 
     // 4. 라인 상세 등록
     for (const detail of lineDetails) {
-      await conn.query("insertDetailLine", [
+      await conn.query(sqlList.insertDetailLine, [
         newLineId,
         detail.equipmentId,
         detail.processId,
@@ -655,8 +685,9 @@ const findAllBOM = async (bomInfo) => {
 };
 
 // BOM 상세정보 조회
-const findDetailBOM = async () => {
-  let list = await mariadb.query("selectBomDetail");
+const findDetailBOM = async (bomInfo) => {
+  const insertData = [bomInfo.bomId ?? null];
+  let list = await mariadb.query("selectBomDetail", insertData);
   return list;
 };
 
@@ -674,8 +705,8 @@ const insertAllBOM = async (bomInfo, bomDetails) => {
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
 
-    // 1. 마지막 bom_id 조회 (락)
-    const rows = await conn.query("selectMaxBOMId");
+    // 1. 마지막 bom_id 조회
+    const rows = await conn.query(sqlList.selectMaxBOMId);
     const maxId = rows?.[0]?.max_bom_id || null;
 
     // 2. 새로운 bom_id 생성 (BOM001, BOM002 ...)
@@ -688,11 +719,15 @@ const insertAllBOM = async (bomInfo, bomDetails) => {
     }
 
     // 3. BOM 등록
-    await conn.query("insertBOM", [newBOMId, bomInfo.prodId, bomInfo.status]);
+    await conn.query(sqlList.insertBOM, [
+      newBOMId,
+      bomInfo.prodId,
+      bomInfo.status,
+    ]);
 
-    // 4. BOM 상세 등록
+    // 4. BOM 상세 등록 (여러건)
     for (const detail of bomDetails) {
-      await conn.query("insertDetailBOM", [
+      await conn.query(sqlList.insertDetailBOM, [
         newBOMId,
         detail.materialId,
         detail.unit,
@@ -705,7 +740,6 @@ const insertAllBOM = async (bomInfo, bomDetails) => {
 
     // 5. 커밋
     await conn.commit();
-
     return { success: true, newBOMId };
   } catch (err) {
     if (conn) await conn.rollback();
@@ -814,8 +848,8 @@ const insertEmployee = async (employeeInfo) => {
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
 
-    // 1. 마지막 emp_id 조회 (락)
-    const rows = await conn.query("selectMaxEmpId");
+    // 1. 마지막 emp_id 조회 (mapper.query 사용)
+    const rows = await mariadb.query("selectMaxEmpId"); // alias 기반
     const maxId = rows?.[0]?.max_emp_id || null;
 
     // 2. 새로운 emp_id 생성 (E001, E002 ...)
@@ -841,11 +875,11 @@ const insertEmployee = async (employeeInfo) => {
     const hireDate = formatDateToYMD(employeeInfo.hireDate);
     const leaveDate = formatDateToYMD(employeeInfo.leaveDate);
 
-    // 4. INSERT 실행
+    // 4. INSERT 실행 (alias 그대로 사용)
     const insertData = [
       newEmpId,
       employeeInfo.name,
-      employeeInfo.dept,
+      employeeInfo.department, // 기존 코드에서는 dept였는데 employeeInfo.department로 수정
       employeeInfo.phone,
       employeeInfo.email,
       hireDate,
@@ -854,7 +888,7 @@ const insertEmployee = async (employeeInfo) => {
       employeeInfo.status,
     ];
 
-    await conn.query("insertEmployee", insertData);
+    await mariadb.query("insertEmployee", insertData);
 
     // 5. 커밋
     await conn.commit();
@@ -896,6 +930,8 @@ function convertToArray(obj, columns) {
 
 module.exports = {
   findAllFlowchartName,
+  updateBom,
+  updateEmployee,
   findAllProductId,
   findAllWarehouseModal,
   findAllWarehouseTypeModal,

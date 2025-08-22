@@ -1,5 +1,8 @@
-// 설비점검 페이지
-// 설비점검 목록(최근순, 최대 100)
+/* =========================
+   equipment SQL MAPPER
+   ========================= */
+
+/* ---------- 설비점검(Inspection) 목록/검색/Distinct (기존) ---------- */
 const selectInspectionList = `
 SELECT
   inspection_id      AS inspCode,
@@ -16,7 +19,6 @@ ORDER BY inspection_date DESC
 LIMIT 100
 `;
 
-// 설비점검 조회검색(필터) 추후에 or 삭제나 주석처리 and전환
 const selectInspectionListByFilter = `
 SELECT
   inspection_id      AS inspCode,
@@ -39,63 +41,7 @@ WHERE (? IS NULL OR inspection_id = ?)
 ORDER BY inspection_date DESC
 LIMIT ? OFFSET ?
 `;
-// DISTINCT for inspection pickers (모달용)
-const distinctInspCode = `
-  SELECT DISTINCT inspection_id
-  FROM equipment_inspection
-  ORDER BY inspection_id DESC
-  LIMIT ? OFFSET ?
-`;
-const countDistinctInspCode = `
-  SELECT COUNT(DISTINCT inspection_id) AS total
-  FROM equipment_inspection
-`;
 
-const distinctEqId = `
-  SELECT DISTINCT equipment_id
-  FROM equipment_inspection
-  ORDER BY equipment_id
-  LIMIT ? OFFSET ?
-`;
-const countDistinctEqId = `
-  SELECT COUNT(DISTINCT equipment_id) AS total
-  FROM equipment_inspection
-`;
-
-const distinctInspType = `
-  SELECT DISTINCT inspection_type
-  FROM equipment_inspection
-  ORDER BY inspection_type
-  LIMIT ? OFFSET ?
-`;
-const countDistinctInspType = `
-  SELECT COUNT(DISTINCT inspection_type) AS total
-  FROM equipment_inspection
-`;
-
-const distinctInspDate = `
-  SELECT DISTINCT inspection_date
-  FROM equipment_inspection
-  ORDER BY inspection_date DESC
-  LIMIT ? OFFSET ?
-`;
-const countDistinctInspDate = `
-  SELECT COUNT(DISTINCT inspection_date) AS total
-  FROM equipment_inspection
-`;
-
-const distinctNextDate = `
-  SELECT DISTINCT scheduled_date
-  FROM equipment_inspection
-  ORDER BY scheduled_date DESC
-  LIMIT ? OFFSET ?
-`;
-const countDistinctNextDate = `
-  SELECT COUNT(DISTINCT scheduled_date) AS total
-  FROM equipment_inspection
-`;
-
-// ✅ (추가) OR 버전 추후에 안쓰면 삭제
 const selectInspectionListByFilterOr = `
 SELECT
   inspection_id      AS inspCode,
@@ -120,67 +66,145 @@ ORDER BY inspection_date DESC
 LIMIT ? OFFSET ?
 `;
 
-////
+const distinctInspCode = `
+  SELECT DISTINCT inspection_id
+  FROM equipment_inspection
+  ORDER BY inspection_id DESC
+  LIMIT ? OFFSET ?
+`;
+const countDistinctInspCode = `
+  SELECT COUNT(DISTINCT inspection_id) AS total
+  FROM equipment_inspection
+`;
+const distinctEqId = `
+  SELECT DISTINCT equipment_id
+  FROM equipment_inspection
+  ORDER BY equipment_id
+  LIMIT ? OFFSET ?
+`;
+const countDistinctEqId = `
+  SELECT COUNT(DISTINCT equipment_id) AS total
+  FROM equipment_inspection
+`;
+const distinctInspType = `
+  SELECT DISTINCT inspection_type
+  FROM equipment_inspection
+  ORDER BY inspection_type
+  LIMIT ? OFFSET ?
+`;
+const countDistinctInspType = `
+  SELECT COUNT(DISTINCT inspection_type) AS total
+  FROM equipment_inspection
+`;
+const distinctInspDate = `
+  SELECT DISTINCT inspection_date
+  FROM equipment_inspection
+  ORDER BY inspection_date DESC
+  LIMIT ? OFFSET ?
+`;
+const countDistinctInspDate = `
+  SELECT COUNT(DISTINCT inspection_date) AS total
+  FROM equipment_inspection
+`;
+const distinctNextDate = `
+  SELECT DISTINCT scheduled_date
+  FROM equipment_inspection
+  ORDER BY scheduled_date DESC
+  LIMIT ? OFFSET ?
+`;
+const countDistinctNextDate = `
+  SELECT COUNT(DISTINCT scheduled_date) AS total
+  FROM equipment_inspection
+`;
 
-// 설비정보 등록/수정 페이지
+/* ---------- ★ 설비점검(Inspection) 단건/등록/수정 + 디테일 ---------- */
+const selectInspectionOne = `
+SELECT
+  i.inspection_id     AS inspectionCode,
+  i.equipment_id      AS equipmentCode,
+  e.equipment_name    AS equipmentName,
+  e.equipment_type    AS equipmentType,
+  e.location          AS location,
+  i.inspection_type   AS inspectionType,
+  i.inspection_cycle  AS inspectionCycle,
+  DATE(i.inspection_date)  AS inspectionDate,
+  DATE(i.scheduled_date)   AS nextDate,
+  i.inspector         AS manager,
+  i.result            AS lastResult,
+  i.note              AS note
+FROM equipment_inspection i
+JOIN equipment e ON i.equipment_id = e.equipment_id
+WHERE i.inspection_id = ?
+`;
 
+const selectInspectionDetails = `
+SELECT
+    d.id               AS detailId,
+    d.inspection_item  AS item,
+    d.inspection_result AS result,
+    d.corrective_action AS action
+FROM equipment_inspection_detail d
+WHERE d.inspection_id = ?
+ORDER BY d.id;
+`;
+
+const insertInspection = `
+INSERT INTO equipment_inspection (
+  inspection_id, equipment_id, inspection_type, inspection_cycle,
+  inspection_date, scheduled_date, inspector, note, result
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, ''))
+`;
+
+const insertInspectionDetail = `
+INSERT INTO equipment_inspection_detail (
+  inspection_id, inspection_item, inspection_result, corrective_action
+) VALUES (?, ?, ?, ?)
+`;
+
+const updateInspection = `
+UPDATE equipment_inspection
+   SET equipment_id = ?,
+       inspection_type = ?,
+       inspection_cycle = ?,
+       inspection_date = ?,
+       scheduled_date = ?,
+       inspector = ?,
+       note = ?
+ WHERE inspection_id = ?
+`;
+
+const deleteInspectionDetails = `
+DELETE FROM equipment_inspection_detail
+ WHERE inspection_id = ?
+`;
+
+/* ---------- 설비정보 등록/수정/조회 (기존) ---------- */
 const distinctEquipmentCode = `
   SELECT DISTINCT equipment_id
   FROM equipment
   ORDER BY equipment_id
 `;
-
 const distinctEquipmentType = `
   SELECT DISTINCT equipment_type
   FROM equipment
   ORDER BY equipment_type
 `;
-
 const distinctEquipmentName = `
   SELECT DISTINCT equipment_name
   FROM equipment
   ORDER BY equipment_name
 `;
-
 const distinctLocation = `
   SELECT DISTINCT location
   FROM equipment
   ORDER BY location
 `;
-
 const distinctStatus = `
   SELECT DISTINCT status
   FROM equipment
   ORDER BY status
 `;
-// 설비정보 조건 검색 (with pagination)
-// const searchEquipment = `
-// SELECT
-//   equipment_id,
-//   equipment_type,
-//   equipment_name,
-//   manufacturer,
-//   serial_no,
-//   safety_standard,
-//   operation_manual,
-//   purchase_date,
-//   start_date,
-//   location,
-//   status,
-//   note
-// FROM equipment
-// WHERE (? IS NULL OR equipment_id = ?)
-//   AND (? IS NULL OR equipment_type = ?)
-//   AND (? IS NULL OR equipment_name = ?)
-//   AND (? IS NULL OR location = ?)
-//   AND (? IS NULL OR status = ?)
-// ORDER BY equipment_id
-// LIMIT ? OFFSET ?
-// `;
 
-// 전체 건수
-
-// 설비정보 등록
 const insertEquipment = `
 INSERT INTO equipment (
     equipment_id,
@@ -195,9 +219,7 @@ INSERT INTO equipment (
     location,
     status
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
- 
 `;
-// 설비정보 수정 (eq_id 기준)
 
 const updateEquipment = `
   UPDATE equipment
@@ -212,13 +234,6 @@ const updateEquipment = `
    WHERE equipment_id   = ?
 `;
 
-// "설비정보 조회페이지"
-// 설비정보 조건 검색 (OR 기본, AND 주석처리)
-/* ===== 설비정보 조회(info2) - 공통 SELECT 컬럼 =====
-   eq_id/eq_type/eq_name/maker/serial/in_date/start_date/loc/status
-*/
-
-/* 6-1) 무필터 페이지 + 전체 건수 */
 const selectEquipmentInfoPage = `
 SELECT
   equipment_id   AS eq_id,
@@ -239,7 +254,6 @@ SELECT COUNT(*) AS total
 FROM equipment
 `;
 
-/* 6-2) 조건검색 - OR(기본) + status는 AND */
 const selectEquipmentInfoSearchOr = `
 SELECT
   equipment_id   AS eq_id,
@@ -262,7 +276,6 @@ AND (? IS NULL OR TRIM(status) = TRIM(?))
 ORDER BY equipment_id
 LIMIT ? OFFSET ?
 `;
-
 const countEquipmentInfoSearchOr = `
 SELECT COUNT(*) AS total
 FROM equipment
@@ -275,7 +288,6 @@ WHERE (
 AND (? IS NULL OR TRIM(status) = TRIM(?))
 `;
 
-/* 6-3) 조건검색 - AND (예비/주석 전환용) */
 const selectEquipmentInfoSearchAnd = `
 SELECT
   equipment_id   AS eq_id,
@@ -306,7 +318,6 @@ WHERE (? IS NULL OR equipment_id   = ?)
   AND (? IS NULL OR status         = ?)
 `;
 
-/* 6-4) DISTINCT + 페이지네이션(모달 5개 고정) */
 const distinctEqId2 = `SELECT DISTINCT equipment_id   FROM equipment ORDER BY equipment_id   LIMIT ? OFFSET ?`;
 const distinctEqType2 = `SELECT DISTINCT equipment_type FROM equipment ORDER BY equipment_type LIMIT ? OFFSET ?`;
 const distinctEqName2 = `SELECT DISTINCT equipment_name FROM equipment ORDER BY equipment_name LIMIT ? OFFSET ?`;
@@ -319,7 +330,6 @@ const countDistinctEqName2 = `SELECT COUNT(DISTINCT equipment_name) AS total FRO
 const countDistinctLoc2 = `SELECT COUNT(DISTINCT location)       AS total FROM equipment`;
 const countDistinctStatus2 = `SELECT COUNT(DISTINCT status)         AS total FROM equipment`;
 
-// 이거 설비정보 등록/수정에 설비코드부분
 const selectEquipmentOne = `
 SELECT
   equipment_id   AS equipmentCode,
@@ -335,7 +345,6 @@ FROM equipment
 WHERE equipment_id = ?
 `;
 
-// [FIX] (note 제거) 설비정보 조건 검색 (with pagination)
 const searchEquipment = `
 SELECT
   equipment_id,
@@ -358,8 +367,6 @@ WHERE (? IS NULL OR equipment_id = ?)
 ORDER BY equipment_id
 LIMIT ? OFFSET ?
 `;
-
-// [FIX] (note 제거) 전체 건수
 const countEquipment = `
 SELECT COUNT(*) AS total
 FROM equipment
@@ -370,16 +377,164 @@ WHERE (? IS NULL OR equipment_id = ?)
   AND (? IS NULL OR status = ?)
 `;
 
-// 새 설비코드 생성 쿼리
-const genEquipmentCode = `
-  SELECT CONCAT('INSP', LPAD(IFNULL(SUBSTRING_INDEX(MAX(equipment_id),'INSP',-1),0)+1,3,'0')) AS new_code
+// 점검 조회 (마스터 + 디테일)
+async function getInspectionById(inspCode) {
+  const sql = `
+    SELECT 
+      i.inspection_id   AS insp_code,
+      i.equipment_id    AS eq_id,
+      i.inspection_type AS insp_type,
+      i.inspection_date AS insp_date,
+      i.scheduled_date  AS next_date,
+      i.inspector       AS manager,
+      i.note            AS note,
+      d.detail_id       AS detail_id,
+      d.item            AS item,
+      d.result          AS result,
+      d.action          AS action
+    FROM equipment_inspection i
+    LEFT JOIN equipment_inspection_detail d 
+           ON i.inspection_id = d.inspection_id
+    WHERE i.inspection_id = ? 
+    ORDER BY d.detail_id ASC
+  `;
+  const [rows] = await mariadb.query(sql, [inspCode]);
+  return rows;
+}
+
+// 마지막 설비코드 조회
+const selectMaxEqId = `
+  SELECT MAX(equipment_id) AS max_eq_id
   FROM equipment
+  FOR UPDATE;
+`;
+
+// 마지막 점검코드 조회
+const selectMaxInspId = `
+  SELECT MAX(inspection_id) AS max_insp_id
+  FROM equipment_inspection
+  FOR UPDATE;`;
+
+// 시저
+
+// 비가동 페이지
+/* ===== 비가동 목록 조회 ===== */
+const selectDowntimeList = `
+SELECT 
+  d.id                AS id,              -- ✅ alias를 downtime_id → id 로 변경
+  d.equipment_id      AS eq_id,
+  e.equipment_name    AS eq_name,
+  d.fault_type,
+  d.fault_dtime,
+  d.restart_dtime,
+  d.note,
+  d.status,
+  r.repair_id,
+  r.reason            AS repair_reason,
+  r.repairer,
+  r.status            AS repair_status,
+  i.inspection_id,
+  i.inspection_type,
+  i.inspector,
+  i.result            AS inspection_result
+FROM equipment_downtime d
+LEFT JOIN equipment e 
+       ON d.equipment_id = e.equipment_id
+LEFT JOIN equipment_repair r 
+       ON d.repair_id = r.repair_id
+LEFT JOIN equipment_inspection i 
+       ON d.inspection_id = i.inspection_id
+WHERE (? IS NULL OR d.equipment_id = ?)
+ORDER BY d.fault_dtime DESC
+LIMIT ?, ?;
+`;
+/* ===== 전체 건수 ===== */
+const countDowntimeList = `
+SELECT COUNT(*) AS cnt
+FROM equipment_downtime d
+WHERE (? IS NULL OR d.equipment_id = ?)
+`;
+
+// 비가동
+
+// 설비코드 목록
+const selectCodeList = `
+  SELECT 
+  equipment_id   AS eq_id,
+  equipment_name AS eq_name
+FROM equipment
+ORDER BY equipment_id
+LIMIT ?, ?
+`;
+
+const countEquipment2 = `
+    SELECT COUNT(*) AS cnt FROM equipment
+  `;
+
+const insertDowntime = `
+  INSERT INTO equipment_downtime
+    (equipment_id, repair_id, inspection_id, fault_type, fault_dtime, restart_dtime, note, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+// 비가동 수정
+// downtime 수정 쿼리
+const updateDowntime = `
+  UPDATE equipment_downtime
+  SET equipment_id=?, repair_id=?, inspection_id=?, fault_type=?, fault_dtime=?, restart_dtime=?, note=?, status=?
+  WHERE id=?;
+`;
+
+// 설비수리 페이지
+// 설비수리 목록 조회 (조건검색 + 페이지네이션)
+/* ===== 조건검색 ===== */
+const searchRepairList = `
+SELECT 
+  r.repair_id,
+  r.equipment_id AS eq_id,
+  e.equipment_name AS eq_name,
+  r.insp_code,
+  r.reason,
+  r.repairer,
+  r.start_date,
+  r.end_date,
+  r.status
+FROM equipment_repair r
+LEFT JOIN equipment e ON r.equipment_id = e.equipment_id
+WHERE (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.insp_code = ?)
+  AND (? IS NULL OR r.start_date >= ?)
+  AND (? IS NULL OR r.end_date <= ?)
+ORDER BY r.repair_id DESC
+LIMIT ? OFFSET ?
+`;
+
+const countRepairListWithFilter = `
+SELECT COUNT(*) AS total
+FROM equipment_repair r
+WHERE (? IS NULL OR r.equipment_id = ?)
+  AND (? IS NULL OR r.insp_code = ?)
+  AND (? IS NULL OR r.start_date >= ?)
+  AND (? IS NULL OR r.end_date <= ?)
+`;
+
+/* ===== DISTINCT ===== */
+const distinctRepair = (field) => `
+  SELECT DISTINCT ${field} AS value
+  FROM equipment_repair
+  ORDER BY ${field}
+  LIMIT ? OFFSET ?
+`;
+
+const countDistinctRepair = (field) => `
+  SELECT COUNT(DISTINCT ${field}) AS total
+  FROM equipment_repair
 `;
 
 module.exports = {
+  /* 설비점검 목록/검색/Distinct (기존) */
   selectInspectionList,
-  // selectInspectionListByFilter,
-  // --- inspection ---
+  selectInspectionListByFilter,
   selectInspectionListByFilterOr,
   distinctInspCode,
   countDistinctInspCode,
@@ -392,7 +547,16 @@ module.exports = {
   distinctNextDate,
   countDistinctNextDate,
 
-  // --- equipment 등록/수정 ---
+  /* ★ 설비점검 단건/등록/수정 + 디테일 */
+  selectMaxInspId,
+  selectInspectionOne,
+  selectInspectionDetails,
+  insertInspection,
+  insertInspectionDetail,
+  updateInspection,
+  deleteInspectionDetails,
+
+  /* 설비정보 (기존) */
   insertEquipment,
   updateEquipment,
   distinctEquipmentCode,
@@ -402,9 +566,6 @@ module.exports = {
   distinctStatus,
   searchEquipment,
   countEquipment,
-  genEquipmentCode, //생성코드
-
-  // --- info2 페이지 ---
   selectEquipmentInfoPage,
   countEquipmentInfoAll,
   selectEquipmentInfoSearchOr,
@@ -421,7 +582,19 @@ module.exports = {
   countDistinctLoc2,
   distinctStatus2,
   countDistinctStatus2,
-
-  // --- 단건 조회 ---
   selectEquipmentOne,
+  getInspectionById,
+  selectMaxEqId,
+  /* 비가동 */
+  selectDowntimeList,
+  countDowntimeList,
+  selectCodeList,
+  insertDowntime,
+  countEquipment2,
+  updateDowntime,
+  // 설비수리
+  searchRepairList,
+  countRepairListWithFilter,
+  distinctRepair,
+  countDistinctRepair,
 };

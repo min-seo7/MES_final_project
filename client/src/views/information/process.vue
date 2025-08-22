@@ -66,6 +66,7 @@ onUnmounted(() => {
     <section class="process-container">
         <processSearchWidget @processFilterSearch="handleSearch" />
         <processListWidget :items="processSearchData" @processSelected="handleSelect" />
+        <div class="mt-2"></div>
         <processRegistWidget :items="processSelectedData" />
     </section>
 </template>

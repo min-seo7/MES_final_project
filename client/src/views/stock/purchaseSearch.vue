@@ -30,6 +30,7 @@ export default {
             this.orderNumber = '';
             this.materialCode = '';
             this.materialName = '';
+            this.getPurchaseList();
         },
         //조회
         async onSearch() {
@@ -45,7 +46,7 @@ export default {
                 console.log(filters);
 
                 const res = await axios.post('/api/stock/searchPurchaseList', filters);
-                //조회결과 
+                //조회결과
                 this.purchaseList = res.data.map((item) => ({
                     id: `${item.pur_no}-${item.material_id}`,
                     reDate: item.re_date,
@@ -80,7 +81,8 @@ export default {
                     supPatner: item.partner_name,
                     eName: item.manager,
                     dueDate: item.due_date,
-                    status: item.pro_status
+                    status: item.pro_status,
+                    memo: item.comm
                 }));
             } catch (error) {
                 console.error('자재목록 불러오기 실패:', error);
@@ -88,7 +90,6 @@ export default {
         },
         //발주취소버튼=================================================================
         async cancelPur() {
-    
             try {
                 let cancelRow = this.cancelList.map((row) => ({
                     pur_no: row.purNo,
@@ -133,10 +134,10 @@ export default {
         },
         //날짜포맷
         dateFormat(date) {
-                if (!date || isNaN(new Date(date).getTime())) return null;
-                let newDateFormat = new Date(date);
-                return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
-            }
+            if (!date || isNaN(new Date(date).getTime())) return null;
+            let newDateFormat = new Date(date);
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
+        }
     },
     mounted() {
         console.log('발주목록');
@@ -170,9 +171,9 @@ export default {
             <!-- 자재코드 -->
             <div class="flex items-center gap-2">
                 <label for="materialCode" class="whitespace-nowrap">자재코드</label>
-                <IconField iconPosition="left" class="w-full" @click="openMatModal()">
+                <IconField iconPosition="left" class="w-full">
                     <InputText id="materialCode" type="text" class="w-60" v-model="materialCode" />
-                    <InputIcon class="pi pi-search" />
+                    <InputIcon class="pi pi-search" @click="openMatModal()" />
                 </IconField>
             </div>
 
@@ -188,35 +189,29 @@ export default {
 
     <!--목록 테이블 -->
     <div class="card w-full">
-        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" tableStyle="min-width: 50rem" scrollable scrollHeight="400px">
+        <DataTable v-model:selection="cancelList" :value="purchaseList" dataKey="id" sortMode="multiple" tableStyle="min-width: 50rem" scrollable scrollHeight="400px">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
             <Column field="id" header="-" style="display: none"></Column>
-            <Column field="reDate" header="등록일"></Column>
-            <Column field="purNo" header="발주번호"></Column>
-            <Column field="matCode" header="자재코드"></Column>
-            <Column field="matName" header="자재명"></Column>
-            <Column field="purQty" header="발주량"></Column>
+            <Column field="reDate" header="등록일" sortable></Column>
+            <Column field="purNo" header="발주번호" sortable></Column>
+            <Column field="matCode" header="자재코드" sortable></Column>
+            <Column field="matName" header="자재명" sortable></Column>
+            <Column field="purQty" header="발주량" sortable></Column>
             <Column field="unit" header="단위"></Column>
-            <Column field="supPatner" header="공급처"></Column>
-            <Column field="eName" header="담당자"></Column>
-            <Column field="dueDate" header="납기요청일"></Column>
-            <Column field="status" header="진행상태"></Column>
+            <Column field="supPatner" header="공급처" sortable></Column>
+            <Column field="eName" header="담당자" sortable></Column>
+            <Column field="dueDate" header="납기요청일" sortable></Column>
+            <Column field="status" header="진행상태" sortable></Column>
+            <Column field="memo" header="비고" sortable></Column>
         </DataTable>
     </div>
 
     <!--자재모달-->
-    <commModal v-model="materialModal" header="자재목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="matCode">자재코드</label>
-            <InputText id="matCode" type="text" />
-            <label for="matrName">자재명</label>
-            <InputText id="matrName" type="text" />
-            <Button label="검색" />
-        </div>
+    <commModal v-model="materialModal" header="자재목록" style="width: 30rem">
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 8rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 

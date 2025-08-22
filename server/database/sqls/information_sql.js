@@ -12,7 +12,10 @@ SELECT flow_name
 FROM flowchart`;
 
 const selectProductIdModal = `
-SELECT product_id
+SELECT product_id,
+       product_name,
+       product_type,
+       product_form
 FROM product`;
 
 const selectWarehouseModal = `
@@ -49,7 +52,9 @@ SELECT equipment_id,
 FROM equipment`;
 
 const selectMaterialNameModal = `
-SELECT material_name
+SELECT material_name,
+       material_id,
+       material_type
 FROM material`;
 
 const selectProcessNameModal = `
@@ -123,7 +128,7 @@ SELECT product_id,
        storage_condition,
        safety_stock,
        safety_stock_unit,
-       product_manual,
+       product_category,
        status
 FROM product
 WHERE 1=1
@@ -152,7 +157,7 @@ INSERT INTO product (product_id,
 			storage_condition,
 			safety_stock,
 			safety_stock_unit,
-			product_manual,
+			product_category,
 			status)
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
@@ -169,7 +174,7 @@ SET product_type = ?,
     storage_condition = ?,
     safety_stock = ?,
     safety_stock_unit = ?,
-    product_manual = ?,
+    product_category = ?,
     status = ?
 WHERE  product_id = ?`;
 
@@ -279,7 +284,26 @@ SET  partner_type = ?,
      address = ?,
      business_no = ?,
      status = ?
-WHERE partner_id = 'SUP001'`;
+WHERE partner_id = ?`;
+
+// 거래처 수정
+const updateBom = `
+UPDATE bom
+SET  status = ?
+WHERE bom_id = ?`;
+
+// 사원 수정
+const updateEmployee = `
+UPDATE employee
+SET  name = ?,
+     department = ?,
+     phone = ?,
+     email = ?,
+     hire_date = ?,
+     leave_date = ?,
+     auth = ?,
+     status = ?
+WHERE employee_id = ?`;
 
 // 흐름도 조회
 const selectFlowchartList = `
@@ -325,7 +349,8 @@ SELECT f.process_id
        , f.use_order
        , f.status
 FROM flowchart_detail f INNER JOIN process p
-                   ON f.process_id = p.process_id`;
+                   ON f.process_id = p.process_id
+WHERE f.flow_id = ?`;
 
 // 흐름도 detail 등록
 const insertDetailFlowchart = `
@@ -333,7 +358,7 @@ INSERT INTO flowchart_detail (flow_id,
                               process_id,
                               use_order,
                               status)
-VALUES ('flow001',?,?,?)`;
+VALUES (?,?,?,?)`;
 
 // 흐름도 detail 수정
 const updateDetailFlowchart = `
@@ -354,7 +379,8 @@ SELECT l.process_id
 FROM line_detail l INNER JOIN process p
 			ON l.process_id = p.process_id
             INNER JOIN equipment e
-            ON l.equipment_id = e.equipment_id`;
+            ON l.equipment_id = e.equipment_id
+WHERE l.line_id = ?`;
 
 // 라인 detail 등록
 const insertDetailLine = `
@@ -363,7 +389,7 @@ INSERT INTO line_detail (line_id,
                           process_id, 
                           use_order, 
                           status)
-VALUES ('line001',?,?,?,?);`;
+VALUES (?,?,?,?,?);`;
 
 // 라인 detail 수정
 const updateDetailLine = `
@@ -485,7 +511,7 @@ SELECT m.material_id,
 FROM bom_detail b
 	 INNER JOIN material m
      ON b.material_id = m.material_id
-     where b.bom_id = 'bom004'`;
+     where b.bom_id = ?`;
 
 // BOM코드 조회
 const SelectMaxBOMId = `
@@ -578,13 +604,15 @@ const selectMaxBOMId = `
 
 // 마지막 emp_id 조회
 const selectMaxEmpId = `
-  SELECT MAX(emp_id) AS max_emp_id
+  SELECT MAX(employee_id) AS max_emp_id
   FROM employee
   FOR UPDATE
 `;
 
 module.exports = {
   selectMaxMaterialId,
+  updateBom,
+  updateEmployee,
   selectWarehouseTypeModal,
   selectProductIdModal,
   selectWarehouseModal,

@@ -4,8 +4,9 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import 'primeicons/primeicons.css'
+import 'primeicons/primeicons.css';
 import axios from 'axios';
+import { useUserStore } from '@/store/index';
 
 export default {
     components: { commModal, DataTable, Column, InputText, Button },
@@ -48,7 +49,7 @@ export default {
                 }
             ],
             //안전재고수량 미달
-            lowMat: [],
+            lowMat: []
         };
     },
     methods: {
@@ -95,7 +96,7 @@ export default {
             this.purshaseList.forEach((row) => {
                 row.patner = this.partnerName;
             });
-            this.selectPartner = null
+            this.selectPartner = null;
             this.partnerModal = false;
         },
         //자재용 모달
@@ -120,11 +121,9 @@ export default {
             this.materialModal = true;
         },
         onSelectMat() {
-             // 행 중복 체크
+            // 행 중복 체크
             let selectedMatCode = this.selectMat.matCode;
-            const isDuplicate = this.purshaseList.some((item, index) => 
-                item.mat_id === selectedMatCode && index !== this.selectRow
-            );
+            const isDuplicate = this.purshaseList.some((item, index) => item.mat_id === selectedMatCode && index !== this.selectRow);
             if (isDuplicate) {
                 alert('이미 선택된 자재입니다.');
                 return;
@@ -151,9 +150,9 @@ export default {
                 comm: ''
             });
         },
-        removeRow(){
-           if (this.purshaseList.length > 1) {
-                this.purshaseList.pop(); 
+        removeRow() {
+            if (this.purshaseList.length > 1) {
+                this.purshaseList.pop();
                 this.count--;
             }
         },
@@ -187,7 +186,7 @@ export default {
         async insertPurse() {
             try {
                 //마스터T 정보
-                if(!this.dueDate || !this.partnerId || !this.empName){
+                if (!this.dueDate || !this.partnerId || !this.empName) {
                     alert('필수정보입력');
                     return;
                 }
@@ -238,6 +237,11 @@ export default {
         let today = new Date();
         this.reDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         this.getLessMatList();
+        let userInfo = useUserStore();
+        console.log(userInfo);
+        if (userInfo.user) {
+            this.empName = userInfo.user.name; // 로그인된 사용자 이름 세팅
+        }
     }
 };
 </script>
@@ -256,12 +260,12 @@ export default {
         <div class="md:w-1/2">
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
-                <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
-                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
-                    <Column field="low_matName" header="자재명" style="min-width: 100px"></Column>
-                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px"></Column>
-                    <Column field="low_nowStock" header="현재고" style="min-width: 80px"></Column>
-                    <Column field="low_shortage" header="부족" style="min-width: 80px"></Column>
+                <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%" sortMode="multiple">
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold" sortable></Column>
+                    <Column field="low_matName" header="자재명" style="min-width: 100px" sortable></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_nowStock" header="현재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_shortage" header="부족" style="min-width: 80px" sortable></Column>
                     <Column field="low_unit" header="단위" style="min-width: 80px"></Column>
                 </DataTable>
             </div>
@@ -276,7 +280,7 @@ export default {
                     <div class="flex flex-wrap gap-4 my-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="reDate">등록일</label>
-                            <InputText id="reDate" type="text" v-model="reDate" class="w-full" dateFormat="yy-mm-dd" />
+                            <InputText id="reDate" type="text" v-model="reDate" class="w-full" dateFormat="yy-mm-dd" readonly />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="dueDate">납기요청일</label>
@@ -287,13 +291,13 @@ export default {
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerId">공급처코드</label>
                             <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-full" readonly v-model="partnerId" @click="openPatenrModal()" />
-                                <InputIcon class="pi pi-search" />
+                                <InputText id="partnerId" type="text" class="w-full" v-model="partnerId" />
+                                <InputIcon class="pi pi-search" @click="openPatenrModal()" />
                             </IconField>
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="partnerName">공급처</label>
-                            <InputText id="partnerName" type="text" class="w-full" readonly v-model="partnerName" />
+                            <InputText id="partnerName" type="text" class="w-full" v-model="partnerName" />
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-4 my-4">
@@ -303,14 +307,14 @@ export default {
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="empName">담당자</label>
-                            <InputText id="empName" type="text" v-model="empName" />
+                            <InputText id="empName" type="text" v-model="empName" readonly />
                         </div>
                     </div>
                 </div>
                 <!--입력 input박스끝-->
-                <div class ="flex justify-end mt-0 space-x-2">
-                        <Button icon="pi pi-plus"  severity="success" rounded variant="outlined"  @click="addEmptyRow()" />
-                        <Button icon="pi pi-minus"  severity="success" rounded variant="outlined"  @click="removeRow()" />
+                <div class="flex justify-end mt-0 space-x-2">
+                    <Button icon="pi pi-plus" severity="success" rounded variant="outlined" @click="addEmptyRow()" />
+                    <Button icon="pi pi-minus" severity="success" rounded variant="outlined" @click="removeRow()" />
                 </div>
                 <div>
                     <DataTable :value="purshaseList" scrollable scrollHeight="400px" class="mt-6" style="width: 100%">
@@ -342,13 +346,6 @@ export default {
     <!--모달영역-->
     <!--공급처모달-->
     <commModal v-model="partnerModal" header="거래처목록">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="partnerId">거래처코드</label>
-            <InputText id="partnerId" type="text" />
-            <label for="partnerName">거래처명</label>
-            <InputText id="partnerName" type="text" />
-            <Button label="검색" />
-        </div>
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
         <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
@@ -369,13 +366,6 @@ export default {
 
     <!--자재모달-->
     <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 40rem">
-        <div class="mt-5 mb-4 space-x-2">
-            <label for="matCode">자재코드</label>
-            <InputText id="matCode" type="text" />
-            <label for="matrName">자재명</label>
-            <InputText id="matrName" type="text" />
-            <Button label="검색" />
-        </div>
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
             <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>

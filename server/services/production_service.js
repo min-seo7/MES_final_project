@@ -1,10 +1,5 @@
-//const mariadb = require("../database/mapper.js");
-const {
-  query,
-  getConnection,
-  sqlList,
-  mariadb,
-} = require("../database/mapper.js");
+const mariadb = require("../database/mapper.js");
+const { query, getConnection, sqlList } = require("../database/mapper.js");
 
 // 객체를 배열로 변환하는 매서드
 function convertToArray(obj, columns) {
@@ -74,6 +69,7 @@ const startWork = async (director, plan_detail_no, details) => {
         info.specification,
         info.unit,
         info.prd_form,
+        info.product_id,
       ];
 
       await conn.query(sqlList.insertPrdOrderDetail, insertedDetail);
@@ -126,8 +122,168 @@ const selectPrcList = async () => {
     if (conn) conn.release();
   }
 };
+const selectOrderList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.selectOrderList);
+    // let list= await conn.query(sqlList.selectOrderList);
+    // const했을땐 단일행만 반환하다가 let으로 변경하니 나왔는데 갑자기 또 const로 선언해도 리스트 잘나옴 버근가
+    console.log("생산 지시 목록 조회 결과:", list);
 
+    // 날짜 형식을 데이터베이스에 맞게 변환
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    // 9. 연결 해제
+    if (conn) conn.release();
+  }
+};
+const notRegistPrcList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.notRegistPrcList);
+    console.log("등록되지 않은 공정 목록 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+const insertPerform = async (payload) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const values = [
+      payload.wo_no,
+      //payload.pf_code,
+      payload.e_name,
+      payload.process_id,
+      payload.in_qty,
+      payload.line_id,
+      payload.product_id,
+      payload.prd_name,
+      payload.specification,
+      payload.unit,
+      payload.eq_code,
+      formatToDatabaseDatetime(payload.w_st_date),
+    ];
+    const result = await conn.query(sqlList.insertPerform, values);
+    if (result) {
+      console.log("실적 등록에 성공하였습니다.");
+      await conn.commit();
+    } else {
+      console.log("실적 등록에 실패하였습니다.", result.data);
+    }
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+const updatePerform = async (payload) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const values = [
+      payload.status,
+      payload.qty,
+      formatToDatabaseDatetime(payload.w_ed_date),
+      payload.wo_no, // 조건으로 사용
+    ];
+    const result = await conn.query(sqlList.updatePerform, values);
+    if (result) {
+      console.log("실적 수정에 성공하였습니다.");
+      await conn.commit();
+    } else {
+      console.log("실적 수정에 실패하였습니다.", result.data);
+    }
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+const selectEname = async (wo_no, process_id) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.query(sqlList.selectEname, [wo_no, process_id]);
+    if (result.length > 0) {
+      return result[0].e_name; // 첫 번째 행의 e_name 반환
+    } else {
+      return null; // 결과가 없을 경우 null 반환
+    }
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+const checkWoStatus = async (wo_no) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.query(sqlList.selectStatusCheck, [wo_no]);
+    const { in_progress_count, completed_count } = result[0];
+    // 상태를 결정하는 로직
+    if (in_progress_count > 0) {
+      return "진행";
+    } else if (completed_count > 0) {
+      return "완료";
+    } else {
+      return "대기";
+    }
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+const findAllOrder = async () => {
+  let list = await mariadb.query("selectAllOrder");
+  return list;
+};
+
+const bomRequestInsert = async (details) => {
+  let conn;
+  try {
+    conn = await getConnection();
+
+    // details 배열의 각 항목을 순회
+    for (const detail of details) {
+      const { req_qty, bom_id } = detail;
+
+      // 여기서 `sqlList.insertRequestBom` 쿼리에 필요한 값들을 순서대로 전달합니다.
+      // 쿼리에 물음표가 두 개라면 [req_qty, bom_id]를 전달
+      await conn.query(sqlList.insertRequestBom, [req_qty, bom_id]);
+    }
+
+    await conn.commit();
+    console.log("BOM 요청이 성공적으로 등록되었습니다.");
+    return { success: true, message: "BOM 요청이 성공적으로 등록되었습니다." };
+  } catch (error) {
+    // 오류 발생 시 롤백
+    if (conn) await conn.rollback();
+    console.error("BOM 요청 등록에 실패하였습니다.", error);
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
 module.exports = {
+  findAllOrder,
   startWork,
   //  insertProductionFlow
+  selectOrderList,
+  notRegistPrcList,
+  insertPerform,
+  updatePerform,
+  selectEname,
+  checkWoStatus,
+  bomRequestInsert,
 };

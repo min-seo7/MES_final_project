@@ -1,74 +1,163 @@
 <script setup>
-import { ref } from 'vue';
-import inspectionSearchWidget from '@/components/equipment/inspection/inspectionSearchWidget.vue';
+import { ref } from 'vue'
+import axios from 'axios'
 
+// 위젯 임포트명 정확히
+import InspectionSearchWidget from '@/components/equipment/inspection/inspectionSearchWidget.vue'
+import inspectionRegistWidget from '@/components/equipment/inspection/inspectionRegistWidget.vue'
+
+// ---- 고정 행 수
+const DETAIL_ROWS = 5
+
+// ---- 결과값 매핑(DB → UI 라디오)
+const mapDbResultToUi = (v) => {
+  const s = String(v ?? '').trim().toUpperCase()
+  if (['양호','OK','GOOD','Y','1'].includes(s)) return '양호'
+  if (['주의','WARN','WARNING','W','2'].includes(s)) return '주의'
+  if (['불량','NG','BAD','N','3','FAIL'].includes(s)) return '불량'
+  return '' // 라디오 미선택
+}
+// (필요시 DB 코드로 바꾸려면 여기서 매핑; 지금은 UI 문자열 그대로 저장)
+const mapUiResultToDb = (v) => v
+
+// ---- 유틸
+const asDate = (v) => {
+  if (!v) return null
+  if (v instanceof Date) return v
+  const d = new Date(String(v).slice(0,10))
+  return isNaN(d) ? null : d
+}
+const fmt = (d) => {
+  if (!d) return null
+  if (typeof d === 'string') return d.slice(0,10)
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0')
+  return `${y}-${m}-${dd}`
+}
+const padRows = (arr) => {
+  const base = Array.isArray(arr) ? arr.slice(0, DETAIL_ROWS) : []
+  while (base.length < DETAIL_ROWS) base.push({ item:'', result:'', action:'' })
+  return base
+}
+const onlyFilled = (rows) =>
+  (rows || []).filter(r => (r?.item?.trim()||'') || (r?.result?.trim()||'') || (r?.action?.trim()||''))
+
+// ---- 폼
 const form = ref({
-    equipmentCode: '',
-    equipmentType: '',
-    equipmentName: '',
-    manufacturer: '',
-    serialNo: '',
-    purchaseDate: null,
-    startDate: null,
-    location: '',
-    status: '사용',
-    note: ''
-});
+  equipmentCode: '',
+  inspectionCode: '',
+  inspectionType: '정기점검',
+  inspectionCycle: '',
+  inspectionDate: null,
+  nextDate: null,
+  manager: '',
+  note: '',
+  details: padRows([])   // 화면은 항상 5행
+})
 
-// 🔹 세트 데이터 (검색/조회 공용 원천)
-const pickerData = [
-    { eq_id: 'EQ-001', eq_type: '혼합기', eq_name: '리본 블렌더', loc: 'A동-1라인' },
-    { eq_id: 'EQ-002', eq_type: '분쇄기', eq_name: '해머 밀', loc: 'A동-2라인' },
-    { eq_id: 'EQ-003', eq_type: '포장기', eq_name: '자동 포장기', loc: 'B동-1라인' },
-    { eq_id: 'EQ-004', eq_type: '컨베이어', eq_name: '체인 컨베이어', loc: 'B동-2라인' },
-    { eq_id: 'EQ-005', eq_type: '건조기', eq_name: '로터리 건조기', loc: 'C동-1라인' }
-];
+const isEdit = ref(false)
 
-// 🔹 조회 버튼 눌렀을 때만 등록폼 세트 채우기
-function handleSearch(q) {
-    // q: { eq_id, eq_type, eq_name, loc, status }
-    const match = pickerData.find((s) => (!q.eq_id || s.eq_id === q.eq_id) && (!q.eq_type || s.eq_type === q.eq_type) && (!q.eq_name || s.eq_name === q.eq_name) && (!q.loc || s.loc === q.loc));
+/* 조회 → 단건 상세 바인딩 (행 5 고정) */
+async function handleSearch(params) {
+  try {
+    const { data } = await axios.get('/api/equipment/inspection/find-one', {
+      params: { insp_code: params.insp_code }
+    })
+    if (!data) { alert('조회 결과 없음'); return }
 
-    if (match) {
-        form.value.equipmentCode = match.eq_id;
-        form.value.equipmentType = match.eq_type;
-        form.value.equipmentName = match.eq_name;
-        form.value.location = match.loc;
-    } else {
-        // 필요하면 토스트/알럿
-        console.warn('일치하는 설비 세트가 없습니다.');
-    }
-}
+    const det = Array.isArray(data.details)
+      ? data.details.map(d => ({
+          item: d?.item ?? '',
+          result: mapDbResultToUi(d?.result),
+          action: d?.action ?? ''
+        }))
+      : []
 
-function handleClear() {
-    // 검색 폼 초기화일 뿐, 등록폼은 그대로 두거나 필요시 초기화
-    // form.value.equipmentCode = '';
-    // ...
-}
-
-// 저장/초기화 (등록 위젯용)
-function saveForm() {
-    console.log('저장 데이터:', form.value);
-}
-function resetForm() {
     form.value = {
-        equipmentCode: '',
-        equipmentType: '',
-        equipmentName: '',
-        manufacturer: '',
-        serialNo: '',
-        purchaseDate: null,
-        startDate: null,
-        location: '',
-        status: '사용',
-        note: ''
-    };
+      equipmentCode: data.equipmentCode ?? '',
+      inspectionCode: data.inspectionCode ?? params.insp_code ?? '',
+      inspectionType: data.inspectionType ?? '정기점검',
+      inspectionCycle: data.inspectionCycle ?? '',
+      inspectionDate: asDate(data.inspectionDate),
+      nextDate: asDate(data.nextDate),
+      manager: data.manager ?? '',
+      note: data.note ?? '',
+      details: padRows(det) // ★ 5행 고정
+    }
+    isEdit.value = true
+  } catch (e) {
+    console.error(e)
+    alert('조회 실패')
+  }
 }
+
+/* 등록 */
+async function handleSave(payload) {
+  try {
+    const body = {
+      ...payload,
+      inspectionDate: fmt(payload.inspectionDate),
+      nextDate: fmt(payload.nextDate),
+      // 빈 줄 제거 후 저장(DB에 공란 안쌓이게)
+      details: onlyFilled(payload.details).map(r => ({ ...r, result: mapUiResultToDb(r.result) }))
+    }
+    await axios.post('/api/equipment/inspection/regist', body)
+    alert('등록 성공')
+    isEdit.value = false
+  } catch (e) {
+    console.error(e)
+    alert(`등록 실패: ${e?.response?.data?.message || e.message}`)
+  }
+}
+
+/* 수정 */
+async function handleUpdate(payload) {
+  try {
+    const body = {
+      ...payload,
+      inspectionDate: fmt(payload.inspectionDate),
+      nextDate: fmt(payload.nextDate),
+      details: onlyFilled(payload.details).map(r => ({ ...r, result: mapUiResultToDb(r.result) }))
+    }
+    await axios.put('/api/equipment/inspection/update', body)
+    alert('수정 성공')
+    // 수정 후에도 화면은 5행 유지
+    form.value.details = padRows(form.value.details)
+  } catch (e) {
+    console.error(e)
+    alert(`수정 실패: ${e?.response?.data?.message || e.message}`)
+  }
+}
+
+/* 초기화(신규 입력 모드) */
+function handleReset() {
+  isEdit.value = false
+  form.value = {
+    equipmentCode: '',
+    inspectionCode: '',
+    inspectionType: '정기점검',
+    inspectionCycle: '',
+    inspectionDate: null,
+    nextDate: null,
+    manager: '',
+    note: '',
+    details: padRows([])  // ★ 5행 고정
+  }
+}
+
+/* 설비코드 돋보기 */
+function openEqPicker() { /* 필요시 구현 */ }
 </script>
 
 <template>
-    <div class="p-4 space-y-6">
-        <inspectionSearchWidget :pickerData="pickerData" @submit="handleSearch" @clear="handleClear" />
-        <InspectionRegistWidget v-model="form" @save="saveForm" @reset="resetForm" @open:eqPicker="openEqPicker" />
-    </div>
+  <div class="p-4 space-y-6">
+    <InspectionSearchWidget @submit="handleSearch" />
+    <inspectionRegistWidget
+      v-model="form"
+      :isEdit="isEdit"
+      @save="handleSave"
+      @update="handleUpdate"
+      @reset="handleReset"
+      @open:eqPicker="openEqPicker"
+    />
+  </div>
 </template>

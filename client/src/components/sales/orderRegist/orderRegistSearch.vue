@@ -5,27 +5,70 @@ import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import InputGroup from 'primevue/inputgroup';
 import Toolbar from 'primevue/toolbar';
 import IconField from 'primevue/iconfield';
 import Dialog from 'primevue/dialog';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Paginator from 'primevue/paginator';
 
 // 거래처 모달창 관련
 const showModal = ref(false);
 const modalType = ref('');
+const selectedSupplierFromDialog = ref(null); // 모달에서 선택된 거래처
+
+// 거래처 검색 폼
+const supplierSearch = ref({
+    partnerId: '',
+    partnerName: ''
+});
 
 // DB 거래처 데이터
 const items = ref([]);
-const selectedSupplierCode = ref('');
 
 //주문제품관련 모달창
 const products = ref([]);
 const showProductModal = ref(false);
 const selectedOrderItemSeq = ref(null);
+const selectedProductFromDialog = ref(null);
 
+// 제품 검색 폼
+const productSearch = ref({
+    prodCode: '',
+    prodName: ''
+});
+
+// 거래처 데이터 로드 및 필터링
+const fetchSuppliers = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordPaModalList', {
+            params: {
+                partnerId: supplierSearch.value.partnerId,
+                partnerName: supplierSearch.value.partnerName
+            }
+        });
+        items.value = response.data.list.map((item) => ({
+            partnerId: item.partner_id,
+            partnerName: item.partner_name,
+            ceo: item.ceo,
+            address: item.address,
+            manager: item.manager,
+            mainTel: item.main_tel
+        }));
+    } catch (error) {
+        console.error('거래처 데이터 로드 실패:', error);
+    }
+};
+
+// 제품 데이터 로드 및 필터링
 const fetchProducts = async () => {
     try {
-        const response = await axios.get('/api/sales/ordModalPrdList');
+        const response = await axios.get('/api/sales/ordModalPrdList', {
+            params: {
+                prodCode: productSearch.value.prodCode,
+                prodName: productSearch.value.prodName
+            }
+        });
         products.value = response.data.list.map((item) => ({
             productId: item.product_id,
             productType: item.product_type,
@@ -42,6 +85,7 @@ const fetchProducts = async () => {
 const openProductModal = (itemSeq) => {
     selectedOrderItemSeq.value = itemSeq;
     showProductModal.value = true;
+    fetchProducts();
 };
 
 const selectProduct = (product) => {
@@ -55,23 +99,6 @@ const selectProduct = (product) => {
     showProductModal.value = false;
 };
 
-// 주문내역 데이터 로드
-const orderModal = async () => {
-    try {
-        const response = await axios.get('/api/sales/ordPaModalList');
-        items.value = response.data.list.map((item) => ({
-            partnerId: item.partner_id,
-            partnerName: item.partner_name,
-            ceo: item.ceo,
-            address: item.address,
-            manager: item.manager,
-            mainTel: item.main_tel
-        }));
-    } catch (error) {
-        console.error('데이터 로드 실패:', error);
-    }
-};
-
 // 주문 폼
 const form = ref({
     orderId: '',
@@ -82,7 +109,7 @@ const form = ref({
     deliveryAddr: '',
     supplyPrice: '',
     manager: '',
-    totalQty: 0 // totoalQty 오타 수정 및 초기값 0으로 설정
+    totalQty: 0
 });
 
 // 주문내역 리스트
@@ -155,10 +182,11 @@ const resetOrders = () => {
         orderManager: '',
         deliveryAddr: '',
         supplyPrice: '',
-        totalQty: 0, // 수정된 변수명 사용
+        totalQty: 0,
         manager: ''
     };
-    selectedSupplierCode.value = '';
+    supplierSearch.value = { partnerId: '', partnerName: '' };
+    productSearch.value = { prodCode: '', prodName: '' };
 };
 
 // 공급가액 자동 계산
@@ -173,43 +201,43 @@ watch(
 );
 
 // 총합 계산
-// totalUnitPrice를 totalQuantity로 변경하여 총수량을 계산하도록 수정
 const totalQuantity = computed(() => {
     return orders.value.reduce((sum, order) => sum + order.quantity, 0);
 });
 
-// 총공급가액은 이미 올바르게 계산되고 있으므로 그대로 유지
 const totalSupplyAmount = computed(() => {
     return orders.value.reduce((sum, order) => sum + order.supplyPrice, 0);
 });
 
-// 거래처 선택 모달
-const openModal = (type) => {
-    modalType.value = type;
+// 거래처 선택 모달 열기
+const openModal = () => {
     showModal.value = true;
+    selectedSupplierFromDialog.value = null;
+    fetchSuppliers();
 };
-const closeModal = () => {
-    showModal.value = false;
-};
-const selectModalValue = (code) => {
-    selectedSupplierCode.value = code;
-    const selected = items.value.find((s) => s.partnerId === code);
-    if (selected) {
-        form.value.partnerId = selected.partnerId;
-        form.value.partnerName = selected.partnerName;
-        form.value.manager = selected.manager;
+
+const selectSupplierAndClose = () => {
+    if (selectedSupplierFromDialog.value) {
+        form.value.partnerId = selectedSupplierFromDialog.value.partnerId;
+        form.value.partnerName = selectedSupplierFromDialog.value.partnerName;
+        form.value.manager = selectedSupplierFromDialog.value.manager;
     }
     showModal.value = false;
 };
 
-// 페이징
-const currentPage = ref(1);
-const pageSize = ref(3);
-const totalPages = computed(() => Math.ceil(items.value.length / pageSize.value));
-const pagedSupplierList = computed(() => {
-    const start = (currentPage.value - 1) * pageSize.value;
-    return items.value.slice(start, start + pageSize.value);
-});
+// 제품 모달에서 선택 완료 시
+const selectProductAndClose = () => {
+    if (selectedProductFromDialog.value) {
+        const orderToUpdate = orders.value.find((o) => o.itemSeq === selectedOrderItemSeq.value);
+        if (orderToUpdate) {
+            orderToUpdate.productName = selectedProductFromDialog.value.productName;
+            orderToUpdate.specification = selectedProductFromDialog.value.specification;
+            orderToUpdate.productPrice = selectedProductFromDialog.value.price;
+            orderToUpdate.productId = selectedProductFromDialog.value.productId;
+        }
+    }
+    showProductModal.value = false;
+};
 
 // 오늘 날짜 기본 설정
 const today = new Date().toISOString().slice(0, 10);
@@ -217,7 +245,7 @@ form.value.orderDate = today;
 
 // 주문 등록
 const registEmployee = async () => {
-    if (!selectedSupplierCode.value) {
+    if (!form.value.partnerId) {
         alert('거래처를 선택해주세요.');
         return;
     }
@@ -229,31 +257,36 @@ const registEmployee = async () => {
     const today = new Date().toISOString().slice(0, 10);
     form.value.orderDate = today;
 
-    const ordersForServer = orders.value.map((o) => ({
-        ...o,
-        delDate: o.delDate ? new Date(o.delDate).toISOString().slice(0, 10) : null
-    }));
+    const ordersForServer = orders.value.map((o) => {
+        if (!o.productId || o.quantity <= 0 || !o.delDate) {
+            alert('주문 내역의 모든 필수 항목(* 제품명, 수량, 납기일)을 입력해주세요.');
+            throw new Error('Validation Failed');
+        }
+        return {
+            ...o,
+            delDate: o.delDate ? new Date(o.delDate).toISOString().slice(0, 10) : null
+        };
+    });
 
     try {
-        //주문폼데이터 + 주문항목 + 총 공급가액을 합쳐서 서버로 보낼 객체를 생성
         const payload = {
             ...form.value,
             orders: ordersForServer,
             supplyPrice: totalSupplyAmount.value,
-            totalQty: totalQuantity.value // 새로 계산된 총수량을 페이로드에 추가
+            totalQty: totalQuantity.value
         };
-        //payloat를 전송
+
         const res = await axios.post('/api/sales/orderRegist', payload);
         alert(res.data.message || '주문등록 성공');
         resetOrders();
     } catch (err) {
         console.error('주문등록 실패:', err);
-        alert('주문등록 실패');
+        alert(err.response?.data?.message || '주문등록 실패');
     }
 };
 
 onMounted(() => {
-    orderModal();
+    fetchSuppliers();
     fetchProducts();
 });
 </script>
@@ -271,11 +304,11 @@ onMounted(() => {
                 <IconField>
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
                         <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처코드</label>
-                            <InputGroup>
-                                <InputText v-model="selectedSupplierCode" placeholder="거래처코드 선택" readonly />
-                                <Button icon="pi pi-search" @click="openModal('supplier')" />
-                            </InputGroup>
+                            <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                            <IconField iconPosition="left" class="w-full">
+                                <InputText id="partnerId" type="text" class="w-60" v-model="form.partnerId" readonly />
+                                <InputIcon class="pi pi-search" @click="openModal()" />
+                            </IconField>
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">* 배송지</label>
@@ -324,11 +357,11 @@ onMounted(() => {
                     <div class="text-sm font-medium text-center">{{ order.itemSeq }}</div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">제품명</label>
-                    <InputGroup>
-                        <InputText v-model="order.productName" placeholder="제품선택" readonly />
-                        <Button icon="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
-                    </InputGroup>
+                    <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
+                    <IconField iconPosition="left" class="w-full">
+                        <InputText id="productName" type="text" class="w-60" v-model="order.productName" readonly />
+                        <InputIcon class="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
+                    </IconField>
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">* 수량</label>
@@ -352,46 +385,92 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-        <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="closeModal">
+        <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <p class="font-bold mb-3 text-lg">🔍 거래처를 선택하세요</p>
-                <ul class="mb-3">
-                    <li
-                        v-for="supplier in pagedSupplierList"
-                        :key="supplier.partnerId"
-                        :class="['cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded', selectedSupplierCode === supplier.partnerId ? 'bg-blue-100 text-blue-700 font-semibold' : '']"
-                        @click="selectModalValue(supplier.partnerId)"
-                    >
-                        • {{ supplier.partnerId }} - {{ supplier.partnerName }} - {{ supplier.address }} - {{ supplier.ceo }} - {{ supplier.manager }} - {{ supplier.mainTel }}
-                    </li>
-                </ul>
+                <div class="flex flex-col gap-4 mb-4">
+                    <div class="flex items-center gap-4">
+                        <label class="font-semibold text-sm w-20">거래처코드</label>
+                        <InputText v-model="supplierSearch.partnerId" @keyup.enter="fetchSuppliers" placeholder="거래처코드" />
+                        <label class="font-semibold text-sm">거래처명</label>
+                        <InputText v-model="supplierSearch.partnerName" @keyup.enter="fetchSuppliers" placeholder="거래처명" />
+                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="fetchSuppliers" />
+                    </div>
+                </div>
+                <DataTable :value="items" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="10">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="partnerId" header="거래처코드" class="font-bold"></Column>
+                    <Column field="partnerName" header="거래처명"></Column>
+                    <Column field="address" header="주소"></Column>
+                    <Column field="ceo" header="대표자"></Column>
+                    <Column field="manager" header="담당자"></Column>
+                    <Column field="mainTel" header="전화번호"></Column>
+                </DataTable>
             </div>
-            <div class="flex justify-center gap-2 pb-4">
-                <Button label="이전" @click="currentPage--" :disabled="currentPage === 1" size="small" />
-                <span class="px-2">페이지 {{ currentPage }} / {{ totalPages }}</span>
-                <Button label="다음" @click="currentPage++" :disabled="currentPage === totalPages" size="small" />
-            </div>
+            <template #footer>
+                <div class="flex justify-center">
+                    <Button label="선택 완료" severity="success" @click="selectSupplierAndClose" />
+                </div>
+            </template>
         </Dialog>
-        <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '30vw' }" class="centered-dialog" @hide="showProductModal = false">
+        <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <p class="font-bold mb-3 text-lg">🔍 제품을 선택하세요</p>
-                <ul class="mb-3">
-                    <li v-for="product in products" :key="product.productId" class="cursor-pointer hover:text-blue-600 mb-2 px-2 py-1 rounded" @click="selectProduct(product)">
-                        • {{ product.productName }} - {{ product.productType }} - {{ product.productId }} - {{ product.specification }}{{ product.unit }}
-                    </li>
-                </ul>
+                <div class="flex flex-col gap-4 mb-4">
+                    <div class="flex items-center gap-4">
+                        <label class="font-semibold text-sm w-20">제품코드</label>
+                        <InputText v-model="productSearch.prodCode" @keyup.enter="fetchProducts" placeholder="제품코드" />
+                        <label class="font-semibold text-sm">제품명</label>
+                        <InputText v-model="productSearch.prodName" @keyup.enter="fetchProducts" placeholder="제품명" />
+                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="fetchProducts" />
+                    </div>
+                </div>
+                <DataTable :value="products" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="10">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="productId" header="제품코드" class="font-bold"></Column>
+                    <Column field="productType" header="제품유형"></Column>
+                    <Column field="productName" header="제품명"></Column>
+                    <Column field="specification" header="규격"></Column>
+                    <Column field="unit" header="단위"></Column>
+                    <Column field="price" header="단가"></Column>
+                </DataTable>
             </div>
+            <template #footer>
+                <div class="flex justify-center">
+                    <Button label="선택 완료" severity="success" @click="selectProductAndClose" />
+                </div>
+            </template>
         </Dialog>
     </div>
 </template>
 
-<style>
-.centered-dialog {
+<style scoped>
+/* PrimeVue 모달창 가운데 정렬 스타일 */
+:deep(.centered-dialog .p-dialog) {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
     z-index: 1000;
+}
+/* 모달이 열릴 때 배경 스크롤 방지 */
+:deep(.p-dialog-mask) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 어두운 배경 */
+    z-index: 999; /* 모달보다 낮은 z-index */
+    overflow: hidden; /* 스크롤 방지 */
+}
+/* PrimeVue DataTable 선택된 행 포커스 스타일 */
+:deep(.p-datatable .p-datatable-tbody > tr.p-highlight) {
+    background-color: #e3f2fd !important;
+    color: #1565c0 !important;
+    font-weight: bold;
+}
+:deep(.p-datatable .p-datatable-tbody > tr:hover) {
+    background-color: #e8eaf6 !important;
+    cursor: pointer;
 }
 </style>

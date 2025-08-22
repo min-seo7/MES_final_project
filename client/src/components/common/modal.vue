@@ -36,14 +36,16 @@ const confirmSelection = () => {
     close();
 };
 
-// 페이지별 최소 행 수를 맞추기 위해 빈 데이터 추가
 const paddedItems = computed(() => {
     const currentItems = props.items || [];
-    const pageCount = Math.ceil(currentItems.length / rowsPerPage);
-    const totalRowsNeeded = pageCount * rowsPerPage;
-    const emptyRowsCount = totalRowsNeeded - currentItems.length;
+    const emptyRowsCount = rowsPerPage - (currentItems.length % rowsPerPage);
 
-    if (emptyRowsCount > 0) {
+    // 전체 데이터 수가 10개 미만이면 패딩을 추가하지 않음
+    if (currentItems.length < rowsPerPage) {
+        return currentItems;
+    }
+
+    if (emptyRowsCount > 0 && emptyRowsCount !== rowsPerPage) {
         const emptyRows = Array.from({ length: emptyRowsCount }, () => ({ empty: true }));
         return [...currentItems, ...emptyRows];
     }
@@ -69,12 +71,6 @@ const isEmptyRow = (row) => row.empty;
         :style="{ width: '40vw' }"
         @update:visible="emits('update:visible', $event)"
     >
-        <!-- 상단 버튼 -->
-        <div class="mt-5 flex justify-center">
-            <Button label="선택 완료" @click="confirmSelection" />
-        </div>
-
-        <!-- 필터 영역 (사원번호 모달일 때만 표시) -->
         <div v-if="props.showFilter" class="mt-5 mb-4 space-x-2 flex justify-center">
             <label for="employeeName">사원명</label>
             <InputText id="employeeName" type="text" />
@@ -84,15 +80,13 @@ const isEmptyRow = (row) => row.empty;
             <Button label="초기화" />
         </div>
 
-        <!-- 데이터 테이블 (페이지네이션 적용) -->
         <DataTable :value="paddedItems" tableStyle="min-width: 20rem;" class="mb-3" paginator :rows="rowsPerPage" dataKey="num">
             <Column header="">
                 <template #body="slotProps">
                     <div v-if="!isEmptyRow(slotProps.data)">
                         <RadioButton :inputId="'select' + slotProps.index" name="modalSelect" :value="slotProps.data" :modelValue="props.selectedItem" @update:modelValue="onSelect(slotProps.data)" />
                     </div>
-                    <div v-else style="height: 17px"></div>
-                    <!-- 빈 행 공간 확보 -->
+                    <div v-else style="height: 40px"></div>
                 </template>
             </Column>
 
@@ -102,16 +96,88 @@ const isEmptyRow = (row) => row.empty;
                 </template>
             </Column>
         </DataTable>
+        <div class="mt-5 flex justify-center">
+            <Button label="선택 완료" @click="confirmSelection" />
+        </div>
     </Dialog>
 </template>
 
 <style scoped>
-/* 테이블 최소 높이 확보 */
-.p-datatable .p-datatable-tbody {
-    min-height: 400px;
+/* --- 모달 전역 스타일 (유지) --- */
+:deep(.p-dialog .p-dialog-header) {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
 }
 
-/* 행 높이 고정 */
+:deep(.p-dialog .p-dialog-title) {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+:deep(.p-dialog .p-dialog-content) {
+    padding: 1.5rem;
+    background: #ffffff;
+}
+
+/* --- 상단 버튼 영역 (여백 유지) --- */
+.mt-5.flex.justify-center {
+    padding: 0 0 1.5rem 0;
+    margin: 0;
+}
+
+/* --- 데이터 테이블 스타일 --- */
+:deep(.p-datatable .p-datatable-tbody) {
+    min-height: 400px;
+    /* 10개 행 * 40px/행 = 400px */
+}
+
+/* [수정] 스크립트에서 추가하는 빈 행(empty row)을 화면에 보이지 않게 처리하여
+    실제 데이터가 있는 만큼만 테이블 높이가 잡히도록 합니다.
+*/
+:deep(.p-datatable .p-datatable-tbody > tr:has(div[style='height: 40px'])) {
+    display: table-row;
+}
+
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    font-weight: 500;
+    color: #495057;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
+    padding: 0.5rem 0.75rem;
+}
+
+:deep(.p-datatable-wrapper) {
+    border: 1px solid #dee2e6;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr:not([aria-selected='true']):hover) {
+    background-color: #f1f3f5 !important;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr[aria-selected='true']) {
+    background-color: #e3f2fd !important;
+    color: #0d47a1;
+}
+
+/* --- 페이지네이션 (유지) --- */
+:deep(.p-paginator) {
+    justify-content: center;
+    border-top: 1px solid #dee2e6;
+    margin-top: 1rem;
+}
+
+/* --- 기존 스타일 수정 --- */
+.p-datatable .p-datatable-tbody {
+    /* [수정] min-height 속성을 제거하여 테이블 높이가 내용에 따라 유동적으로 변하게 합니다. */
+}
+
 .p-datatable .p-datatable-tbody > tr {
     height: 40px !important;
     display: table;
@@ -119,7 +185,6 @@ const isEmptyRow = (row) => row.empty;
     table-layout: fixed;
 }
 
-/* 빈 행 가운데 정렬 */
 .p-datatable .p-datatable-tbody > tr > td {
     vertical-align: middle;
 }

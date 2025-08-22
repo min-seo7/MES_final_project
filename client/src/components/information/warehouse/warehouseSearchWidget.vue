@@ -46,7 +46,7 @@ const openModal = async (type) => {
         const res = await axios.get('/api/information/warehouse/getWarehouseType');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            warehouseType: item.warehouseType
+            warehouseType: item.warehouse_type
         }));
         columns.value = [{ field: 'warehouseType', header: '창고유형' }];
     }
@@ -108,8 +108,8 @@ onMounted(() => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>검색조건</div>
         <div class="space-x-2">
-            <Button label=" 조회 " rounded @click="selectSearch"></Button>
-            <Button label=" 초기화 " severity="info" rounded @click="resetSearch"></Button>
+            <Button label=" 조회 " size="small" rounded @click="selectSearch"></Button>
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetSearch"></Button>
         </div>
     </div>
 
