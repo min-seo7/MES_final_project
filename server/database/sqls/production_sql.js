@@ -198,6 +198,30 @@ const selectAllOrder = `
 SELECT ord_no, director, order_date, status
 FROM production_order`;
 
+const productionOrderList = `
+SELECT  pod.p_st_date AS "startDate", 
+        pod.p_ed_date AS "endDate", 
+        pod.prd_noworder_qty AS "prd_noworder_qty", 
+        pod.line_id AS "line_id", 
+        l.line_name AS "line_name",
+        pod.product_name AS "product_name", 
+        p.product_form AS "product_type",
+        pod.ord_no AS "ord_no", 
+        pod.plan_detail_no AS "plan_detail_no",
+        pod.specification AS "specification",
+        pod.unit AS "unit",
+        pod.prd_form AS "prd_form",
+        pod.product_id AS "product_id",
+        po.director AS "lastname"
+FROM    prd_order_detail pod JOIN line l
+ON pod.line_id = l.line_id
+JOIN product p
+ON pod.product_id = p.product_id
+JOIN production_order po
+ON pod.ord_no = po.ord_no
+ORDER BY pod.p_st_date DESC;
+`;
+
 module.exports = {
   selectAllOrder,
   insertPrdOrderDetail,
@@ -213,4 +237,5 @@ module.exports = {
   selectEname,
   selectStatusCheck,
   insertRequestBom,
+  productionOrderList,
 };

@@ -284,30 +284,19 @@ router.put("/downtime/update", async (req, res) => {
 /* ========== 설비수리 페이지 ========== */
 
 // (1) 수리목록 기본 조회 (페이지네이션)
-router.get("/repair-list", async (req, res) => {
-  try {
-    const page = Math.max(parseInt(req.query.page || "1"), 1);
-    const size = Math.max(parseInt(req.query.size || "10"), 1);
-    const result = await equipmentService.getRepairList(page, size);
-    res.json({ ...result, page, size });
-  } catch (err) {
-    console.error("[GET /repair-list] Error:", err);
-    res.status(500).json({ message: "설비수리 목록 조회 실패" });
-  }
-});
 
-// (2) 수리목록 (검색조건 포함)  ← 프론트: /api/equipment/repair-list/search
-router.get("/repair-list/search", async (req, res) => {
+/* ===== 설비수리 목록 조회 ===== */
+router.get("/repair/list", async (req, res) => {
   try {
     const result = await equipmentService.searchRepairList(req.query);
-    res.json({ items: result.items, total: result.total });
+    res.json(result);
   } catch (err) {
-    console.error("[GET /repair-list/search] Error:", err);
-    res.status(500).json({ message: "설비수리 조회 실패" });
+    console.error(err);
+    res.status(500).json({ error: "조회 실패" });
   }
 });
 
-// (3) DISTINCT (모달용)
+/* ===== DISTINCT (모달용) ===== */
 router.get("/repair/distinct", async (req, res) => {
   try {
     const { field, page = 1, size = 5 } = req.query;

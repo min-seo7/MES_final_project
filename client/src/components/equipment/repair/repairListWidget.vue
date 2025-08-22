@@ -28,9 +28,7 @@ const fmt = (d) => {
 
 // 단순 조회
 const fetchSimple = async (p, s) => {
-    const { data } = await axios.get('/api/equipment/repair-list', {
-        params: { page: p, size: s }
-    });
+    const { data } = await axios.get('/api/repair/list', { params: { page, size } });
     rows.value = Array.isArray(data?.items) ? data.items : [];
     total.value = Number(data?.total || 0);
     page.value = Number(data?.page || p);
