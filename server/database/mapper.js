@@ -3,7 +3,9 @@
 const mariadb = require("mariadb");
 const sqlList = require("./sqlList.js");
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "sqls/.env") });
+require("dotenv").config({
+  path: path.resolve(__dirname, "database/sqls/.env"),
+});
 
 //몇개의 커넥션을 만들어두고 진행
 const connectionPool = mariadb.createPool({
