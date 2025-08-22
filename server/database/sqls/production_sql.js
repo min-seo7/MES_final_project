@@ -29,21 +29,45 @@ const insertPrdOrderDetail = `
               ?
           );
       `;
-const startWork = `START TRANSACTION;
- SET @master_ord_no = CONCAT(
-        'ord',
-        DATE_FORMAT(NOW(), '%Y%m%d'),
-        '-',
-        LPAD(NEXT VALUE FOR ord_no_seq, 3, '0')
-)
-insert into production_order(ord_no , director)
-values( @master_ord_no,'김지시')
+// const insertRequestBom = `
+// INSERT INTO tbl_mat_req (material_id, req_qty , wo_no)
+// SELECT DISTINCT bd.material_id, bd.required_qty * ? AS req_qty, pod.wo_no
+// FROM bom_detail bd
+// JOIN prd_order_detail pod
+// ON SUBSTR(pod.ord_no, 4, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+// JOIN production_order po
+// ON po.ord_no = pod.ord_no
+// WHERE bd.bom_id IN (?);`;
+const insertRequestBom = `
+INSERT INTO tbl_mat_req (material_id, req_qty, wo_no)
+SELECT DISTINCT
+    bd.material_id,
+    bd.required_qty * ? AS req_qty,
+    pod.wo_no
+FROM
+    bom_detail bd
+JOIN
+    prd_order_detail pod ON SUBSTR(pod.ord_no, 4, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+JOIN
+    production_order po ON po.ord_no = pod.ord_no
+WHERE
+    bd.bom_id = ?;`;
 
-insert into prd_order_detail(wo_no , p_st_date , p_ed_date, prd_noworder_qty , line_id , product_name , ord_no , plan_detail_no)
-values(CONCAT('wo', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR prd_wo_no_seq, 3, '0')),
-        ?,  ?,  ?,  ?,  ?,  @master_ord_no,  ?)
+// const startWork = `START TRANSACTION;
+//  SET @master_ord_no = CONCAT(
+//         'ord',
+//         DATE_FORMAT(NOW(), '%Y%m%d'),
+//         '-',
+//         LPAD(NEXT VALUE FOR ord_no_seq, 3, '0')
+// )
+// insert into production_order(ord_no , director)
+// values( @master_ord_no,'김지시')
 
-commit;`;
+// insert into prd_order_detail(wo_no , p_st_date , p_ed_date, prd_noworder_qty , line_id , product_name , ord_no , plan_detail_no)
+// values(CONCAT('wo', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR prd_wo_no_seq, 3, '0')),
+//         ?,  ?,  ?,  ?,  ?,  @master_ord_no,  ?)
+
+// commit;`;
 // CONCAT(
 //     'ord',
 //     DATE_FORMAT(NOW(), '%Y%m%d'),
@@ -109,7 +133,7 @@ WHERE
 `;
 const insertPerform = `
 insert into performance(wo_no, pf_code, e_name , process_id , in_qty , line_id, product_id , prd_name, specification , unit , eq_code,w_st_date,status)
-values(?,?,?,?,?,?,?,?,?,?,?,?,2);
+values(?,CONCAT('PF', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR pf_code_seq, 3, '0')),?,?,?,?,?,?,?,?,?,?,2);
 `;
 const selectOrderList = `
 SELECT wo_no, product_name, specification, unit, prd_noworder_qty, line_id , ord_no
@@ -147,6 +171,7 @@ const notRegistPrcList = `select ld.use_order AS use_order,
     AND pf.process_id = flow.process_id
     JOIN process prc
     ON ld.process_id = prc.process_id
+    WHERE pf.w_ed_date is null
     order by pod.wo_no desc, ld.use_order;
 `;
 const updatePerform = `
@@ -187,4 +212,5 @@ module.exports = {
   updatePerform,
   selectEname,
   selectStatusCheck,
+  insertRequestBom,
 };

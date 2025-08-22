@@ -59,7 +59,7 @@ const modifyMatrerial = async () => {
     } catch (err) {
         console.log('자재수정실패');
     }
-}
+};
 
 const resetRegist = async () => {
     if (form.value.materialId?.trim()) {
@@ -71,94 +71,91 @@ const resetRegist = async () => {
         // 등록 상태: 전체 필드 초기화
         form.value = {
             materialType: '',
-    materialId: '',
-    materialName: '',
-    storageCondition: '',
-    specification: '',
-    unit: '',
-    safetyStock: '',
-    safetyStockUnit: '',
-    status: ''
+            materialId: '',
+            materialName: '',
+            storageCondition: '',
+            specification: '',
+            unit: '',
+            safetyStock: '',
+            safetyStockUnit: '',
+            status: ''
         };
     }
 };
-
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div>등록/수정</div>
+        <div></div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registMaterial()" :disabled="form.materialId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.materialId?.trim() === ''" @click="modifyMatrerial()" />
-            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
+            <Button label=" 등록 " size="small" rounded @click="registMaterial()" :disabled="form.materialId?.trim() !== ''" />
+            <Button label=" 수정 " size="small" rounded :disabled="form.materialId?.trim() === ''" @click="modifyMatrerial()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">
         <div class="flex flex-col md:flex-row gap-6">
-            <!-- 왼쪽 영역 -->
-            <div class="flex flex-col gap-4 w-full">
-                <div>
-                    <label class="block mb-1">자재유형</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="partnerType1" name="partnerType" value="원자재" v-model="form.partnerType" />
-                        <label for="partnerType1" class="ml-2 mr-4">원자재</label>
-                        <RadioButton id="partnerType2" name="partnerType" value="부자재" v-model="form.partnerType" />
-                        <label for="partnerType2" class="ml-2">부자재</label>
-                    </label>
-                </div>
-                <div>
-                    <label class="block mb-1">자재명</label>
-                    <InputText v-model="form.materialName" class="w-full" />
-                </div>
-                <div style="display: flex; gap: 20px">
-                    <label class="block mb-1" style="text-align: center">규격</label>
-                    <InputText v-model="form.specification" class="w-half" />
-                    <label class="block mb-1" style="text-align: center">단위</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="unit1" name="unit" value="kg" v-model="form.unit" />
-                        <label for="unit1" class="ml-2 mr-4">kg</label>
-                        <RadioButton id="unit2" name="unit" value="L" v-model="form.unit" />
-                        <label for="unit2" class="ml-2 mr-4">L</label>
-                        <RadioButton id="unit3" name="unit" value="EA" v-model="form.unit" />
-                        <label for="unit3" class="ml-2">EA</label>
-                    </label>
-                </div>
-                <div>
-                    <label class="block mb-1">상태</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2">비활성</label>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 오른쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">자재코드</label>
-                    <div class="flex gap-2 items-center">
-                        <InputText v-model="form.materialId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
+                    <InputText v-model="form.materialId" class="w-full bg-gray-200" readonly="true" placeholder="자동생성" />
+                </div>
+                <div>
+                    <label class="block mb-1">자재유형</label>
+                    <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <RadioButton id="materialType1" name="materialType" value="원자재" v-model="form.materialType" />
+                        <label for="materialType1" class="ml-2 mr-4">원자재</label>
+                        <RadioButton id="materialType2" name="materialType" value="부자재" v-model="form.materialType" />
+                        <label for="materialType2" class="ml-2 mr-4">부자재</label>
                     </div>
+                </div>
+                <div>
+                    <label class="block mb-1">규격</label>
+                    <div class="flex gap-4 items-center">
+                        <InputText v-model="form.specification" class="flex-1" />
+                        <div class="flex flex-1 items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                            <RadioButton id="unit1" name="unit" value="kg" v-model="form.unit" />
+                            <label for="unit1" class="ml-2 mr-4">kg</label>
+                            <RadioButton id="unit2" name="unit" value="L" v-model="form.unit" />
+                            <label for="unit2" class="ml-2 mr-4">L</label>
+                            <RadioButton id="unit3" name="unit" value="EA" v-model="form.unit" />
+                            <label for="unit3" class="ml-2 mr-4">EA</label>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block mb-1">상태</label>
+                    <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">활성</label>
+                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
+                        <label for="status2" class="ml-2 mr-4">비활성</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4 w-full">
+                <div>
+                    <label class="block mb-1">자재명</label>
+                    <InputText v-model="form.materialName" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">보관조건</label>
                     <InputText v-model="form.storageCondition" class="w-full" />
                 </div>
-                <div style="display: flex; gap: 20px">
-                    <label class="block mb-1" style="text-align: center">안전재고</label>
-                    <InputText v-model="form.safetyStock" class="w-half" />
-                    <label class="block mb-1" style="text-align: center">안전재고단위</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="safetyStockUnit1" name="safetyStockUnit" value="kg" v-model="form.safetyStockUnit" />
-                        <label for="safetyStockUnit1" class="ml-2 mr-4">kg</label>
-                        <RadioButton id="safetyStockUnit2" name="safetyStockUnit" value="L" v-model="form.safetyStockUnit" />
-                        <label for="safetyStockUnit2" class="ml-2 mr-4">L</label>
-                        <RadioButton id="safetyStockUnit3" name="safetyStockUnit" value="EA" v-model="form.safetyStockUnit" />
-                        <label for="safetyStockUnit3" class="ml-2">EA</label>
-                    </label>
+                <div>
+                    <label class="block mb-1">안전재고</label>
+                    <div class="flex gap-4 items-center">
+                        <InputText v-model="form.safetyStock" class="flex-1" />
+                        <div class="flex flex-1 items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                            <RadioButton id="safetyStockUnit1" name="safetyStockUnit" value="kg" v-model="form.safetyStockUnit" />
+                            <label for="safetyStockUnit1" class="ml-2 mr-4">kg</label>
+                            <RadioButton id="safetyStockUnit2" name="safetyStockUnit" value="L" v-model="form.safetyStockUnit" />
+                            <label for="safetyStockUnit2" class="ml-2 mr-4">L</label>
+                            <RadioButton id="safetyStockUnit3" name="safetyStockUnit" value="EA" v-model="form.safetyStockUnit" />
+                            <label for="safetyStockUnit3" class="ml-2 mr-4">EA</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

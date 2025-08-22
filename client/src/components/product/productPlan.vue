@@ -16,10 +16,10 @@ const search = ref({
 const showModal = ref(false);
 const modalType = ref('');
 
-const openModal = (type) => {
-    modalType.value = type;
-    showModal.value = true;
-};
+// const openModal = (type) => {
+//     modalType.value = type;
+//     showModal.value = true;
+// };
 
 const closeModal = () => {
     showModal.value = false;
@@ -30,17 +30,17 @@ const selectModalValue = (value) => {
     else if (modalType.value === 'name') search.value.name = value.name;
     showModal.value = false;
 };
-const productCodeList = ref([
-    { code: 'PRD001', name: '분말형비료', specification: 'kg' , unit:20 , prd_form:'완제품' }, //
-    { code: 'PRD001', name: '분말형비료', specification: 'kg', unit:40 , prd_form:'완제품' }, //
-    { code: 'PRD002', name: '과립형비료', specification: 'kg', unit:20 , prd_form:'완제품' }, //
-    { code: 'PRD002', name: '과립형비료', specification: 'kg', unit:40 , prd_form:'완제품' }, //
-    { code: 'PRD003', name: '액상형비료', specification: 'L' , unit:5 , prd_form:'완제품'}, //
-    { code: 'PRD003', name: '액상형비료', specification: 'L', unit:10 , prd_form:'완제품' }, //
-    { code: 'PRD001', name: '분말형비료', specification: null , unit:null , prd_form:'반제품'}, //
-    { code: 'PRD001', name: '과립형비료', specification: null , unit:null , prd_form:'반제품'}, //
-    { code: 'PRD001', name: '액상형비료', specification: null , unit:null , prd_form:'반제품'} //
-]);
+// const productCodeList = ref([
+//     { code: 'PRD001', name: '분말형비료', specification: 'kg', unit: 20, prd_form: '완제품' }, //
+//     { code: 'PRD001', name: '분말형비료', specification: 'kg', unit: 40, prd_form: '완제품' }, //
+//     { code: 'PRD002', name: '과립형비료', specification: 'kg', unit: 20, prd_form: '완제품' }, //
+//     { code: 'PRD002', name: '과립형비료', specification: 'kg', unit: 40, prd_form: '완제품' }, //
+//     { code: 'PRD003', name: '액상형비료', specification: 'L', unit: 5, prd_form: '완제품' }, //
+//     { code: 'PRD003', name: '액상형비료', specification: 'L', unit: 10, prd_form: '완제품' }, //
+//     { code: 'PRD001', name: '분말형비료', specification: null, unit: null, prd_form: '반제품' }, //
+//     { code: 'PRD001', name: '과립형비료', specification: null, unit: null, prd_form: '반제품' }, //
+//     { code: 'PRD001', name: '액상형비료', specification: null, unit: null, prd_form: '반제품' } //
+// ]);
 
 // const currentPage = ref(1);
 // const pageSize = 5;
@@ -168,7 +168,7 @@ const dropContent = () => {
         <!-- 지시자 영역 -->
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">계획일자</label>
-             <DatePicker class="flex-1" dateFormat="yy-mm-dd" v-model="planDate" showIcon fluid iconDisplay="input" />
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" v-model="planDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">계획시작일시</label>
