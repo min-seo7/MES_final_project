@@ -74,4 +74,56 @@ router.get("/matTestResult", async (req, res) => {
   }
 });
 
+// 제품검사대기목록조회
+router.get("/prdTestRegist", async (req, res) => {
+  try {
+    let list = await testService.findpdInspWait();
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+// 검사항목삭제
+router.delete("/testInform/:testitem_code", async (req, res) => {
+  const { testitem_code } = req.params;
+  try {
+    await testService.deleteTestItem(testitem_code);
+    res.json({ message: "삭제 완료" });
+  } catch (err) {
+    res.status(500).json({ message: "삭제 실패", error: err.message });
+  }
+});
+
+// 제품유형
+router.get("/productTypes", async (req, res) => {
+  const result = await testService.getProductTypes();
+  res.json(result);
+});
+
+// 검사목적
+router.get("/inspPurposes", async (req, res) => {
+  const result = await testService.getInspPurposes();
+  res.json(result);
+});
+
+// 검사 항목
+router.get("/inspItems", async (req, res) => {
+  const result = await testService.getInspItems();
+  res.json(result);
+});
+
+// 연산자
+router.get("/operators", async (req, res) => {
+  const result = await testService.getOperators();
+  res.json(result);
+});
+
+// 단위
+router.get("/units", async (req, res) => {
+  const result = await testService.getUnits();
+  res.json(result);
+});
+
 module.exports = router;

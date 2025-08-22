@@ -171,7 +171,7 @@ const registerInspection = async (InspInfo = {}) => {
       InspInfo.manager.trim() || null,
       InspInfo.note || null,
       InspInfo.lastResult || null,
-    ]);
+    ]); // 여기가 insert 부분
 
     if (Array.isArray(InspInfo.details)) {
       for (const detail of InspInfo.details) {
@@ -513,6 +513,64 @@ const updateDowntime = async (form = {}) => {
   return { id: form.id };
 };
 
+// 설비수리 페이지
+
+/* ===== 설비수리: 목록(기본) ===== */
+const getRepairList = async (page = 1, size = 10) => {
+  const offset = (page - 1) * size;
+  const items = await mariadb.query("selectRepairList", [
+    null,
+    null,
+    null,
+    null,
+    size,
+    offset,
+  ]);
+  const total =
+    (await mariadb.query("countRepairList", [null, null, null, null]))[0]
+      ?.total ?? 0;
+  return { items, total, page, size };
+};
+
+/* ===== 설비수리 조건검색 조회 ===== */
+const searchRepairList = async (q = {}) => {
+  const page = Math.max(parseInt(q.page || 1, 10), 1);
+  const size = Math.max(parseInt(q.size || 10, 10), 1);
+  const offset = (page - 1) * size;
+
+  const params = [
+    q.repair_id ?? null,
+    q.repair_id ?? null,
+    q.eq_id ?? null,
+    q.eq_id ?? null,
+    q.status ?? null,
+    q.status ?? null,
+    q.date_from ?? null,
+    q.date_from ?? null,
+    q.date_to ?? null,
+    q.date_to ?? null,
+    size,
+    offset,
+  ];
+
+  const items = await mariadb.query("searchRepairList", params);
+  const total =
+    (await mariadb.query("countRepairListWithFilter", params.slice(0, -2)))[0]
+      ?.total ?? 0;
+
+  return { items, total, page, size };
+};
+
+/* ===== DISTINCT (설비수리모달) ===== */
+const getRepairDistinct = async (field, page = 1, size = 5) => {
+  if (field !== "repair_id") return { items: [], total: 0, page, size };
+  const offset = (page - 1) * size;
+  const rows = await mariadb.query("distinctRepair", [size, offset]);
+  const items = rows.map((r) => Object.values(r)[0]);
+  const total = rows.length; // 간단 카운트
+  return { items, total, page, size };
+};
+
 module.exports = {
   /* 설비점검(기존) */
   findInspectionList,
@@ -540,4 +598,10 @@ module.exports = {
   updateDowntime, // 비가동 수정
   getCodeList,
   registDowntime,
+
+  // 설비수리
+  getRepairList,
+  searchRepairList,
+  getRepairDistinct,
+  searchRepairList,
 };

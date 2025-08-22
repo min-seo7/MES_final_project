@@ -68,7 +68,7 @@ const SelectOrders = `
            o.order_manager
     FROM   orders o  INNER JOIN  order_items i 
                       ON  o.order_id = i.order_id
-`;
+   `;
 
 //주문조회 필터링,1.주문번호,2.주문상태 3.규격,4.거래처코드,5제품명,6.납기일
 const selectOrderDetail = `
@@ -95,7 +95,9 @@ WHERE
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
+ ORDER by o.order_id desc
 `;
+
 //주문서클릭시 하단(주문상세)
 const selectShipDetail = `
 SELECT
@@ -182,15 +184,15 @@ SELECT  s.shipment_id,
         DATE_FORMAT(s.shipment_date, '%Y-%m-%d') as shipment_date,
         s.ship_status,
         o.order_manager
-FROM    orders o
-JOIN    order_items i ON i.order_id = o.order_id  
-JOIN    shipment s    ON i.order_detail_id = s.order_detail_id
+FROM  orders o
+JOIN   order_items i ON i.order_id = o.order_id
+JOIN   shipment s ON i.order_detail_id = s.order_detail_id
 WHERE
-    (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR ? = '' OR s.ship_status = ?)
-    AND (? IS NULL OR i.del_date >= ?)
-    AND (? IS NULL OR i.del_date <= ?)
+     (? IS NULL OR o.partner_id LIKE CONCAT('%', ?, '%'))
+     AND (? IS NULL OR i.product_id LIKE CONCAT('%', ?, '%'))
+     AND (? IS NULL OR s.ship_status = ?)
+     AND (? IS NULL OR DATE(i.del_date) >= ?)
+     AND (? IS NULL OR DATE(i.del_date) <= ?)
 `;
 
 //주문수정조회
@@ -319,8 +321,7 @@ WHERE
 
 //반품내역
 const returnList = `
-  SELECT  o.order_id,
-          r.return_id,
+SELECT  s.shipment_id,
           i.product_id,
           i.product_name,
           o.partner_id,
@@ -336,6 +337,7 @@ const returnList = `
   FROM   order_items i 
   INNER JOIN returns r ON i.order_detail_id = r.order_detail_id
   INNER JOIN orders o ON i.order_id = o.order_id
+  INNER JOIN shipment s ON i.order_detail_id = s.order_detail_id
   WHERE
     (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR r.re_status = ?)
@@ -467,9 +469,10 @@ module.exports = {
   SelectMaxHistoryId,
   modifypreList,
   orderDetailId,
-  SelectMaxShipId,
+  // SelectMaxShipId,
   modifyNextList,
   mailPdfOrderList,
+  selectShipDetail,
   returnList,
   returnRegist,
   SelectMaxReturnId,

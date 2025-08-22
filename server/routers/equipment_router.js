@@ -280,4 +280,36 @@ router.put("/downtime/update", async (req, res) => {
     res.status(500).json({ message: "비가동 수정 실패" });
   }
 });
+
+/* ========== 설비수리 페이지 ========== */
+
+// (1) 수리목록 기본 조회 (페이지네이션)
+
+/* ===== 설비수리 목록 조회 ===== */
+router.get("/repair/list", async (req, res) => {
+  try {
+    const result = await equipmentService.searchRepairList(req.query);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "조회 실패" });
+  }
+});
+
+/* ===== DISTINCT (모달용) ===== */
+router.get("/repair/distinct", async (req, res) => {
+  try {
+    const { field, page = 1, size = 5 } = req.query;
+    const result = await equipmentService.getRepairDistinct(
+      field,
+      Number(page),
+      Number(size)
+    );
+    res.json(result);
+  } catch (err) {
+    console.error("[GET /repair/distinct] Error:", err);
+    res.status(500).json({ message: "repair distinct 실패" });
+  }
+});
+
 module.exports = router;

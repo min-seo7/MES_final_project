@@ -96,6 +96,7 @@ onUnmounted(() => {
     <section class="partner-container">
         <partnerSearchWidget @partnerFilterSearch="handleSearch" />
         <partnerListWidget :items="partnerSearchData" @partnerSelected="handleSelect" />
+        <div class="mt-2"></div>
         <partnerRegistWidget :items="partnerSelectedData" />
     </section>
 </template>

@@ -362,6 +362,19 @@ router.post("/process/modify", async (req, res) => {
   }
 });
 
+router.post("/employee/modify", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const employeeData = req.body;
+    console.log(employeeData);
+    const result = await informationService.updateEmployee(employeeData);
+    res.status(201).json({ message: "사원수정성공", result });
+  } catch (error) {
+    console.error("사원수정 실패: information_router.js", error);
+    res.status(500).json({ message: "사원수정 실패", error: error.message });
+  }
+});
+
 router.get("/line", async (req, res) => {
   try {
     let list = await informationService.findAllLine();
@@ -400,7 +413,7 @@ router.post("/line/modify", async (req, res) => {
     console.log("BODY:", req.body);
     const lineData = req.body;
     console.log(lineData);
-    const result = await informationService.updateLine(processData);
+    const result = await informationService.updateLine(lineData);
     res.status(201).json({ message: "라인수정성공", result });
   } catch (error) {
     console.error("라인수정 실패: information_router.js", error);
@@ -642,6 +655,16 @@ router.post("/product/modify", async (req, res) => {
     res.status(201).json({ message: "제품 수정성공", result });
   } catch (error) {
     res.status(500).json({ message: "제품 수정실패", error: error.message });
+  }
+});
+
+router.post("/bom/modify", async (req, res) => {
+  try {
+    const bomData = req.body;
+    const result = await informationService.updateBom(bomData);
+    res.status(201).json({ message: "bom 수정성공", result });
+  } catch (error) {
+    res.status(500).json({ message: "bom 수정실패", error: error.message });
   }
 });
 

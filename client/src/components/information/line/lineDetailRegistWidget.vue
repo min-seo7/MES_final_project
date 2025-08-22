@@ -15,15 +15,14 @@ const form = ref({
 const addLinedetail = () => {
     emits('lineDetail', form.value);
 };
-
 </script>
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="addLinedetail()" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 등록 " size="small" rounded @click="addLinedetail()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded />
         </div>
     </div>
     <div class="card mt-4 p-4 border rounded">
