@@ -101,8 +101,8 @@ const addBOMdetail = () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div></div>
         <div class="space-x-2">
-            <Button label=" 추가 " rounded @click="addBOMdetail()" />
-            <Button label=" 초기화 " severity="info" rounded />
+            <Button label=" 추가 " size="small" rounded @click="addBOMdetail()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded />
         </div>
     </div>
     <div class="card p-4 border rounded" style="height: 300px">

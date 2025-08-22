@@ -70,7 +70,7 @@ const tableData = computed(() => {
         <Column field="expiration" header="유통기한" style="width: 150px" />
         <Column field="storageCondition" header="보관조건" style="width: 150px" />
         <Column field="safetyStock" header="안전재고" style="width: 150px" />
-        <Column field="manual" header="제품매뉴얼" style="width: 150px" />
+        <Column field="manual" header="제품카테고리" style="width: 150px" />
         <Column field="status" header="상태" style="width: 100px" />
     </DataTable>
 </template>

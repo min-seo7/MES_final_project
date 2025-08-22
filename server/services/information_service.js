@@ -22,7 +22,7 @@ const insertWarehouse = async (warehouseInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 ID 조회 (락 걸림)
-    const rows = await conn.query(warehouseSql.selectMaxWarehouseId);
+    const rows = await conn.query(sqlList.selectMaxWarehouseId);
     const maxId = rows?.[0]?.max_WH_id || null;
 
     // 2. 새 ID 생성
@@ -35,7 +35,7 @@ const insertWarehouse = async (warehouseInfo) => {
     }
 
     // 3. INSERT 실행
-    await conn.query("insertWarehouse", [
+    await conn.query(sqlList.insertWarehouse, [
       newWarehouseId,
       warehouseInfo.warehouse,
       warehouseInfo.zone,
@@ -61,7 +61,7 @@ const insertWarehouse = async (warehouseInfo) => {
 // 창고 수정
 const updateWarehouse = async (warehouseInfo) => {
   const insertData = convertToArray(warehouseInfo, [
-    "warehouseName",
+    "warehouse",
     "zone",
     "subZone",
     "floor",
@@ -121,7 +121,7 @@ const insertProduct = async (productInfo) => {
       productInfo.storageCondition,
       productInfo.safetyStock,
       productInfo.safetyStockUnit,
-      productInfo.manual,
+      productInfo.productCategory,
       productInfo.status,
     ];
 
@@ -153,7 +153,7 @@ const updateProduct = async (productInfo) => {
     "storageCondition",
     "safetyStock",
     "safetyStockUnit",
-    "productManual",
+    "productCategory",
     "status",
     "productId",
   ]);
@@ -306,6 +306,24 @@ const insertPartner = async (partnerInfo) => {
   }
 };
 
+// 사원 수정
+const updateEmployee = async (employeeInfo) => {
+  const insertData = convertToArray(employeeInfo, [
+    "name",
+    "department",
+    "phone",
+    "email",
+    "hireDate",
+    "leaveDate",
+    "auth",
+    "status",
+    "employeeId",
+  ]);
+
+  const result = await mariadb.query("updateEmployee", insertData);
+  return result;
+};
+
 // 거래처 수정
 const updatePartner = async (partnerInfo) => {
   const insertData = convertToArray(partnerInfo, [
@@ -317,9 +335,18 @@ const updatePartner = async (partnerInfo) => {
     "address",
     "businessNo",
     "status",
+    "partnerId",
   ]);
 
   const result = await mariadb.query("updatePartner", insertData);
+  return result;
+};
+
+// bom 수정
+const updateBom = async (bomInfo) => {
+  const insertData = convertToArray(bomInfo, ["status", "bomId"]);
+
+  const result = await mariadb.query("updateBom", insertData);
   return result;
 };
 
@@ -903,6 +930,8 @@ function convertToArray(obj, columns) {
 
 module.exports = {
   findAllFlowchartName,
+  updateBom,
+  updateEmployee,
   findAllProductId,
   findAllWarehouseModal,
   findAllWarehouseTypeModal,
