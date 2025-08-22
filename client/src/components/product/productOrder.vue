@@ -294,8 +294,15 @@ const prdOrderDetailcolumns = ref([
 ]);
 
 const formatDate = (value) => {
+    // if (!value) return '';
+    // return new Date(value).toLocaleString('ko-KR');
     if (!value) return '';
-    return new Date(value).toLocaleString('ko-KR');
+    if (value instanceof Date) {
+        // Date 객체일 경우
+        return value.toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+    // 문자열일 경우 (서버에서 넘어온 경우)
+    return new Date(value).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' });
 };
 
 const startProduction = async () => {
@@ -438,7 +445,7 @@ const onCellEditComplete = (event) => {
     console.log(newValue);
     if (['startDatetime', 'endDatetime'].includes(field)) {
         if (newValue instanceof Date) {
-            data[field] = new Date(newValue);
+            data[field] = newValue;
         } else {
             data[field] = null;
         }
@@ -570,7 +577,19 @@ onMounted(async () => {
                     </template>
                     <template #editor="{ data, field }">
                         <template v-if="['startDatetime', 'endDatetime'].includes(field)">
-                            <DatePicker :key="data.id" v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" />
+                            <!-- <DatePicker
+                                :key="data.id"
+                                v-model="data[field]"
+                                dateFormat="yy-mm-dd"
+                                showTime
+                                hourFormat="24"
+                                @change="
+                                    (e) => {
+                                        data[field] = e;
+                                    }
+                                "
+                            /> -->
+                            <input type="datetime-local" v-model="data[field]" @change="data[field] = data[field] ? new Date(data[field]) : null" class="p-1 border rounded w-full" />
                         </template>
                         <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
                             <InputNumber v-model="data[field]" autofocus fluid />
