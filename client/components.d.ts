@@ -46,6 +46,7 @@ declare module 'vue' {
     HighlightsWidget: typeof import('./src/components/landing/HighlightsWidget.vue')['default']
     IconField: typeof import('primevue/iconfield')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
+    InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     InspectionListWidget: typeof import('./src/components/equipment/inspection/inspectionListWidget.vue')['default']
     InspectionRegistWidget: typeof import('./src/components/equipment/inspection/inspectionRegistWidget.vue')['default']

@@ -26,58 +26,24 @@ const form = ref({
     }))
 });
 
-onBeforeMount(() => {
-    customers2.value = [
-        {
-            실적코드: 'RES001',
-            제품코드: 'pd-pow-a',
-            제품명: '분말형A',
-            생산수량: 120,
-            실적등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            실적코드: 'RES002',
-            제품코드: 'pd-pow-b',
-            제품명: '분말형B',
-            생산수량: 120,
-            실적등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            실적코드: 'RES003',
-            제품코드: 'pd-gran-a',
-            제품명: '과립형A',
-            생산수량: 130,
-            실적등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            실적코드: 'RES004',
-            제품코드: 'pd-gran-b',
-            제품명: '과립형B',
-            생산수량: 130,
-            실적등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            실적코드: 'RES005',
-            제품코드: 'pd-liq-a',
-            제품명: '액상형A',
-            생산수량: 100,
-            실적등록날짜: '2025-08-05',
-            상태: '대기'
-        },
-        {
-            실적코드: 'RES006',
-            제품코드: 'pd-liq-b',
-            제품명: '액상형B',
-            생산수량: 100,
-            실적등록날짜: '2025-08-05',
-            상태: '대기'
-        }
-    ];
-});
+// 대기 목록 조회
+const fetchpdInspWaitList = async () => {
+    try {
+        const response = await axios.get('/api/test/prdTestRegist');
+        waitList.value = response.data.map((item) => ({
+            ...item,
+            inspStatus: item.result ? '완료' : '대기'
+        }));
+        console.log(
+            '대기목록 inspStatus:',
+            waitList.value.map((r) => r.inspStatus)
+        );
+    } catch (err) {
+        console.error('대기목록조회실패.', err);
+    }
+};
+
+onBeforeMount(fetchpdInspWaitList);
 
 // 항목 선택 시 폼에 바인딩
 const handleRowSelect = (e) => {
@@ -90,7 +56,7 @@ const handleRowSelect = (e) => {
         생산수량: item.생산수량,
         실적등록날짜: item.실적등록날짜,
         불량수량: item.불량수량,
-        담당자: '홍길동',
+        검사자: 1,
         비고: '',
         측정값리스트: Array.from({ length: 5 }, () => ({
             검사항목: '',
