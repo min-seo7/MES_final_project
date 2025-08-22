@@ -315,7 +315,7 @@ const saveReturn = async () => {
             manager: returnRegistForm.value.manager,
             prdId: selectedOrder.value.prdId,
             orderManager: selectedOrder.value.orderManager,
-            shipmentId: selectedOrder.value.shipmentId
+            shipmentId: selectedOrder.value.shipment_id
         };
 
         // 3. 백엔드로 POST 요청 (성공 시 try, 실패 시 catch 블록으로 이동)
@@ -351,6 +351,16 @@ const onOrderSelect = (event) => {
     returnRegistForm.value.manager = order.orderManager;
 };
 
+// 모달이 열리고 닫힐 때 body 스크롤을 제어하는 watch
+watch(showSupplierDialog, (isShowing) => {
+    document.body.style.overflow = isShowing ? 'hidden' : '';
+});
+
+watch(showProductDialog, (isShowing) => {
+    document.body.style.overflow = isShowing ? 'hidden' : '';
+});
+
+// 컴포넌트 마운트 시 초기 데이터 로드
 onMounted(() => {
     fetchOrders();
 });
@@ -423,7 +433,7 @@ onMounted(() => {
         <div class="flex space-x-6">
             <div class="w-2/3">
                 <div class="font-semibold text-xl mb-3 mt-8">검색내역</div>
-                <DataTable :value="orders" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true">
+                <DataTable :value="orders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true" paginator :rows="10">
                     <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
                     <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
                     <Column field="partnerName" header="거래처명" style="min-width: 120px" />
@@ -441,7 +451,6 @@ onMounted(() => {
                     </Column>
                     <Column field="orderManager" header="담당자" style="min-width: 100px" />
                 </DataTable>
-                <Paginator :rows="10" :totalRecords="orders.length" :rowsPerPageOptions="[10, 20, 30]" />
             </div>
             <div class="w-1/3">
                 <div class="flex justify-end space-x-2 mb-4">
@@ -543,6 +552,18 @@ onMounted(() => {
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
     z-index: 1000;
+}
+
+/* 모달이 열릴 때 배경 스크롤 방지 */
+:deep(.p-dialog-mask) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 어두운 배경 */
+    z-index: 999; /* 모달보다 낮은 z-index */
+    overflow: hidden; /* 스크롤 방지 */
 }
 
 /* PrimeVue DataTable 선택된 행 포커스 스타일 */

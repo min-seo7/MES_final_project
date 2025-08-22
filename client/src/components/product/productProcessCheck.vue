@@ -57,12 +57,12 @@ onMounted(async () => {
     });
 });
 // 55 ~ 60 사이의 랜덤 정수를 생성하는 함수
-function getRandomTemperature() {
-    // Math.random()은 0 이상 1 미만의 값을 반환합니다.
-    // (max - min + 1)을 곱하여 범위 조절
-    // Math.floor()로 소수점을 버리고 정수만 남김
-    return Math.floor(Math.random() * (63 - 55 + 1)) + 55;
-}
+// function getRandomTemperature() {
+//     // Math.random()은 0 이상 1 미만의 값을 반환합니다.
+//     // (max - min + 1)을 곱하여 범위 조절
+//     // Math.floor()로 소수점을 버리고 정수만 남김
+//     return Math.floor(Math.random() * (63 - 55 + 1)) + 55;
+// }
 
 function setColorOptions() {
     const documentStyle = getComputedStyle(document.documentElement);
@@ -144,21 +144,21 @@ function setColorOptions() {
     };
 }
 // 새로운 랜덤 온도 데이터를 추가하는 함수
-function addRandomTemperature() {
-    // 데이터 배열의 길이가 11(레이블 수)에 도달하면 인터벌을 중지합니다.
-    if (lineData.value.datasets[0].data.length >= 11) {
-        clearInterval(intervalId);
-        console.log('생산량 1000에 도달하여 데이터 추가를 멈춥니다.');
-        return;
-    }
-    const newTemperature = getRandomTemperature();
-    // datasets 배열의 첫 번째 데이터셋에 새로운 값을 추가
-    lineData.value.datasets[0].data.push(newTemperature);
+// function addRandomTemperature() {
+//     // 데이터 배열의 길이가 11(레이블 수)에 도달하면 인터벌을 중지합니다.
+//     if (lineData.value.datasets[0].data.length >= 11) {
+//         clearInterval(intervalId);
+//         console.log('생산량 1000에 도달하여 데이터 추가를 멈춥니다.');
+//         return;
+//     }
+//     const newTemperature = getRandomTemperature();
+//     // datasets 배열의 첫 번째 데이터셋에 새로운 값을 추가
+//     lineData.value.datasets[0].data.push(newTemperature);
 
-    // 이 시점에서 차트 컴포넌트는 새로운 데이터를 감지하고 갱신되어야 합니다.
-    // Vue의 경우 ref나 reactive로 감싸져 있으면 자동으로 갱신됩니다.
-    console.log('새로운 데이터가 추가되었습니다:', newTemperature);
-}
+//     // 이 시점에서 차트 컴포넌트는 새로운 데이터를 감지하고 갱신되어야 합니다.
+//     // Vue의 경우 ref나 reactive로 감싸져 있으면 자동으로 갱신됩니다.
+//     console.log('새로운 데이터가 추가되었습니다:', newTemperature);
+// }
 watch(
     [getPrimary, getSurface, isDarkTheme],
     () => {
@@ -276,7 +276,7 @@ const dropContent = () => {
 <template>
     <div class="flex justify-end mb-4 space-x-2">
         <Button label=" 조회 " rounded @click="selectList" />
-        <Button label=" 설비상태 " rounded @click="openModal('temporaryProcess')" />
+        <Button label=" 설비상태 " rounded @click="openModal('temporaryProcess')" severity="warn" />
         <Button label=" 초기화 " severity="info" rounded @click="dropContent" />
     </div>
     <div class="font-semibold text-xl mb-2">공정조회</div>

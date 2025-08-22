@@ -80,7 +80,7 @@ const selectSupplier = (event) => {
     showSupplierDialog.value = false;
 };
 
-// 제품 모달 관련  추가
+// 제품 모달 관련
 const showProductDialog = ref(false);
 const products = ref([]);
 const fetchProducts = async () => {
@@ -109,15 +109,21 @@ const selectProduct = (event) => {
     showProductDialog.value = false;
 };
 
-// 주문 데이터
+// 주문 데이터 및 페이지네이션 상태
 const orders = ref([]);
+const totalRecords = ref(0);
+const first = ref(0);
+const rows = ref(10);
+const paginatedOrders = computed(() => {
+    return orders.value.slice(first.value, first.value + rows.value);
+});
 
 // 주문 데이터 조회
 const fetchOrders = async () => {
     try {
         const delDateValue = search.value.deliveryDate;
         let formattedDelDate = null;
-        if (delDateValue) {
+        if (delDateValue instanceof Date) {
             const year = delDateValue.getFullYear();
             const month = String(delDateValue.getMonth() + 1).padStart(2, '0');
             const day = String(delDateValue.getDate()).padStart(2, '0');
@@ -133,7 +139,10 @@ const fetchOrders = async () => {
             spec: search.value.spec || null
         };
 
-        const response = await axios.get('/api/sales/orderSearch', { params: queryParams });
+        // Filter out null, empty strings, and undefined values from the query parameters
+        const filteredParams = Object.fromEntries(Object.entries(queryParams).filter(([_, value]) => value !== null && value !== '' && value !== undefined));
+
+        const response = await axios.get('/api/sales/orderSearch', { params: filteredParams });
 
         if (response.data?.list && Array.isArray(response.data.list)) {
             orders.value = response.data.list.map((item) => ({
@@ -152,15 +161,17 @@ const fetchOrders = async () => {
                 spec: item.spec,
                 orderDetailId: item.order_detail_id
             }));
+            totalRecords.value = orders.value.length;
+            first.value = 0; // Reset pagination to the first page
         } else {
             orders.value = [];
+            totalRecords.value = 0;
             console.warn('서버 응답에 유효한 리스트 데이터가 없습니다.', response.data);
         }
     } catch (error) {
         console.error('데이터 로드 실패:', error);
     }
 };
-
 // 주문 상태에 따른 Tag 색상
 const getSeverity = (status) => {
     switch (status) {
@@ -224,11 +235,22 @@ const saveOrderUpdate = async () => {
         return;
     }
     try {
+        const changeDateValue = orderUpdate.value.changeDeliveryDate;
+        let formattedChangeDate = null;
+        if (changeDateValue instanceof Date) {
+            const year = changeDateValue.getFullYear();
+            const month = String(changeDateValue.getMonth() + 1).padStart(2, '0');
+            const day = String(changeDateValue.getDate()).padStart(2, '0');
+            formattedChangeDate = `${year}-${month}-${day}`;
+        } else {
+            formattedChangeDate = changeDateValue;
+        }
+
         const updatePayload = {
             orderId: selectedOrder.value.orderId,
             orderDate: selectedOrder.value.orderDate,
             orderDetailId: selectedOrder.value.orderDetailId,
-            changeDeliveryDate: orderUpdate.value.changeDeliveryDate?.toISOString().slice(0, 10),
+            changeDeliveryDate: formattedChangeDate,
             changeReason: orderUpdate.value.changeReason
         };
         await axios.put('/api/sales/updateOrderDelivery', updatePayload);
@@ -246,6 +268,12 @@ const onOrderSelect = (event) => {
     selectedOrder.value = { ...order };
     orderUpdate.value.originDeliveryDate = order.delDate;
     orderUpdate.value.manager = order.orderManager;
+};
+
+// Paginator 페이지 변경 핸들러
+const onPage = (event) => {
+    first.value = event.first;
+    rows.value = event.rows;
 };
 
 // 초기 데이터 로드
@@ -304,13 +332,12 @@ onMounted(() => {
     <div class="flex space-x-6">
         <div class="w-2/3">
             <div class="font-semibold text-xl mb-4 mt-7">검색내역</div>
-            <DataTable :value="orders" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true">
+            <DataTable :value="paginatedOrders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true">
                 <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
                 <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
                 <Column field="partnerName" header="거래처명" style="min-width: 120px" />
                 <Column field="productId" header="제품코드" style="min-width: 120px" />
                 <Column field="productName" header="제품명" style="min-width: 120px" />
-                <Column field="spec" header="규격" style="min-width: 80px" />
                 <Column field="manager" header="거래담당자" style="min-width: 120px" />
                 <Column field="quantity" header="수량" style="min-width: 80px" />
                 <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
@@ -323,7 +350,7 @@ onMounted(() => {
                 </Column>
                 <Column field="orderManager" header="담당자" style="min-width: 100px" />
             </DataTable>
-            <Paginator :rows="10" :totalRecords="orders.length" :rowsPerPageOptions="[10, 20, 30]" />
+            <Paginator v-model:first="first" :rows="rows" :totalRecords="totalRecords" :rowsPerPageOptions="[10, 20, 30]" @page="onPage" />
         </div>
 
         <div class="w-1/3">

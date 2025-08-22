@@ -175,11 +175,11 @@ const model = ref([
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/production/productionOrder'
                     },
-                    {
-                        label: '제품재고조회',
-                        icon: 'pi pi-fw pi-bookmark',
-                        to: '/production/prodStockSearch'
-                    },
+                    // {
+                    //     label: '제품재고조회',
+                    //     icon: 'pi pi-fw pi-bookmark',
+                    //     to: '/production/prodStockSearch'
+                    // },
                     {
                         label: '실적등록',
                         icon: 'pi pi-fw pi-bookmark',
@@ -232,8 +232,7 @@ const model = ref([
                         icon: 'pi pi-fw pi-bookmark',
                         items: [
                             { label: '설비점검조회', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInspectSearch' },
-                            { label: '설비점검등록/수정', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInspectRegistModify' },
-                            { label: '이력', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInspectRecord' }
+                            { label: '설비점검등록/수정', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInspectRegistModify' }
                         ]
                     },
                     {
@@ -241,8 +240,7 @@ const model = ref([
                         icon: 'pi pi-fw pi-bookmark',
                         items: [
                             { label: '설비수리조회', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipRepairSearch' },
-                            { label: '설비수리등록/수정', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipRepairRegistModify' },
-                            { label: '이력', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipRepairRecord' }
+                            { label: '설비수리등록/수정', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipRepairRegistModify' }
                         ]
                     },
                     {

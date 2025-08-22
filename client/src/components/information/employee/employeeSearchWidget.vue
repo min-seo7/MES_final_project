@@ -103,15 +103,14 @@ onMounted(() => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>검색조건</div>
         <div class="space-x-2">
-            <Button label=" 조회 " rounded @click="selectSearch"></Button>
-            <Button label=" 초기화 " severity="info" rounded @click="resetSearch"></Button>
+            <Button label="조회" size="small" rounded @click="selectSearch"></Button>
+            <Button label="초기화" size="small" severity="info" rounded @click="resetSearch"></Button>
         </div>
     </div>
 
     <Toolbar>
         <template #center>
             <div class="flex items-center gap-6">
-                <!-- 사원번호 -->
                 <div class="flex items-center gap-2">
                     <label for="employeeId" class="whitespace-nowrap">사원번호</label>
                     <IconField iconPosition="left" class="w-full">
@@ -119,7 +118,6 @@ onMounted(() => {
                     </IconField>
                 </div>
 
-                <!-- 부서 -->
                 <div class="flex items-center gap-2">
                     <label for="department" class="whitespace-nowrap">부서명</label>
                     <IconField iconPosition="left" class="w-full">
@@ -128,34 +126,31 @@ onMounted(() => {
                     </IconField>
                 </div>
 
-                <!-- 권한 라디오 그룹 -->
-
                 <div class="flex items-center gap-2">
                     <label for="auth" class="whitespace-nowrap">권한</label>
                     <div class="flex items-center">
-                        <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
                             <RadioButton id="auth1" name="auth" value="일반사원" v-model="search.auth" />
                             <label for="auth1" class="ml-2 mr-4">일반사원</label>
                             <RadioButton id="auth2" name="auth" value="관리자" v-model="search.auth" />
                             <label for="auth2" class="ml-2 mr-4">관리자</label>
                             <RadioButton id="auth3" name="auth" value="최고관리자" v-model="search.auth" />
                             <label for="auth3" class="ml-2 mr-4">최고관리자</label>
-                        </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">
                     <label for="materialCode" class="whitespace-nowrap">상태</label>
                     <div class="flex items-center">
-                        <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
                             <RadioButton id="status1" name="status" value="재직" v-model="search.status" />
                             <label for="status1" class="ml-2 mr-4">재직</label>
                             <RadioButton id="status2" name="status" value="휴직" v-model="search.status" />
-                            <label for="status2" class="ml-2">휴직</label>
+                            <label for="status2" class="ml-2 mr-4">휴직</label>
                             <RadioButton id="status3" name="status" value="퇴직" v-model="search.status" />
                             <label for="status3" class="ml-2">퇴직</label>
-                        </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -164,3 +159,86 @@ onMounted(() => {
 
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItem" :showFilter="modalType === 'employeeId'" @confirm="selectModalValue" />
 </template>
+
+<style scoped>
+/* --- 모달 전역 스타일 (유지) --- */
+:deep(.p-dialog .p-dialog-header) {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+:deep(.p-dialog .p-dialog-title) {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+:deep(.p-dialog .p-dialog-content) {
+    padding: 1.5rem;
+    background: #ffffff;
+}
+
+/* --- 상단 버튼 영역 (여백 유지) --- */
+.mt-5.flex.justify-center {
+    padding: 0 0 1.5rem 0;
+    margin: 0;
+}
+
+/* --- 데이터 테이블 스타일 --- */
+:deep(.p-datatable .p-datatable-tbody) {
+    min-height: 300px;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr:has(div[style='height: 30px'])) {
+    display: table-row;
+}
+
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    font-weight: 500;
+    color: #495057;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:deep(.p-datatable-wrapper) {
+    border: 1px solid #dee2e6;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr:not([aria-selected='true']):hover) {
+    background-color: #f1f3f5 !important;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr[aria-selected='true']) {
+    background-color: #e3f2fd !important;
+    color: #0d47a1;
+}
+
+/* --- 페이지네이션 (유지) --- */
+:deep(.p-paginator) {
+    justify-content: center;
+    border-top: 1px solid #dee2e6;
+    margin-top: 1rem;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+    height: 30px !important;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+    vertical-align: middle;
+}
+</style>

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 // 위젯 임포트명 정확히
-import RepairRegistWidge from '@/components/equipment/repair/repairRegistWidge.vue';
+import RepairRegistWidget from '@/components/equipment/repair/repairRegistWidget.vue';
 import RepairSearchWidget from '@/components/equipment/repair/repairSearchWidget.vue';
 
 // ---- 고정 행 수
@@ -159,6 +159,7 @@ function openEqPicker() {
 <template>
     <div class="p-4 space-y-6">
         <RepairSearchWidget @submit="handleSearch" />
-        <RepairRegistWidge v-model="form" :isEdit="isEdit" @save="handleSave" @update="handleUpdate" @reset="handleReset" @open:eqPicker="openEqPicker" />
+
+        <RepairRegistWidget v-model="form" :isEdit="isEdit" @save="handleSave" @update="handleUpdate" @reset="handleReset" @open:eqPicker="openEqPicker" />
     </div>
 </template>

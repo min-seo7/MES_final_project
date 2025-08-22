@@ -128,7 +128,7 @@ SELECT product_id,
        storage_condition,
        safety_stock,
        safety_stock_unit,
-       product_manual,
+       product_category,
        status
 FROM product
 WHERE 1=1
@@ -157,7 +157,7 @@ INSERT INTO product (product_id,
 			storage_condition,
 			safety_stock,
 			safety_stock_unit,
-			product_manual,
+			product_category,
 			status)
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
@@ -174,7 +174,7 @@ SET product_type = ?,
     storage_condition = ?,
     safety_stock = ?,
     safety_stock_unit = ?,
-    product_manual = ?,
+    product_category = ?,
     status = ?
 WHERE  product_id = ?`;
 
@@ -284,7 +284,26 @@ SET  partner_type = ?,
      address = ?,
      business_no = ?,
      status = ?
-WHERE partner_id = 'SUP001'`;
+WHERE partner_id = ?`;
+
+// 거래처 수정
+const updateBom = `
+UPDATE bom
+SET  status = ?
+WHERE bom_id = ?`;
+
+// 사원 수정
+const updateEmployee = `
+UPDATE employee
+SET  name = ?,
+     department = ?,
+     phone = ?,
+     email = ?,
+     hire_date = ?,
+     leave_date = ?,
+     auth = ?,
+     status = ?
+WHERE employee_id = ?`;
 
 // 흐름도 조회
 const selectFlowchartList = `
@@ -592,6 +611,8 @@ const selectMaxEmpId = `
 
 module.exports = {
   selectMaxMaterialId,
+  updateBom,
+  updateEmployee,
   selectWarehouseTypeModal,
   selectProductIdModal,
   selectWarehouseModal,

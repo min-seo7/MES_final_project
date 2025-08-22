@@ -17,8 +17,8 @@ const addFlowchartdetail = () => {
 
 <template>
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div>등록</div>
-        <div class="space-x-2"><Button label=" 등록 " rounded @click="addFlowchartdetail()" /> <Button label=" 초기화 " severity="info" rounded /></div>
+        <div></div>
+        <div class="space-x-2"><Button label=" 추가 " size="small" rounded @click="addFlowchartdetail()" /> <Button label=" 초기화 " size="small" severity="info" rounded /></div>
     </div>
     <div class="card mt-4 p-4 border rounded" style="height: 120px">
         <div class="flex flex-row gap-6 items-center">
