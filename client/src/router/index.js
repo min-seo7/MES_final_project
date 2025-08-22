@@ -210,11 +210,6 @@ const router = createRouter({
                     component: () => import('@/views//equipment/equipInspectSearch.vue')
                 },
                 {
-                    path: '/equipment/equipRepairRecord',
-                    name: 'equipRepairRecord',
-                    component: () => import('@/views//equipment/equipRepairRecord.vue')
-                },
-                {
                     path: '/equipment/equipRepairRegistModify',
                     name: 'equipRepairRegistModify',
                     component: () => import('@/views//equipment/equipRepairRegistModify.vue')
