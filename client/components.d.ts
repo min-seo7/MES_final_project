@@ -41,6 +41,8 @@ declare module 'vue' {
     FooterWidget: typeof import('./src/components/landing/FooterWidget.vue')['default']
     HeroWidget: typeof import('./src/components/landing/HeroWidget.vue')['default']
     HighlightsWidget: typeof import('./src/components/landing/HighlightsWidget.vue')['default']
+    IconField: typeof import('primevue/iconfield')['default']
+    InputIcon: typeof import('primevue/inputicon')['default']
     InspectionListWidget: typeof import('./src/components/equipment/inspection/inspectionListWidget.vue')['default']
     InspectionRegistWidget: typeof import('./src/components/equipment/inspection/inspectionRegistWidget.vue')['default']
     InspectionSearch2Widget: typeof import('./src/components/equipment/inspection/inspectionSearch2Widget.vue')['default']
