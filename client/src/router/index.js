@@ -59,51 +59,51 @@ const router = createRouter({
                     name: 'warehouse',
                     component: () => import('@/views/information/warehouse.vue')
                 },
-                // {
-                //     path: '/sales/orderSearch',
-                //     name: 'orderSearch',
-                //     component: () => import('@/views/sales/orderSearch.vue')
-                // },
-                // {
-                //     path: '/sales/orderRegist',
-                //     name: 'orderRegist',
-                //     component: () => import('@/views/sales/orderRegist.vue')
-                // },
-                // {
-                //     path: '/sales/orderModify',
-                //     name: 'orderModify',
-                //     component: () => import('@/views/sales/orderModify.vue')
-                // },
-                // {
-                //     path: '/sales/orderRecord',
-                //     name: 'orderRecord',
-                //     component: () => import('@/views/sales/orderRecord.vue')
-                // },
-                // {
-                //     path: '/sales/pdfEmail',
-                //     name: 'pdfEmail',
-                //     component: () => import('@/views/sales/pdfEmail.vue')
-                // },
-                // {
-                //     path: '/sales/shipReqRegist',
-                //     name: 'shipReqRegist',
-                //     component: () => import('@/views/sales/shipReqRegist.vue')
-                // },
-                // {
-                //     path: '/sales/shipReqSearch',
-                //     name: 'shipReqSearch',
-                //     component: () => import('@/views/sales/shipReqSearch.vue')
-                // },
-                // {
-                //     path: '/sales/returnSearch',
-                //     name: 'returnSearch',
-                //     component: () => import('@/views/sales/returnSearch.vue')
-                // },
-                // {
-                //     path: '/sales/returnRegist',
-                //     name: 'returnRegist',
-                //     component: () => import('@/views/sales/returnRegist.vue')
-                // },
+                {
+                    path: '/sales/orderSearch',
+                    name: 'orderSearch',
+                    component: () => import('@/views/sales/orderSearch.vue')
+                },
+                {
+                    path: '/sales/orderRegist',
+                    name: 'orderRegist',
+                    component: () => import('@/views/sales/orderRegist.vue')
+                },
+                {
+                    path: '/sales/orderModify',
+                    name: 'orderModify',
+                    component: () => import('@/views/sales/orderModify.vue')
+                },
+                {
+                    path: '/sales/orderRecord',
+                    name: 'orderRecord',
+                    component: () => import('@/views/sales/orderRecord.vue')
+                },
+                {
+                    path: '/sales/pdfEmail',
+                    name: 'pdfEmail',
+                    component: () => import('@/views/sales/pdfEmail.vue')
+                },
+                {
+                    path: '/sales/shipReqRegist',
+                    name: 'shipReqRegist',
+                    component: () => import('@/views/sales/shipReqRegist.vue')
+                },
+                {
+                    path: '/sales/shipReqSearch',
+                    name: 'shipReqSearch',
+                    component: () => import('@/views/sales/shipReqSearch.vue')
+                },
+                {
+                    path: '/sales/returnSearch',
+                    name: 'returnSearch',
+                    component: () => import('@/views/sales/returnSearch.vue')
+                },
+                {
+                    path: '/sales/returnRegist',
+                    name: 'returnRegist',
+                    component: () => import('@/views/sales/returnRegist.vue')
+                },
                 {
                     path: '/stock/materialIn',
                     name: 'materialIn',
