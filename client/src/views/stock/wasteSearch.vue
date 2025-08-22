@@ -159,9 +159,9 @@ export default {
             </div>
             <div class="flex items-center gap-2">
                 <label for="prdCode" class="whitespace-nowrap">제품코드</label>
-                <IconField iconPosition="left" class="w-full" @click="openPrdModal">
+                <IconField iconPosition="left" class="w-full">
                     <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" />
-                    <InputIcon class="pi pi-search" />
+                    <InputIcon class="pi pi-search" @click="openPrdModal" />
                 </IconField>
             </div>
             <div class="flex items-center gap-2">
@@ -170,9 +170,9 @@ export default {
             </div>
             <div class="flex items-center gap-2">
                 <label for="warehouse" class="whitespace-nowrap">보관창고</label>
-                <IconField iconPosition="left" class="w-full" @click="openWarehouseeModal">
+                <IconField iconPosition="left" class="w-full">
                     <InputText id="warehouse" type="text" class="w-60" v-model="warehouse" />
-                    <InputIcon class="pi pi-search" />
+                    <InputIcon class="pi pi-search" @click="openWarehouseeModal" />
                 </IconField>
             </div>
         </div>

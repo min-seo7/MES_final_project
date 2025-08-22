@@ -10,11 +10,14 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import 'primeicons/primeicons.css';
 import axios from 'axios';
+import { useUserStore } from '@/store/index';
 
 export default {
     components: { stockCommButton, commModal, stockCommRowBtn, Tabs, TabList, Tab, TabPanels, TabPanel, stockCommTable },
     data() {
         return {
+            //로그인 이름
+            empName: null,
             //검색input
             dueDate: '',
             orderNumber: '',
@@ -127,7 +130,8 @@ export default {
                     outQty: item.out_qty,
                     unit: item.unit,
                     memo: item.comm,
-                    matNo: item.mat_out_no
+                    matNo: item.mat_out_no,
+                    eName: item.e_name
                 }));
             } catch (error) {
                 console.error('제품출고대기 불러오기 실패:', error);
@@ -140,10 +144,11 @@ export default {
                 //     alert('필수정보입력');
                 //     return;
                 let matOutInfo = this.selectOutWaitMats.map((row) => ({
-                    req_id: row.w_reId,
+                    req_id: row.w_reId || null,
                     material_id: row.w_matCode,
                     order_qty: row.w_receiptQty,
-                    comm: row.w_memo || null
+                    comm: row.w_memo || null,
+                    e_name: this.empName || null
                 }));
                 console.log(matOutInfo);
                 await axios.post('/api/stock/reMatOut', matOutInfo);
@@ -199,6 +204,10 @@ export default {
         console.log('자재출고');
         this.getReqOutMats();
         this.getOutMats();
+        let userInfo = useUserStore();
+        if (userInfo.user) {
+            this.empName = userInfo.user.name; // 로그인된 사용자 이름 세팅
+        }
     }
 };
 </script>

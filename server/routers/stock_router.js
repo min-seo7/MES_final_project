@@ -253,13 +253,13 @@ router.get("/prdWOutList", async (req, res) => {
 });
 //제품재고확인
 router.post("/checkStock", async (req, res) => {
-  const { productIds } = req.body;  // 구조분해로 바로 꺼내기
+  const { productIds } = req.body; // 구조분해로 바로 꺼내기
   console.log("받은 productIds:", productIds);
   console.log("배열인가?:", Array.isArray(productIds));
   try {
     const result = await stockService.getCheckStock(productIds);
     res.json(result);
-    console.log(result)
+    console.log(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "재고 확인 실패" });
@@ -362,6 +362,16 @@ router.post("/returnReg", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "(서버)반출등록 실패" });
+  }
+});
+//수정
+router.post("/returnRewri", async (req, res) => {
+  console.log("Received details:", req.body);
+  try {
+    await stockService.returnInfoRe(req.body);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "(서버)수정 실패" });
   }
 });
 //폐기물===========================================================================================
