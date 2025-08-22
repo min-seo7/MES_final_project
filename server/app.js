@@ -51,11 +51,6 @@ const equipmentRouter = require("./routers/equipment_router.js");
 const testRouter = require("./routers/test_router.js");
 const modalRouter = require("./routers/modal_router.js");
 
-//기본라우팅
-// app.get("/", (req, res) => {
-//   res.send("Welcome!!");
-// });
-
 app.use("/api/information", informationRouter);
 app.use("/api/sales", salesRouter);
 app.use("/api/stock", stockRouter);
