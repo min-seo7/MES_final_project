@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const testService = require("../services/test_service.js");
 
 // 검사항목 조회 (필터 적용 가능)
@@ -124,6 +123,13 @@ router.get("/operators", async (req, res) => {
 router.get("/units", async (req, res) => {
   const result = await testService.getUnits();
   res.json(result);
+});
+
+// 제품유형별 검사항목 조회 API
+router.get("/prdTestRegist/getitem", async (req, res) => {
+  const { productId } = req.query;
+  const rows = await testService.findItemsByProductType(productId);
+  res.json(rows);
 });
 
 module.exports = router;
