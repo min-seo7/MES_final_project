@@ -80,7 +80,9 @@ onUnmounted(() => {
 <template>
     <section class="flow-container">
         <flowSearchWidget @flowchartFilterSearch="handleSearch" />
+
         <flowListWidget :items="flowchartSearchData" @flowchartSelected="handleSelect" />
+        <div class="mt-2"></div>
         <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
                 <flowDetailWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />

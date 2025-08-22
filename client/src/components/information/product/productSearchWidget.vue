@@ -101,8 +101,8 @@ onMounted(() => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>검색조건</div>
         <div class="space-x-2">
-            <Button label=" 조회 " rounded @click="selectSearch"></Button>
-            <Button label=" 초기화 " severity="info" rounded @click="resetSearch"></Button>
+            <Button label=" 조회 " size="small" rounded @click="selectSearch"></Button>
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetSearch"></Button>
         </div>
     </div>
 

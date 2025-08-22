@@ -128,7 +128,7 @@ const modifyBom = async () => {
     } catch (err) {
         console.log('bom 수정실패');
     }
-}
+};
 
 const resetRegist = () => {
     if (form.value.bomId?.trim()) {
@@ -140,11 +140,11 @@ const resetRegist = () => {
         // 등록 상태: 전체 필드 초기화
         form.value = {
             bomId: '',
-    prodId: '',
-    prodName: '',
-    prodForm: '',
-    prodType: '',
-    status: ''
+            prodId: '',
+            prodName: '',
+            prodForm: '',
+            prodType: '',
+            status: ''
         };
     }
 };
@@ -154,9 +154,9 @@ const resetRegist = () => {
     <div class="flex items-center justify-between font-semibold text-xl mb-4">
         <div>등록</div>
         <div class="space-x-2">
-            <Button label=" 등록 " rounded @click="registBom()" :disabled="form.bomId?.trim() !== ''" />
-            <Button label=" 수정 " rounded :disabled="form.bomId?.trim() === ''" @click="modifyBom()"/>
-            <Button label=" 초기화 " severity="info" rounded @click="resetRegist()" />
+            <Button label=" 등록 " size="small" rounded @click="registBom()" :disabled="form.bomId?.trim() !== ''" />
+            <Button label=" 수정 " size="small" rounded :disabled="form.bomId?.trim() === ''" @click="modifyBom()" />
+            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
     <div class="card p-4 border rounded">
