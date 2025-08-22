@@ -115,13 +115,28 @@ SELECT
     o.order_manager,
     i.order_detail_id,
     i.item_seq,
-    pl.curr_qty
+    SUM(pl.curr_qty) AS total_qty
 FROM orders o
 JOIN order_items i
     ON o.order_id = i.order_id
 JOIN tbl_prd_lot pl
     ON i.product_id = pl.product_id
-   WHERE o.order_id = ?
+WHERE o.order_id = ?
+GROUP BY 
+    o.order_id,
+    o.partner_id,
+    o.partner_name,
+    i.product_id,
+    i.product_name,
+    o.manager,
+    i.quantity,
+    o.delivery_addr,
+    DATE_FORMAT(o.order_date, '%Y-%m-%d'),
+    DATE_FORMAT(i.del_date, '%Y-%m-%d'),
+    i.ord_status,
+    o.order_manager,
+    i.order_detail_id,
+    i.item_seq
  `;
 //출하요청등록대상(주문서)조회,(등록일의 처음과 끝을 별칭으로 구분)
 const selectShipOrders = `
@@ -321,7 +336,10 @@ WHERE
 
 //반품내역
 const returnList = `
-SELECT  s.shipment_id,
+SELECT    s.shipment_id,
+          r.return_id,
+          s.shipment_date,
+          s.prd_out_no,
           i.product_id,
           i.product_name,
           o.partner_id,
@@ -386,6 +404,7 @@ SELECT
     i.order_detail_id,
     tpo.prd_id,
     s.shipment_id,
+    s.prd_out_no,
     r.in_date
 FROM orders o
 JOIN order_items i
@@ -395,8 +414,8 @@ LEFT JOIN (
     FROM tbl_prd_out
     GROUP BY product_id
 ) tpo ON i.product_id = tpo.product_id
-LEFT JOIN (
-    SELECT order_detail_id, MAX(shipment_id) AS shipment_id
+INNER  JOIN (
+    SELECT order_detail_id, MAX(shipment_id) AS shipment_id, MAX(prd_out_no) AS prd_out_no
     FROM shipment
     GROUP BY order_detail_id
 ) s ON i.order_detail_id = s.order_detail_id
@@ -411,7 +430,7 @@ WHERE
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
-ORDER BY o.order_id, i.product_id`;
+ORDER BY s.shipment_id, i.product_id`;
 
 // const selectReturnPreList = `
 // SELECT
