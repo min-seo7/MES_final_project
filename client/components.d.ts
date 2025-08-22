@@ -112,6 +112,7 @@ declare module 'vue' {
     Tabs: typeof import('primevue/tabs')['default']
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
+    Toolbar: typeof import('primevue/toolbar')['default']
     TopbarWidget: typeof import('./src/components/landing/TopbarWidget.vue')['default']
     WarehouseListWidget: typeof import('./src/components/information/warehouse/warehouseListWidget.vue')['default']
     WarehouseRegistWidget: typeof import('./src/components/information/warehouse/warehouseRegistWidget.vue')['default']

@@ -159,7 +159,7 @@ const insertPerform = async (payload) => {
     conn = await getConnection();
     const values = [
       payload.wo_no,
-      payload.pf_code,
+      //payload.pf_code,
       payload.e_name,
       payload.process_id,
       payload.in_qty,
@@ -253,22 +253,28 @@ const bomRequestInsert = async (details) => {
   let conn;
   try {
     conn = await getConnection();
-    // 1. 데이터베이스에 BOM 요청 데이터 삽입
-    const result = await conn.query(sqlList.insertRequestBom, [details]);
-    if (result) {
-      console.log("BOM 요청이 성공적으로 등록되었습니다.");
-      await conn.commit();
-      return { success: true, message: "BOM 요청이 성공적으로 등록되었습니다." };
-    } else {
-      console.log("BOM 요청 등록에 실패하였습니다.", result.data);
-      return { success: false, message: "BOM 요청 등록에 실패하였습니다." };
+
+    // details 배열의 각 항목을 순회
+    for (const detail of details) {
+      const { req_qty, bom_id } = detail;
+
+      // 여기서 `sqlList.insertRequestBom` 쿼리에 필요한 값들을 순서대로 전달합니다.
+      // 쿼리에 물음표가 두 개라면 [req_qty, bom_id]를 전달
+      await conn.query(sqlList.insertRequestBom, [req_qty, bom_id]);
     }
+
+    await conn.commit();
+    console.log("BOM 요청이 성공적으로 등록되었습니다.");
+    return { success: true, message: "BOM 요청이 성공적으로 등록되었습니다." };
   } catch (error) {
+    // 오류 발생 시 롤백
+    if (conn) await conn.rollback();
+    console.error("BOM 요청 등록에 실패하였습니다.", error);
     throw error;
   } finally {
     if (conn) conn.release();
   }
-}
+};
 module.exports = {
   findAllOrder,
   startWork,
