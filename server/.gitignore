@@ -3,3 +3,4 @@ uploads
 sqls/.env
 email/.env
 /pdfs/
+.env
