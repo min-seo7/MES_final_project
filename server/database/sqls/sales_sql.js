@@ -138,7 +138,6 @@ WHERE
 GROUP BY o.order_id, o.partner_id, o.partner_name, o.manager, o.delivery_addr, o.order_date, o.order_manager
 `;
 
-
 const insertShip = `
 INSERT INTO shipment(
     item_seq,
@@ -281,7 +280,8 @@ module.exports = {
   SelectMaxHistoryId,
   modifypreList,
   orderDetailId,
-  SelectMaxShipId,
+  // SelectMaxShipId,
   modifyNextList,
   mailPdfOrderList,
+  selectShipDetail,
 };

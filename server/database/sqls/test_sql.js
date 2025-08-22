@@ -6,7 +6,7 @@ SELECT testitem_code,
                      unit, 
                      fixedStandard, 
                      createdBy, 
-                     createdAt,
+                     DATE_FORMAT(createdAt, '%Y-%m-%d'),
                      purpose_name, 
                      purpose_id
 FROM   testitem
@@ -54,9 +54,6 @@ INNER JOIN material as mat
 ON PD.material_id = mat.material_id
 WHERE PD.inspStatus= '대기' 
 ORDER BY P.due_date DESC`;
-ORDER BY MI.createdAt DESC`;
-// WHERE
-// 	MI.inspStatus = '대기'`;;
 
 // 자재 입고검사 완료목록
 const selectInspecFinList = `
@@ -71,7 +68,17 @@ SELECT
     DATE_FORMAT(inspection_date, '%Y-%m-%d') AS 검사완료날짜
 FROM material_Inspection MI
 LEFT JOIN material mat ON MI.material_code = mat.material_id
-ORDER BY MI.purch_id DESC`;
+ORDER BY materialOrder_num DESC`;
+
+// 제품품질검사 대기목록
+const selectpdInspecWaitList = `
+SELECT pf_code,
+                product_id,
+                prd_name,
+                qty,
+                w_ed_date
+FROM performance
+WHERE status = 3 and process_id in ('GRIN001', 'GRIN002', 'DILU001')`;
 
 // 검사등록
 const insertInsp = `
@@ -99,8 +106,20 @@ UPDATE tbl_purchase_detail
 SET
   inspStatus = '완료'
 WHERE
-  pro_status = '입고대기' AND
-  pur_no = ?`;
+  inspStatus = '대기' AND
+  purch_id = ?`;
+
+// 검사항목 삭제
+const deleteTestItem = `
+DELETE FROM testitem
+WHERE testitem_code = ?
+`;
+// 검사항목
+const getProductTypes = `SELECT code, name as Type FROM product_type`;
+const getInspPurposes = `SELECT code, name as Type FROM insp_purpose`;
+const getInspItems = `SELECT code, name as Type FROM insp_item`;
+const getOperators = `SELECT code, symbol as Type FROM operator_type`;
+const getUnits = `SELECT code, name as Type FROM unit_type`;
 
 module.exports = {
   selectItem,
@@ -111,4 +130,11 @@ module.exports = {
   selectInspecFinList,
   insertInsp,
   selectPD,
+  deleteTestItem,
+  getProductTypes,
+  getInspPurposes,
+  getInspItems,
+  getOperators,
+  getUnits,
+  selectpdInspecWaitList,
 };
