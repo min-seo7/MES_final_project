@@ -275,6 +275,20 @@ const bomRequestInsert = async (details) => {
     if (conn) conn.release();
   }
 };
+const productionOrderList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.productionOrderList);
+    console.log("생산 계획 상세 목록 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   findAllOrder,
   startWork,
@@ -286,4 +300,5 @@ module.exports = {
   selectEname,
   checkWoStatus,
   bomRequestInsert,
+  productionOrderList,
 };

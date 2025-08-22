@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
@@ -25,10 +25,24 @@ const productInstance = ref({
     line_name: '',
     productId: ''
 });
+const prdOrderList = ref([]);
 const currentEditRow = ref(null);
 const showModal = ref(false);
 const modalType = ref('');
-
+//
+// const startDate = ref('');
+// const endDate = ref('');
+// const productId = ref('');
+// const productName = ref('');
+// const productType = ref('');
+// const specification = ref('');
+// const unit = ref('');
+// const productForm = ref('');
+// const prd_noworder_qty = ref(0);
+// const line_id = ref('');
+// const line_name = ref('');
+// const lastname = ref('');
+//
 const openModal = (type) => {
     modalType.value = type;
     showModal.value = true;
@@ -36,6 +50,37 @@ const openModal = (type) => {
 
 const closeModal = () => {
     showModal.value = false;
+};
+const fetchPrdOrders = async () => {
+    try {
+        const response = await axios.get('/api/production/productionOrder');
+        console.log(response.data.list);
+        // API 응답 데이터를 prdOrderList에 할당
+        if (Array.isArray(response.data.list)) {
+            // 2. 배열이면 prdOrderList에 할당
+            prdOrderList.value = response.data.list.map((item) => ({
+                startDate: formatDate(item.startDate),
+                endDate: formatDate(item.endDate),
+                prd_noworder_qty: item.prd_noworder_qty,
+                line_id: item.line_id,
+                line_name: item.line_name,
+                product_id: item.product_id,
+                product_type: item.product_type,
+                productname: item.product_name,
+                specification: item.specification,
+                unit: item.unit,
+                prd_form: item.prd_form,
+                lastname: userInfo.lastname
+            }));
+        } else {
+            // 3. 배열이 아니면 빈 배열로 초기화
+            prdOrderList.value = [];
+            console.warn('서버 응답이 배열이 아닙니다. DataTable에 빈 배열을 할당합니다.');
+        }
+        console.log('데이터 조회 성공:', prdOrderList.value);
+    } catch (error) {
+        console.error('데이터 조회 실패:', error);
+    }
 };
 
 // const selectModalValue = (value) => {
@@ -73,6 +118,25 @@ const selectModalValue = (value) => {
     }
     // 제품명 모달 처리
     else if (modalType.value === 'productNameInputModal') {
+        if (currentEditRow.value) {
+            // 변경할 행의 인덱스 찾기
+            const rowIndex = products.value.findIndex((p) => p.id === currentEditRow.value.id);
+
+            if (rowIndex !== -1) {
+                // 원본 배열의 해당 행 데이터를 직접 업데이트
+                products.value[rowIndex].productname = value.name;
+                products.value[rowIndex].productId = value.code;
+                products.value[rowIndex].productType = value.type;
+                products.value[rowIndex].line_id = value.line_id;
+                products.value[rowIndex].line_name = value.line_name;
+                products.value[rowIndex].specification = value.specification;
+                products.value[rowIndex].unit = value.unit;
+                products.value[rowIndex].prd_form = value.prd_form;
+            }
+            // 편집 중인 행 상태 초기화
+            currentEditRow.value = null;
+        }
+
         productInstance.value.productname = value.name;
         productInstance.value.productId = value.code;
         productInstance.value.productType = value.type;
@@ -83,32 +147,32 @@ const selectModalValue = (value) => {
         productInstance.value.prd_form = value.prd_form;
 
         // currentEditRow에 값이 있어야만 DataTable의 행을 업데이트합니다.
-        if (currentEditRow.value) {
-            // 이전에 선택했던 행 데이터를 저장해둡니다.
+        // if (currentEditRow.value) {
+        //     // 이전에 선택했던 행 데이터를 저장해둡니다.
 
-            currentEditRow.value.productname = value.name;
-            currentEditRow.value.productId = value.code;
-            currentEditRow.value.productType = value.type;
-            currentEditRow.value.line_id = value.line_id;
-            currentEditRow.value.line_name = value.line_name;
-            currentEditRow.value.specification = value.specification;
-            currentEditRow.value.unit = value.unit;
-            currentEditRow.value.prd_form = value.prd_form;
+        //     currentEditRow.value.productname = value.name;
+        //     currentEditRow.value.productId = value.code;
+        //     currentEditRow.value.productType = value.type;
+        //     currentEditRow.value.line_id = value.line_id;
+        //     currentEditRow.value.line_name = value.line_name;
+        //     currentEditRow.value.specification = value.specification;
+        //     currentEditRow.value.unit = value.unit;
+        //     currentEditRow.value.prd_form = value.prd_form;
 
-            // onCellEditComplete 이벤트를 인위적으로 발생시켜 데이터테이블 업데이트 강제
-            // const syntheticEvent = {
-            //     data: currentEditRow.value, // 업데이트된 행 데이터
-            //     // 여기를 수정:
-            //     // newValue에 변경된 '제품명(name)' 문자열 값만 할당
-            //     newValue: value.name,
-            //     field: 'productname',
-            //     originalEvent: null,
-            //     preventDefault: () => {}
-            // };
-            // 작업이 끝났으므로 편집 중인 행 상태를 초기화합니다.
-            currentEditRow.value = null;
-        }
-        productInstance.value = null;
+        //     // onCellEditComplete 이벤트를 인위적으로 발생시켜 데이터테이블 업데이트 강제
+        //     // const syntheticEvent = {
+        //     //     data: currentEditRow.value, // 업데이트된 행 데이터
+        //     //     // 여기를 수정:
+        //     //     // newValue에 변경된 '제품명(name)' 문자열 값만 할당
+        //     //     newValue: value.name,
+        //     //     field: 'productname',
+        //     //     originalEvent: null,
+        //     //     preventDefault: () => {}
+        //     // };
+        //     // 작업이 끝났으므로 편집 중인 행 상태를 초기화합니다.
+        //     currentEditRow.value = null;
+        // }
+        // productInstance.value = null;
     }
     showModal.value = false;
 };
@@ -125,11 +189,11 @@ const productNameList = ref([
     { code: 'P002', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: 40, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
     { code: 'P003', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: 20, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
     { code: 'P004', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: 40, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
-    { code: 'P005', name: '액체형비료', product_cate: 'P003', type: '액체형', specification: 5, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
-    { code: 'P006', name: '액체형비료', product_cate: 'P003', type: '액체형', specification: 10, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
+    { code: 'P005', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: 5, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
+    { code: 'P006', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: 10, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
     { code: 'P007', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: null, unit: null, line_id: 'line001', line_name: '라인A', prd_form: '반제품' },
     { code: 'P008', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: null, unit: null, line_id: 'line002', line_name: '라인B', prd_form: '반제품' },
-    { code: 'P009', name: '액체형비료', product_cate: 'P003', type: '액체형', specification: null, unit: null, line_id: 'line003', line_name: '라인C', prd_form: '반제품' }
+    { code: 'P009', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: null, unit: null, line_id: 'line003', line_name: '라인C', prd_form: '반제품' }
 ]);
 // const lineInfoList = ref([
 //     { line_id: 'line001', line_name: '라인A', productname: '분말형비료' },
@@ -137,40 +201,40 @@ const productNameList = ref([
 //     { line_id: 'line003', line_name: '라인C', productname: '액체형비료' }
 // ]);
 const products = ref([
-    {
-        id: 1,
-        startDatetime: new Date('2025-08-10 10:00'),
-        endDatetime: new Date('2025-08-12 10:10'),
-        productId: 'P003',
-        productname: '과립형비료',
-        productPlanQty: 10000,
-        productType: '과립형',
-        specification: 20,
-        unit: 'kg',
-        prd_form: '완제품',
-        undefinedQty: 9000,
-        currentQty: 1000,
-        line_id: 'line002',
-        line_name: '라인B',
-        lastname: '김관리'
-    },
-    {
-        id: 2,
-        startDatetime: new Date('2025-08-10 10:20'),
-        endDatetime: new Date('2025-08-12 10:20'),
-        productId: 'P004',
-        productname: '과립형비료',
-        productPlanQty: 10000,
-        productType: '과립형',
-        specification: 40,
-        unit: 'kg',
-        prd_form: '완제품',
-        undefinedQty: 9000,
-        currentQty: 1000,
-        line_id: 'line002',
-        line_name: '라인B',
-        lastname: '김관리'
-    }
+    // {
+    //     id: 1,
+    //     startDatetime: new Date('2025-08-10 10:00'),
+    //     endDatetime: new Date('2025-08-12 10:10'),
+    //     productId: 'P003',
+    //     productname: '과립형비료',
+    //     productPlanQty: 10000,
+    //     productType: '과립형',
+    //     specification: 20,
+    //     unit: 'kg',
+    //     prd_form: '완제품',
+    //     undefinedQty: 9000,
+    //     currentQty: 1000,
+    //     line_id: 'line002',
+    //     line_name: '라인B',
+    //     lastname: '김관리'
+    // },
+    // {
+    //     id: 2,
+    //     startDatetime: new Date('2025-08-10 10:20'),
+    //     endDatetime: new Date('2025-08-12 10:20'),
+    //     productId: 'P004',
+    //     productname: '과립형비료',
+    //     productPlanQty: 10000,
+    //     productType: '과립형',
+    //     specification: 40,
+    //     unit: 'kg',
+    //     prd_form: '완제품',
+    //     undefinedQty: 9000,
+    //     currentQty: 1000,
+    //     line_id: 'line002',
+    //     line_name: '라인B',
+    //     lastname: '김관리'
+    // }
 ]);
 const productCodeToBomId = {
     P001: 'BOM001',
@@ -209,6 +273,21 @@ const columns = ref([
     { field: 'prd_form', header: '제품구분' },
     { field: 'undefinedQty', header: '미지시수량' },
     { field: 'currentQty', header: '현지시수량' },
+    { field: 'line_id', header: '라인코드' },
+    { field: 'line_name', header: '라인명' },
+    { field: 'lastname', header: '생산지시자' }
+]);
+
+const prdOrderDetailcolumns = ref([
+    { field: 'startDate', header: '생산시작일시' },
+    { field: 'endDate', header: '생산종료일시' },
+    { field: 'product_id', header: '제품코드' },
+    { field: 'productname', header: '제품명' },
+    { field: 'product_type', header: '제품형태' },
+    { field: 'specification', header: '제품규격' },
+    { field: 'unit', header: '단위' },
+    { field: 'prd_form', header: '제품구분' },
+    { field: 'prd_noworder_qty', header: '현지시수량' },
     { field: 'line_id', header: '라인코드' },
     { field: 'line_name', header: '라인명' },
     { field: 'lastname', header: '생산지시자' }
@@ -267,7 +346,7 @@ const startProduction = async () => {
     console.log('p_st_date:', mappedDetails.p_st_date);
     // console.log('맵핑된 제품들:', mappedDetails);
     const payload = {
-        director: '김지시',
+        director: userInfo.lastname || '김지시',
         plan_detail_no: search.value.productPlanCode || null,
         // details: selectedProducts.value
         details: mappedDetails
@@ -280,8 +359,11 @@ const startProduction = async () => {
     try {
         console.log('전송할 데이터:', payload.details);
         // 서버에 POST 요청을 보내기
-        await axios.post('/api/production/productionOrder', payload);
-        console.log('성공:');
+        const response = await axios.post('/api/production/productionOrder', payload);
+        console.log('성공:', response.data);
+        if (response) {
+            prdOrderList.value = null;
+        }
     } catch (err) {
         console.log(err);
     }
@@ -311,44 +393,71 @@ const onSelectionChange = (event) => {
     // });
 };
 
+// const onCellEditComplete = (event) => {
+//     let { data, newValue, field } = event;
+//     if (['startDatetime', 'endDatetime'].includes(field)) {
+//         // console.log(newValue, newValue instanceof Date);
+//         if (newValue instanceof Date || newValue === null) {
+//             data[field] = newValue;
+//             // console.log(data, field, data[field]);
+//         } else {
+//             data[field] = null;
+//         }
+//         event.preventDefault();
+//     } else if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
+//         if (isNaN(newValue) || newValue < 0) {
+//             console.warn('음수는 허용되지 않습니다.');
+
+//             return;
+//         }
+//         data[field] = newValue;
+//         if (field == 'productPlanQty' || field == 'currentQty') {
+//             data.undefinedQty = (data.productPlanQty || 0) - (data.currentQty || 0);
+//         }
+
+//         // } else if (['productname'].includes(field)) {
+//         //     if (field == 'productname') {
+
+//         // currentEditRow.value = data; // 현재 편집 중인 행을 저장
+//         // console.log('현재 편집 중인 행:', currentEditRow.value);
+//         // openModal('productNameInputModal'); // 모달 열기
+//         // event.preventDefault();
+//         // }
+//     } else {
+//         data[field] = newValue;
+//     }
+//     event.preventDefault();
+
+//     // event 핸들러 발생시 데이트피커가 날짜를 선택하는것이 첫번째 이벤트 ,
+//     //  찍고 나서 찍은 날짜를 가져오는것이 두번째 이벤트 인데
+//     // 둘이 순차적으로 처리되는게 아니라 기존에 있던 이벤트가 진행중인데 가져오라고 해버리니까 처리를 할수가 없다 이런건가
+// };
 const onCellEditComplete = (event) => {
     let { data, newValue, field } = event;
+    // DatePicker 필드 처리
+    console.log(newValue);
     if (['startDatetime', 'endDatetime'].includes(field)) {
-        // console.log(newValue, newValue instanceof Date);
-        if (newValue instanceof Date || newValue === null) {
-            data[field] = newValue;
-            // console.log(data, field, data[field]);
+        if (newValue instanceof Date) {
+            data[field] = new Date(newValue);
         } else {
             data[field] = null;
         }
-        event.preventDefault();
-    } else if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
-        if (isNaN(newValue) || newValue < 0) {
-            console.warn('음수는 허용되지 않습니다.');
-
+    }
+    // 숫자 입력 필드 처리
+    else if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
+        if (newValue == null || isNaN(newValue) || newValue < 0) {
             return;
         }
         data[field] = newValue;
         if (field == 'productPlanQty' || field == 'currentQty') {
             data.undefinedQty = (data.productPlanQty || 0) - (data.currentQty || 0);
         }
-
-        // } else if (['productname'].includes(field)) {
-        //     if (field == 'productname') {
-
-        // currentEditRow.value = data; // 현재 편집 중인 행을 저장
-        // console.log('현재 편집 중인 행:', currentEditRow.value);
-        // openModal('productNameInputModal'); // 모달 열기
-        // event.preventDefault();
-        // }
-    } else {
+    }
+    // 그 외 일반 텍스트 필드 처리
+    else {
         data[field] = newValue;
     }
-    event.preventDefault();
-
-    // event 핸들러 발생시 데이트피커가 날짜를 선택하는것이 첫번째 이벤트 ,
-    //  찍고 나서 찍은 날짜를 가져오는것이 두번째 이벤트 인데
-    // 둘이 순차적으로 처리되는게 아니라 기존에 있던 이벤트가 진행중인데 가져오라고 해버리니까 처리를 할수가 없다 이런건가
+    // 중요: 여기에서 event.preventDefault(); 를 사용하지 마세요.
 };
 
 const addNewRow = () => {
@@ -366,7 +475,7 @@ const addNewRow = () => {
         currentQty: 0,
         line_id: '',
         line_name: '',
-        lastname: '김지시'
+        lastname: userInfo.lastname
     };
     newProduct.undefinedQty = (newProduct.productPlanQty || 0) - (newProduct.currentQty || 0);
     products.value.push(newProduct);
@@ -377,6 +486,9 @@ const dropContent = () => {
         productPlanCode: ''
     });
 };
+onMounted(async () => {
+    await fetchPrdOrders();
+});
 </script>
 
 <template>
@@ -401,6 +513,21 @@ const dropContent = () => {
             <InputText id="lastnameTxt" value="김지시" type="text" readonly />
         </div>
     </div>
+    <div class="mb-6">
+        <DataTable :value="prdOrderList" tableStyle="min-width: 50rem" :paginator="true" :rows="4" scrollable scrollHeight="200px">
+            <Column v-for="col of prdOrderDetailcolumns" :key="col.field" :field="col.field" :header="col.header">
+                <template #body="{ data, field }">
+                    <!-- <span v-if="col.field === 'startDate' || col.field === 'endDate'">
+                        {{ formatDate(data[field]) }}
+                    </span> -->
+                    <span v-if="col.field === 'lastname'">
+                        {{ userInfo.lastname }}
+                    </span>
+                    <span v-else>{{ data[field] }}</span>
+                </template>
+            </Column>
+        </DataTable>
+    </div>
 
     <div class="flex justify-end mb-4 space-x-2">
         <Button label=" 행추가 " rounded @click="addNewRow" />
@@ -409,7 +536,7 @@ const dropContent = () => {
 
     <div class="flex flex-row gap-4 h-full">
         <div class="flex-grow card">
-            <DataTable
+            <!-- <DataTable
                 v-model:selection="selectedProducts"
                 :value="filteredProducts"
                 :paginator="true"
@@ -419,6 +546,18 @@ const dropContent = () => {
                 @selection-change="onSelectionChange"
                 editMode="cell"
                 @cell-edit-complete="onCellEditComplete"
+                dataKey="id"
+            > -->
+            <DataTable
+                v-model:selection="selectedProducts"
+                :value="filteredProducts"
+                :paginator="true"
+                :rows="4"
+                editMode="cell"
+                scrollable
+                scrollHeight="120px"
+                @cell-edit-complete="onCellEditComplete"
+                @selection-change="onSelectionChange"
                 dataKey="id"
             >
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
@@ -431,7 +570,7 @@ const dropContent = () => {
                     </template>
                     <template #editor="{ data, field }">
                         <template v-if="['startDatetime', 'endDatetime'].includes(field)">
-                            <DatePicker v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" />
+                            <DatePicker :key="data.id" v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" />
                         </template>
                         <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
                             <InputNumber v-model="data[field]" autofocus fluid />
@@ -441,7 +580,8 @@ const dropContent = () => {
                                 v-model="data[field]"
                                 @click="
                                     () => {
-                                        productInstance = data;
+                                        currentEditRow = data;
+                                        // productInstance = data;
                                         openModal('productNameInputModal');
                                     }
                                 "
