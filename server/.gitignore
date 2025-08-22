@@ -4,7 +4,7 @@ database/sqls/.env
 email/.env
 /pdfs/
 .env
-public/
+public/assets
 *.env
 package-lock.json
 github_url.txt
