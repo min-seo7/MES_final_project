@@ -24,7 +24,7 @@ export default {
 
 <template>
     <div class="card w-full">
-        <DataTable :value="dataRows" dataKey="id" scrollable scrollHeight="400px" tableStyle="min-width: 50rem" :selection="selection" @update:selection="$emit('update:selection', $event)">
+        <DataTable :value="dataRows" dataKey="id" scrollable scrollHeight="300px" tableStyle="min-width: 50rem" :selection="selection" @update:selection="$emit('update:selection', $event)">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--채크박스영역-->
 

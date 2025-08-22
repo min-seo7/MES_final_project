@@ -81,6 +81,21 @@ export default {
             this.getList();
             this.selectedReturnList = [];
         },
+        //수정버튼
+        async postUpdate() {
+            try {
+                let updateInfo = this.selectedReturnList.map((row) => ({
+                    id: row.id
+                }));
+                await axios.post('/api/stock/returnRewri', updateInfo);
+            } catch (error) {
+                console.log('등록실패', error);
+            }
+            console.log('이거');
+            this.getList();
+            console.log('이거탐???');
+            this.selectedReturnList = [];
+        },
         //모달=============================================
         openPrdModal() {
             //검색용
@@ -136,7 +151,7 @@ export default {
                     <label for="prdCode" class="whitespace-nowrap">제품코드</label>
                     <IconField iconPosition="left" class="w-full">
                         <InputText id="prdCode" type="text" class="w-60" v-model="prdCode" />
-                        <InputIcon class="pi pi-search"  @click="openPrdModal"/>
+                        <InputIcon class="pi pi-search" @click="openPrdModal" />
                     </IconField>
                 </div>
                 <div class="flex items-center gap-2">
@@ -147,7 +162,12 @@ export default {
         </div>
 
         <!-- 중간 버튼 -->
-        <stockCommRowBtn :buttons="[{ label: '입고등록', icon: 'pi pi-check', onClick: postInreturn }]" />
+        <stockCommRowBtn
+            :buttons="[
+                { label: '입고등록', icon: 'pi pi-check', onClick: postInreturn },
+                { label: '수정', icon: 'pi pi-pencil', onClick: postUpdate }
+            ]"
+        />
 
         <!-- 테이블 -->
         <div class="card w-full">
