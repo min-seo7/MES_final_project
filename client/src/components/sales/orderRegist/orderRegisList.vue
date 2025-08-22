@@ -282,7 +282,7 @@ onMounted(() => {
             </template>
         </Toolbar>
 
-        <div class="font-semibold text-xl mb-4 mt-6">
+        <div>
             주문내역
             <DataTable :value="items" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 30]" class="mt-3">
                 <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />

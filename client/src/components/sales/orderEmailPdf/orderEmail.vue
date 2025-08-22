@@ -259,7 +259,7 @@ onMounted(() => fetchOrders());
             <Column field="deliveryAddr" header="배송지" />
             <Column field="orderDate" header="등록일자" />
             <Column field="delDate" header="납기일자" />
-            <Column field="orderManagerEmail" header="담당자이메일" />
+            <Column field="orderManager" header="담당자" />
         </DataTable>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">

@@ -68,7 +68,7 @@ const searchOrders = async () => {
 
         customers2.value =
             response.data?.list?.map((item) => ({
-                shipmentId: item.shipment_id,
+                returnId: item.return_id,
                 productId: item.product_id,
                 productName: item.product_name,
                 partnerName: item.partner_name,
@@ -76,8 +76,8 @@ const searchOrders = async () => {
                 manager: item.manager,
                 quantity: item.quantity,
                 deliveryAddr: item.delivery_addr,
-                deliveryDate: item.del_date,
-                shipDate: item.ship_date,
+                delDate: item.del_date,
+                shipmentDate: item.shipment_date,
                 returnDate: item.return_date,
                 reState: orderStateMap[item.re_status] || '알수없음',
                 returnReason: item.return_reason,
@@ -160,34 +160,34 @@ onMounted(searchOrders);
         </template>
     </Toolbar>
 
-    <div class="font-semibold text-xl mb-4">
-        주문내역
+    <div>
+        반품내역
         <DataTable :value="customers2" paginator :rows="10" class="mt-6">
-            <Column field="shipmentId" header="출하번호" style="min-width: 100px" frozen class="font-bold" />
-            <Column field="productId" header="제품코드" style="min-width: 100px" />
-            <Column field="productName" header="제품명" style="min-width: 120px" />
+            <Column field="returnId" header="반품번호" style="min-width: 80px" frozen class="font-bold" />
+            <Column field="productId" header="제품코드" style="min-width: 0px" />
+            <Column field="productName" header="제품명" style="min-width: 100px" />
             <Column field="partnerName" header="거래처명" style="min-width: 80px" />
             <Column field="partnerId" header="거래처코드" style="min-width: 80px" />
-            <Column field="quantity" header="수량" style="min-width: 120px" />
+            <Column field="quantity" header="수량" style="min-width: 80px" />
             <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
-            <Column field="deliveryDate" header="납기일자" style="min-width: 80px" />
-            <Column field="shipDate" header="출하일자" style="min-width: 120px">
+            <Column field="delDate" header="납기일자" style="min-width: 80px" />
+            <Column field="shipmentDate" header="출하일자" style="min-width: 100px">
                 <template #body="slotProps">
-                    {{ formatDate(slotProps.data.shipDate) || 'N/A' }}
+                    {{ formatDate(slotProps.data.shipmentDate) || 'N/A' }}
                 </template>
             </Column>
-            <Column field="returnDate" header="반품일자" style="min-width: 120px">
+            <Column field="returnDate" header="반품일자" style="min-width: 100px">
                 <template #body="slotProps">
                     {{ formatDate(slotProps.data.returnDate) || 'N/A' }}
                 </template>
             </Column>
             <Column field="manager" header="거래처담당자" style="min-width: 80px" />
-            <Column field="reState" header="반품상태" style="min-width: 120px">
+            <Column field="reState" header="반품상태" style="min-width: 100px">
                 <template #body="slotProps">
                     <Tag :value="slotProps.data.reState" :severity="getSeverity(slotProps.data.reState)" :rounded="true" class="px-3 py-1 text-sm" />
                 </template>
             </Column>
-            <Column field="returnReason" header="반품사유" style="min-width: 200px">
+            <Column field="returnReason" header="반품사유" style="min-width: 100px">
                 <template #body="slotProps">
                     <span :title="slotProps.data.returnReason">{{ slotProps.data.returnReason }}</span>
                 </template>

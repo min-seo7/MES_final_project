@@ -222,7 +222,7 @@ onMounted(() => {
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">주문내역 조회</h1>
             <div class="flex space-x-2">
-                <Button label="조회" rounded @click="fetchOrders" />
+                <Button label="조회" @click="fetchOrders" rounded />
                 <Button label="초기화" severity="info" rounded @click="resetFilters" />
             </div>
         </div>

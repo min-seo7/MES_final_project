@@ -294,7 +294,7 @@ onMounted(() => {
 <template>
     <div>
         <div class="flex justify-end mb-4 space-x-2">
-            <Button label="저장" severity="success" @click="registEmployee()" rounded />
+            <Button label="저장" @click="registEmployee()" rounded />
             <Button label="초기화" severity="info" rounded @click="resetOrders" />
         </div>
 
@@ -316,15 +316,15 @@ onMounted(() => {
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">총수량</label>
-                            <InputText :value="totalQuantity.toLocaleString()" disabled />
+                            <InputText :value="totalQuantity.toLocaleString()" disabled style="background-color: lightgrey" />
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">총공급가액</label>
-                            <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled />
+                            <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled style="background-color: lightgrey" />
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">거래처 담당자</label>
-                            <InputText type="text" v-model="form.manager" disabled />
+                            <InputText type="text" v-model="form.manager" disabled style="background-color: lightgrey" />
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm mb-1">주문 담당자</label>
@@ -333,7 +333,7 @@ onMounted(() => {
                     </div>
                     <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">거래처명</label>
-                        <InputText type="text" v-model="form.partnerName" disabled />
+                        <InputText type="text" class="w-60" v-model="form.partnerName" disabled style="background-color: lightgrey" />
                     </div>
                 </IconField>
             </template>
@@ -341,7 +341,7 @@ onMounted(() => {
         <br />
         <div class="flex gap-3 mt-4 justify-end">
             <Button label="추가" @click="addOrder" rounded />
-            <Button label="삭제" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" rounded />
+            <Button label="삭제" severity="danger" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" rounded />
         </div>
         <div class="font-semibold text-xl mb-4">주문등록</div>
         <div class="p-4 border rounded-md shadow-md mt-6" style="background-color: white">
@@ -373,15 +373,15 @@ onMounted(() => {
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">규격</label>
-                    <InputText v-model="order.specification" class="w-full" disabled />
+                    <InputText v-model="order.specification" class="w-full" disabled style="background-color: lightgrey" />
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">제품단가</label>
-                    <InputNumber v-model="order.productPrice" :min="0" class="w-full" disabled />
+                    <InputText v-model="order.productPrice" :min="0" class="w-full" disabled style="background-color: lightgrey" />
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">공급가액</label>
-                    <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" />
+                    <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" style="background-color: lightgrey" />
                 </div>
             </div>
         </div>

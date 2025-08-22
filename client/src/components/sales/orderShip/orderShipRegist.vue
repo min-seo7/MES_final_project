@@ -283,7 +283,7 @@ onMounted(() => {
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">출하 조회</h1>
             <div class="flex space-x-2">
-                <Button label="조회" severity="success" rounded @click="searchOrders" />
+                <Button label="조회" rounded @click="searchOrders" />
                 <Button label="초기화" severity="info" rounded @click="resetSearch" />
             </div>
         </div>
@@ -299,7 +299,7 @@ onMounted(() => {
                                 <InputIcon class="pi pi-search cursor-pointer" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
-                        <InputText v-model="searchForm.partnerName" placeholder="거래처명" disabled />
+                        <InputText v-model="searchForm.partnerName" placeholder="거래처명" disabled style="background-color: lightgrey" />
                     </div>
                 </div>
                 <div class="flex flex-col">
@@ -311,7 +311,7 @@ onMounted(() => {
                                 <InputIcon class="pi pi-search cursor-pointer" @click="openProductModal" />
                             </IconField>
                         </InputGroup>
-                        <InputText v-model="searchForm.productName" placeholder="제품명" disabled />
+                        <InputText v-model="searchForm.productName" placeholder="제품명" disabled style="background-color: lightgrey" />
                     </div>
                 </div>
                 <div class="flex flex-col col-span-2">
@@ -344,7 +344,7 @@ onMounted(() => {
         <div class="font-semibold text-xl mb-4 mt-8 flex justify-between items-center">
             <span>출하등록</span>
             <div class="space-x-2">
-                <Button label="저장" severity="success" rounded @click="saveShipment" :disabled="isSaving" />
+                <Button label="저장" rounded @click="saveShipment" :disabled="isSaving" />
                 <Button label="초기화" severity="info" rounded @click="resetShipmentForm" />
             </div>
         </div>
@@ -352,15 +352,15 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">거래처명</label>
-                    <InputText v-model="shipmentForm.tradeName" disabled />
+                    <InputText v-model="shipmentForm.tradeName" disabled style="background-color: lightgrey" />
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">총 요청수량</label>
-                    <InputText :value="computedTotalOrderQuantity" disabled />
+                    <InputText :value="computedTotalOrderQuantity" disabled style="background-color: lightgrey" />
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">총 잔여수량</label>
-                    <InputText :value="computedTotalRemainingQuantity" disabled />
+                    <InputText :value="computedTotalRemainingQuantity" disabled style="background-color: lightgrey" />
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">출하일정</label>
@@ -368,7 +368,7 @@ onMounted(() => {
                 </div>
                 <div class="flex flex-col">
                     <label class="font-semibold text-sm mb-1">출하수량</label>
-                    <InputNumber v-model="computedShipmentQuantity" disabled />
+                    <InputText v-model="computedShipmentQuantity" disabled style="background-color: lightgrey" />
                 </div>
             </div>
 
@@ -406,7 +406,7 @@ onMounted(() => {
                 <Column field="code" header="제품코드" />
                 <Column field="name" header="제품명" />
                 <Column field="spec" header="규격" />
-                <Column field="stock" header="재고" />
+                <Column field="curr_qty" header="재고" />
             </DataTable>
         </Dialog>
     </div>

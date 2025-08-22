@@ -72,11 +72,12 @@ ORDER BY materialOrder_num DESC`;
 
 // 제품품질검사 대기목록
 const selectpdInspecWaitList = `
-SELECT pf_code,
-                product_id,
-                prd_name,
-                qty,
-                w_ed_date
+SELECT pf_code AS 실적코드,
+                product_id AS 제품코드,
+                prd_name AS 제품명,
+                qty AS 생산수량,
+                DATE_FORMAT(w_ed_date, '%Y-%m-%d') AS 실적등록날짜,
+                inspStatus AS 상태
 FROM performance
 WHERE status = 3 and process_id in ('GRIN001', 'GRIN002', 'DILU001')`;
 
@@ -121,6 +122,15 @@ const getInspItems = `SELECT code, name as Type FROM insp_item`;
 const getOperators = `SELECT code, symbol as Type FROM operator_type`;
 const getUnits = `SELECT code, name as Type FROM unit_type`;
 
+// 제품유형별검사항목조회
+const selectTestItemByProductType = `
+SELECT *
+FROM testitem
+WHERE product_type IN (SELECT product_name FROM product WHERE product_id = ?)`;
+// SELECT *
+// FROM testitem
+// WHERE product_type = ?;
+
 module.exports = {
   selectItem,
   insertItem,
@@ -137,4 +147,5 @@ module.exports = {
   getOperators,
   getUnits,
   selectpdInspecWaitList,
+  selectTestItemByProductType,
 };

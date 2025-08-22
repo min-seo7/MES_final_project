@@ -113,7 +113,7 @@ const selectProduct = (event) => {
 const orders = ref([]);
 const totalRecords = ref(0);
 const first = ref(0);
-const rows = ref(10);
+const rows = ref(5);
 const paginatedOrders = computed(() => {
     return orders.value.slice(first.value, first.value + rows.value);
 });
@@ -286,7 +286,7 @@ onMounted(() => {
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold">검색</h1>
         <div class="flex space-x-2">
-            <Button label="조회" rounded @click="searchOrders" class="p-button-success" />
+            <Button label="조회" rounded @click="searchOrders" />
             <Button label="초기화" severity="info" rounded @click="resetFilters" />
         </div>
     </div>
@@ -350,12 +350,12 @@ onMounted(() => {
                 </Column>
                 <Column field="orderManager" header="담당자" style="min-width: 100px" />
             </DataTable>
-            <Paginator v-model:first="first" :rows="rows" :totalRecords="totalRecords" :rowsPerPageOptions="[10, 20, 30]" @page="onPage" />
+            <Paginator v-model:first="first" :rows="rows" :totalRecords="totalRecords" @page="onPage" />
         </div>
 
         <div class="w-1/3">
             <div class="flex justify-end space-x-2 mb-4">
-                <Button label="저장" rounded @click="saveOrderUpdate" class="p-button-success" />
+                <Button label="저장" rounded @click="saveOrderUpdate" />
                 <Button
                     label="초기화"
                     severity="info"
@@ -369,7 +369,7 @@ onMounted(() => {
                 />
             </div>
             <div class="font-semibold text-xl mb-4 mt-6">수정</div>
-            <div class="bg-gray-100 p-4 rounded-lg border border-gray-300">
+            <div class="bg-gray-100 p-4 rounded-lg border border-gray-300" style="background-color: white">
                 <div class="grid grid-cols-1 gap-5">
                     <div class="flex flex-col space-y-1">
                         <label class="font-semibold text-sm">기존납기일</label>

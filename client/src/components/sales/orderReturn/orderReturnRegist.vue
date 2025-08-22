@@ -219,7 +219,7 @@ const fetchOrders = async () => {
 
         if (response.data?.list && Array.isArray(response.data.list)) {
             orders.value = response.data.list.map((item) => ({
-                orderId: item.order_id,
+                shipmentId: item.shipment_id,
                 partnerId: item.partner_id,
                 partnerName: item.partner_name,
                 productId: item.product_id,
@@ -234,7 +234,7 @@ const fetchOrders = async () => {
                 orderManager: item.order_manager,
                 spec: item.spec,
                 orderDetailId: item.order_detail_id,
-                shipmentId: item.shipment_id
+                prdOutNo: item.prd_out_no
             }));
         } else {
             orders.value = [];
@@ -371,7 +371,7 @@ onMounted(() => {
         <div class="flex justify-between items-center mb-6">
             <div class="font-semibold text-xl mb-4 mt-6">검색</div>
             <div class="flex space-x-2">
-                <Button label="조회" rounded @click="searchOrders" class="p-button-success" />
+                <Button label="조회" rounded @click="searchOrders" />
                 <Button label="초기화" severity="info" rounded @click="resetFilters" />
             </div>
         </div>
@@ -432,19 +432,21 @@ onMounted(() => {
         </Toolbar>
         <div class="flex space-x-6">
             <div class="w-2/3">
+                <br />
                 <div class="font-semibold text-xl mb-3 mt-8">검색내역</div>
                 <DataTable :value="orders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true" paginator :rows="10">
-                    <Column field="orderId" header="주문번호" style="min-width: 100px" frozen class="font-bold" />
-                    <Column field="partnerId" header="거래처코드" style="min-width: 120px" />
-                    <Column field="partnerName" header="거래처명" style="min-width: 120px" />
-                    <Column field="productId" header="제품코드" style="min-width: 120px" />
-                    <Column field="productName" header="제품명" style="min-width: 120px" />
-                    <Column field="manager" header="거래담당자" style="min-width: 120px" />
+                    <Column field="shipmentId" header="출하번호" style="min-width: 100px" frozen class="font-bold" />
+                    <Column field="prdOutNo" header="출하완료번호" style="min-width: 100px" />
+                    <Column field="partnerId" header="거래처코드" style="min-width: 100px" />
+                    <Column field="partnerName" header="거래처명" style="min-width: 100px" />
+                    <Column field="productId" header="제품코드" style="min-width: 100px" />
+                    <Column field="productName" header="제품명" style="min-width: 100px" />
+                    <Column field="manager" header="거래담당자" style="min-width: 100px" />
                     <Column field="quantity" header="수량" style="min-width: 80px" />
                     <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
                     <Column field="orderDate" header="등록일자" style="min-width: 100px" />
                     <Column field="delDate" header="납기일자" style="min-width: 100px" />
-                    <Column field="ordState" header="주문상태" style="min-width: 120px">
+                    <Column field="ordState" header="주문상태" style="min-width: 100px">
                         <template #body="slotProps">
                             <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
                         </template>
@@ -454,7 +456,7 @@ onMounted(() => {
             </div>
             <div class="w-1/3">
                 <div class="flex justify-end space-x-2 mb-4">
-                    <Button label="저장" rounded @click="saveReturn" class="p-button-success" />
+                    <Button label="저장" rounded @click="saveReturn" />
                     <Button
                         label="초기화"
                         severity="info"
@@ -468,7 +470,7 @@ onMounted(() => {
                     />
                 </div>
                 <div class="font-semibold text-xl mb-4 mt-6">반품등록</div>
-                <div class="bg-gray-100 p-4 rounded-lg border border-gray-300">
+                <div class="bg-gray-100 p-4 rounded-lg border border-gray-300" style="background-color: white">
                     <div class="grid grid-cols-1 gap-5">
                         <div class="flex flex-col space-y-1">
                             <label class="font-semibold text-sm">반품일</label>
