@@ -16,6 +16,8 @@ export default {
     components: { stockCommButton, commModal, stockCommRowBtn, Tabs, TabList, Tab, TabPanels, TabPanel, stockCommTable },
     data() {
         return {
+            //로그인 이름
+            empName: null,
             //검색input
             dueDate: '',
             orderNumber: '',
@@ -67,7 +69,7 @@ export default {
                 { field: 'receiptQty', header: '입고수량', headerStyle: 'width: 15rem' },
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
                 { field: 'warehouse', header: '보관창고', headerStyle: 'width: 20rem' },
-                { field: 'empName', header: '담당자', headerStyle: 'width: 20rem' },
+                { field: 'nempName', header: '담당자', headerStyle: 'width: 20rem' },
                 { field: 'memo', header: '비고', headerStyle: 'width: 50rem' }
             ],
             //lot데이터
@@ -164,7 +166,8 @@ export default {
                     warehouse: row.p_warehouse,
                     comm: row.p_memo || null,
                     materialOrder_num: row.p_testNo || null,
-                    purch_id: row.p_purchId || null
+                    purch_id: row.p_purchId || null,
+                    eName: this.userInfo.user.name || null
                 }));
                 console.log(purInfo);
                 await axios.post('/api/stock/reMatLot', purInfo);
@@ -189,7 +192,7 @@ export default {
                     receiptQty: item.init_qty,
                     unit: item.unit,
                     warehouse: item.warehouse,
-                    empName: item.e_name,
+                    nempName: item.e_name,
                     memo: item.comm
                 }));
             } catch (error) {
@@ -302,6 +305,9 @@ export default {
         this.getMatLotLIst();
         let userInfo = useUserStore();
         console.log(userInfo.user);
+        if (userInfo.user) {
+            this.empName = userInfo.user.name; // 로그인된 사용자 이름 세팅
+        }
     }
 };
 </script>

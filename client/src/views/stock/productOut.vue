@@ -10,11 +10,14 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import 'primeicons/primeicons.css';
 import axios from 'axios';
+import { useUserStore } from '@/store/index';
 
 export default {
     components: { stockCommButton, commModal, stockCommRowBtn, Tabs, TabList, Tab, TabPanels, TabPanel, stockCommTable },
     data() {
         return {
+            //로그인 이름
+            empName: null,
             //검색input
             dueDate: '',
             testNumber: '',
@@ -175,7 +178,8 @@ export default {
                     order_qty: row.w_outQty,
                     prtner: row.w_partnerName || null,
                     shipartner: row.w_shipEnt || null,
-                    comm: row.w_memo || null
+                    comm: row.w_memo || null,
+                    e_name: this.empName || null
                 }));
                 console.log(prdOutInfo);
                 await axios.post('/api/stock/rePrdOut', prdOutInfo);
@@ -303,6 +307,10 @@ export default {
         console.log('제품출고');
         this.getoutPrds();
         this.getOutList();
+        let userInfo = useUserStore();
+        if (userInfo.user) {
+            this.empName = userInfo.user.name; // 로그인된 사용자 이름 세팅
+        }
     }
 };
 </script>
