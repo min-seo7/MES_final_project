@@ -288,28 +288,24 @@ router.put("/downtime/update", async (req, res) => {
 /* ===== 설비수리 목록 조회 ===== */
 router.get("/repair/list", async (req, res) => {
   try {
-    const result = await equipmentService.searchRepairList(req.query);
-    res.json(result);
+    const result = await equipmentService.searchRepairList(req.query)
+    res.json(result)
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "조회 실패" });
+    console.error(err)
+    res.status(500).json({ error: "조회 실패" })
   }
-});
+})
 
-/* ===== DISTINCT (모달용) ===== */
+// 설비수리 코드 DISTINCT (모달용)
 router.get("/repair/distinct", async (req, res) => {
   try {
-    const { field, page = 1, size = 5 } = req.query;
-    const result = await equipmentService.getRepairDistinct(
-      field,
-      Number(page),
-      Number(size)
-    );
-    res.json(result);
+    const { field, page = 1, size = 5 } = req.query
+    const result = await equipmentService.getRepairDistinct(field, Number(page), Number(size))
+    res.json(result)
   } catch (err) {
-    console.error("[GET /repair/distinct] Error:", err);
-    res.status(500).json({ message: "repair distinct 실패" });
+    console.error("[GET /repair/distinct] Error:", err)
+    res.status(500).json({ message: "repair distinct 실패" })
   }
-});
+})
 
 module.exports = router;

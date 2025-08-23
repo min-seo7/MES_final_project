@@ -524,7 +524,7 @@ ORDER BY r.repair_id DESC
 LIMIT ? OFFSET ?;
 `;
 
-/* 조건검색 */
+/* 설비수리 목록/검색 */
 const searchRepairList = `
 SELECT
     r.repair_id,
@@ -535,9 +535,9 @@ SELECT
     r.end_date          AS end_dtime,
     r.repairer,
     r.reason,
-    rd.repair_item      AS item,
-    rd.repair_result    AS result,
-    rd.corrective_action AS action
+    GROUP_CONCAT(rd.repair_item SEPARATOR ', ')       AS item,
+    GROUP_CONCAT(rd.repair_result SEPARATOR ', ')     AS result,
+    GROUP_CONCAT(rd.corrective_action SEPARATOR ', ') AS action
 FROM equipment_repair r
 LEFT JOIN equipment_downtime d 
        ON r.repair_id = d.repair_id
@@ -549,29 +549,12 @@ WHERE 1=1
   AND (? IS NULL OR r.status = ?)
   AND (? IS NULL OR DATE(r.start_date) >= ?)
   AND (? IS NULL OR DATE(r.end_date) <= ?)
+GROUP BY r.repair_id
 ORDER BY r.repair_id DESC
 LIMIT ? OFFSET ?;
-`;
+`
 
-/* ===== DISTINCT (모달용) ===== */
-const distinctRepair = `
-  SELECT DISTINCT repair_id
-  FROM equipment_repair
-  ORDER BY repair_id DESC
-  LIMIT ? OFFSET ?;
-`;
-
-/* COUNT (단순조회용) */
-const countRepairList = `
-SELECT COUNT(*) AS total
-FROM equipment_repair r
-LEFT JOIN equipment_downtime d ON r.repair_id = d.repair_id
-LEFT JOIN equipment_repair_detail rd ON r.repair_id = rd.repair_id
-WHERE (? IS NULL OR r.repair_id = ?)
-  AND (? IS NULL OR r.equipment_id = ?)
-`;
-
-/* ===== 설비수리 COUNT (조건검색 포함) ===== */
+/* COUNT */
 const countRepairListWithFilter = `
 SELECT COUNT(DISTINCT r.repair_id) AS total
 FROM equipment_repair r
@@ -585,7 +568,18 @@ WHERE 1=1
   AND (? IS NULL OR r.status = ?)
   AND (? IS NULL OR DATE(r.start_date) >= ?)
   AND (? IS NULL OR DATE(r.end_date) <= ?);
-`;
+`
+
+/* ===== DISTINCT (모달용) ===== */
+/* DISTINCT */
+const distinctRepair = `
+  SELECT DISTINCT repair_id
+  FROM equipment_repair
+  ORDER BY repair_id DESC
+  LIMIT ? OFFSET ?;
+`
+
+
 
 module.exports = {
   /* 설비점검 목록/검색/Distinct (기존) */
@@ -652,6 +646,5 @@ module.exports = {
   searchRepairList,
   distinctRepair,
   selectRepairList,
-  countRepairList,
   countRepairListWithFilter,
 };

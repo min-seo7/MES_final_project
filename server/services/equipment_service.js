@@ -563,14 +563,13 @@ const searchRepairList = async (q = {}) => {
 
 /* ===== DISTINCT (설비수리모달) ===== */
 const getRepairDistinct = async (field, page = 1, size = 5) => {
-  if (field !== "repair_id") return { items: [], total: 0, page, size };
-  const offset = (page - 1) * size;
-  const rows = await mariadb.query("distinctRepair", [size, offset]);
-  const items = rows.map((r) => Object.values(r)[0]);
-  const total = rows.length; // 간단 카운트
-  return { items, total, page, size };
-};
-
+  if (field !== "repair_id") return { items: [], total: 0, page, size }
+  const offset = (page - 1) * size
+  const rows = await mariadb.query("distinctRepair", [size, offset])
+  const items = rows.map((r) => Object.values(r)[0])
+  const total = rows.length
+  return { items, total, page, size }
+}
 module.exports = {
   /* 설비점검(기존) */
   findInspectionList,
