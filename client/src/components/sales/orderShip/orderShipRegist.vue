@@ -212,13 +212,14 @@ const saveShipment = async () => {
     isSaving.value = true;
     try {
         const shipmentItems = selectedOrderDetails.value.map((detail) => ({
+            shipmentId: detail.shipment_id,
+            item_seq: detail.item_seq,
             product_code: detail.product_id,
             shipment_qty: detail.quantity,
             shipment_date: formatDate(shipmentForm.value.shipmentDate),
             ship_status: 1,
             order_manager: detail.manager,
             product_name: detail.product_name,
-            item_seq: detail.item_seq,
             order_detail_id: detail.order_detail_id
         }));
 

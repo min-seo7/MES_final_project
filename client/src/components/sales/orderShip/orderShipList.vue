@@ -182,11 +182,10 @@ onMounted(fetchShipList);
                 <Button label="초기화" severity="info" rounded @click="resetFilters" />
             </div>
         </div>
-
         <div class="p-4 border rounded-md shadow-md mb-8" style="background-color: white">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="flex flex-col space-y-1">
-                    <label class="font-semibold text-sm">제품코드</label>
+            <div class="flex flex-row flex-wrap gap-4 items-end">
+                <div class="flex-1">
+                    <label class="font-semibold text-sm mb-1">제품코드</label>
                     <InputGroup>
                         <IconField iconPosition="right">
                             <InputText v-model="searchFilters.prodCode" placeholder="제품코드" />
@@ -195,7 +194,7 @@ onMounted(fetchShipList);
                     </InputGroup>
                 </div>
 
-                <div class="flex flex-col space-y-1">
+                <div class="flex-1">
                     <label class="font-semibold text-sm">거래처코드</label>
                     <InputGroup>
                         <IconField iconPosition="right">
@@ -205,16 +204,16 @@ onMounted(fetchShipList);
                     </InputGroup>
                 </div>
 
-                <div class="flex flex-col col-span-2">
-                    <label class="font-semibold text-sm">조회 납기일</label>
-                    <div class="flex items-center space-x-2">
-                        <Calendar v-model="searchFilters.startDate" dateFormat="yy-mm-dd" placeholder="시작일" showIcon class="w-full" />
+                <div class="flex-none">
+                    <label class="font-semibold text-sm mb-1">조회 납기일</label>
+                    <div class="flex gap-2">
+                        <Calendar v-model="searchFilters.startDate" dateFormat="yy-mm-dd" placeholder="시작일" showIcon />
                         <span>~</span>
-                        <Calendar v-model="searchFilters.endDate" dateFormat="yy-mm-dd" placeholder="종료일" showIcon class="w-full" />
+                        <Calendar v-model="searchFilters.endDate" dateFormat="yy-mm-dd" placeholder="종료일" showIcon />
                     </div>
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex-none">
                     <label class="font-semibold text-sm mb-1">출하상태</label>
                     <div class="flex flex-wrap gap-3">
                         <div class="flex items-center gap-2">

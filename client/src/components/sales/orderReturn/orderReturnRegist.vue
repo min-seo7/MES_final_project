@@ -490,15 +490,6 @@ onMounted(() => {
         </div>
         <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">거래처코드</label>
-                        <InputText v-model="supplierSearch.partnerId" @keyup.enter="searchSuppliers" placeholder="거래처코드" />
-                        <label class="font-semibold text-sm">거래처명</label>
-                        <InputText v-model="supplierSearch.partnerName" @keyup.enter="searchSuppliers" placeholder="거래처명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="searchSuppliers" />
-                    </div>
-                </div>
                 <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="partnerId" header="거래처코드"></Column>
@@ -518,16 +509,6 @@ onMounted(() => {
 
         <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">제품코드</label>
-                        <InputText v-model="productSearch.prodCode" @keyup.enter="searchProducts" placeholder="제품코드" />
-                        <label class="font-semibold text-sm">제품명</label>
-                        <InputText v-model="productSearch.prodName" @keyup.enter="searchProducts" placeholder="제품명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="searchProducts" />
-                    </div>
-                </div>
-
                 <DataTable :value="filteredProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="productType" header="제품유형"></Column>

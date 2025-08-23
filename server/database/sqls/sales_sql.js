@@ -119,7 +119,7 @@ SELECT
 FROM orders o
 JOIN order_items i
     ON o.order_id = i.order_id
-JOIN tbl_prd_lot pl
+LEFT JOIN tbl_prd_lot pl
     ON i.product_id = pl.product_id
 WHERE o.order_id = ?
 GROUP BY 
@@ -488,7 +488,7 @@ module.exports = {
   SelectMaxHistoryId,
   modifypreList,
   orderDetailId,
-  // SelectMaxShipId,
+  SelectMaxShipId,
   modifyNextList,
   mailPdfOrderList,
   selectShipDetail,

@@ -301,44 +301,44 @@ onMounted(() => {
         <div class="font-semibold text-xl mb-4">검색</div>
         <Toolbar>
             <template #center>
-                <IconField>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
-                        <div class="flex flex-col">
-                            <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
-                            <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-60" v-model="form.partnerId" readonly />
-                                <InputIcon class="pi pi-search" @click="openModal()" />
-                            </IconField>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">* 배송지</label>
-                            <InputText type="text" v-model="form.deliveryAddr" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">총수량</label>
-                            <InputText :value="totalQuantity.toLocaleString()" disabled style="background-color: lightgrey" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">총공급가액</label>
-                            <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled style="background-color: lightgrey" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처 담당자</label>
-                            <InputText type="text" v-model="form.manager" disabled style="background-color: lightgrey" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">주문 담당자</label>
-                            <InputText type="text" v-model="form.orderManager" placeholder="담당자 이름" />
-                        </div>
+                <div class="flex flex-wrap gap-5">
+                    <div class="flex flex-col">
+                        <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                        <IconField iconPosition="left">
+                            <InputText id="partnerId" type="text" class="w-48" v-model="form.partnerId" readonly />
+                            <InputIcon class="pi pi-search" @click="openModal()" />
+                        </IconField>
                     </div>
                     <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">거래처명</label>
-                        <InputText type="text" class="w-60" v-model="form.partnerName" disabled style="background-color: lightgrey" />
+                        <InputText type="text" class="w-48" v-model="form.partnerName" disabled style="background-color: lightgrey" />
                     </div>
-                </IconField>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">* 배송지</label>
+                        <InputText type="text" class="w-48" v-model="form.deliveryAddr" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">총수량</label>
+                        <InputText :value="totalQuantity.toLocaleString()" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">총공급가액</label>
+                        <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">거래처 담당자</label>
+                        <InputText type="text" v-model="form.manager" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">주문 담당자</label>
+                        <InputText type="text" v-model="form.orderManager" placeholder="담당자 이름" />
+                    </div>
+                </div>
             </template>
         </Toolbar>
+
         <br />
+
         <div class="flex gap-3 mt-4 justify-end">
             <Button label="추가" @click="addOrder" rounded />
             <Button label="삭제" severity="danger" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" rounded />
