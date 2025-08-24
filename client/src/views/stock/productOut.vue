@@ -80,6 +80,7 @@ export default {
             this.testNumber = '';
             this.prdCode = '';
             this.prdName = '';
+            this.getoutPrds();
         },
         //조회버튼
         async onSearch() {
@@ -190,6 +191,26 @@ export default {
             this.selectOutWaitPrds = null;
             this.getoutPrds();
             this.getOutList();
+            this.selectOutWaitPrds = null
+        },
+        //출고취소
+        async postCancel() {
+            if (!this.selectOutPrds) {
+                alert('출고가 확정된 제품만 취소가능합니다.');
+                return;
+            }
+            try {
+                let cancelInfo = this.selectOutPrds.map((row) => ({
+                    shipment_id: row.shipNo
+                }));
+                await axios.post('/api/stock/prdOutCancel', cancelInfo);
+                alert('출고취소 되었습니다.');
+            } catch (error) {
+                console.log('취소실패', error);
+            }
+
+            this.getOutList();
+            this.selectOutPrds = [];
         },
         //테이블영역=====================================================================
         //출고대기목록
@@ -216,7 +237,7 @@ export default {
             try {
                 const res = await axios.get('/api/stock/prdOutList');
                 this.outPrds = res.data.map((item) => ({
-                    id: `${item.prd_out_no}-${item.product_id}`,
+                    id: item.prd_id,
                     outDate: item.ship_date,
                     shipNo: item.prd_out_no,
                     prdType: item.product_type,
@@ -227,9 +248,9 @@ export default {
                     partnerName: item.partner_name,
                     e_name: item.e_name,
                     shipEnt: item.ship_partner,
-                    memo: item.comm
+                    memo: item.comm,
+                    shipment_id: item.shipment_id
                 }));
-                console.log(this.outWaitPrds);
             } catch (error) {
                 console.error('제품출목록 불러오기 실패:', error);
             }
@@ -358,7 +379,7 @@ export default {
         <stockCommRowBtn
             :buttons="[
                 { label: '출고등록', icon: 'pi pi-check', onClick: postRegistOut },
-                { label: '출고취소', icon: 'pi pi-trash', onClick: postCanelLot }
+                { label: '출고취소', icon: 'pi pi-trash', onClick: postCancel }
             ]"
         />
 
@@ -384,7 +405,7 @@ export default {
                             <Button icon="pi pi-minus" severity="success" rounded variant="outlined" />
                         </div>
                         <!--1번탭 컨텐츠영역-->
-                        <stockCommTable v-modelselection="selectOutPrds" :columns="outPrdCol" :dataRows="outPrds" />
+                        <stockCommTable v-model:selection="selectOutPrds" :columns="outPrdCol" :dataRows="outPrds" :dataKey="'id'" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

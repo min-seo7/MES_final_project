@@ -261,9 +261,9 @@ export default {
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
                 <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%" sortMode="multiple">
-                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold" sortable></Column>
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold" ></Column>
                     <Column field="low_matName" header="자재명" style="min-width: 100px" sortable></Column>
-                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px" ></Column>
                     <Column field="low_nowStock" header="현재고" style="min-width: 80px" sortable></Column>
                     <Column field="low_shortage" header="부족" style="min-width: 80px" sortable></Column>
                     <Column field="low_unit" header="단위" style="min-width: 80px"></Column>

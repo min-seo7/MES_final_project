@@ -76,6 +76,7 @@ export default {
             this.testNumber = '';
             this.prdCode = '';
             this.prdName = '';
+            this.getPrdPendigList();
         },
         //조회버튼
         async onSearch() {
@@ -90,12 +91,12 @@ export default {
 
                 console.log(filters);
 
-                const res = await axios.post('/api/stock/p', filters);
+                const res = await axios.post('/api/stock/searchProductInList', filters);
                 //조회결과
                 this.prdReceiptPending = res.data.map((item) => ({
-                    id: `${item.inspection_id}-${item.product_id}`,
+                    id: `${item.pf_code}-${item.product_id}`,
                     p_dueDate: item.inspection_date,
-                    p_No: item.inspection_id,
+                    p_No: item.pf_code,
                     p_prdType: item.product_type,
                     p_prdCode: item.product_id,
                     p_prdName: item.product_name,
@@ -195,9 +196,9 @@ export default {
             try {
                 const res = await axios.get('/api/stock/prdPendingList');
                 this.prdReceiptPending = res.data.map((item) => ({
-                    id: `${item.inspection_id}-${item.product_id}`,
+                    id: `${item.pf_code}-${item.product_id}`,
                     p_dueDate: item.inspection_date,
-                    p_No: item.inspection_id,
+                    p_No: item.pf_code,
                     p_prdType: item.product_type,
                     p_prdCode: item.product_id,
                     p_prdName: item.product_name,
@@ -293,6 +294,12 @@ export default {
         onSelectWare() {
             this.prdReceiptPending[this.selectRow].p_warehouse = this.selectWare.warerName;
             this.WarehouseModal = false;
+        },
+        //날짜포멧
+        dateFormat(date) {
+            if (!date || isNaN(new Date(date).getTime())) return null;
+            let newDateFormat = new Date(date);
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
     mounted() {

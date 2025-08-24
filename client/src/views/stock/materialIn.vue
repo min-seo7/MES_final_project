@@ -23,8 +23,6 @@ export default {
             orderNumber: '',
             materialCode: '',
             materialName: '',
-            MatInDate: '',
-            MatLotNo: '',
             //모달
             materialModal: false,
             WarehouseModal: false,
@@ -77,15 +75,43 @@ export default {
         };
     },
     methods: {
-        //조회버튼
         //초기화버튼
         onReset() {
             this.dueDate = '';
             this.orderNumber = '';
             this.materialCode = '';
             this.materialName = '';
-            this.MatInDate = '';
-            this.MatLotNo = '';
+            this.getMatPandigList();
+        },
+        //조회
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    due_date: this.dueDate || null,
+                    test_no: this.orderNumber || null,
+                    mat_Id: this.materialCode || null,
+                    mat_Name: this.materialName || null
+                };
+
+                const res = await axios.post('/api/stock/searchMatPandingList', filters);
+                //조회결과
+                 this.MatReceiptPanding = res.data.map((item) => ({
+                    id: `${item.pur_no}-${item.material_code}`,
+                    p_dueDate: item.due_date,
+                    p_purNo: item.pur_no,
+                    p_matCode: item.material_code,
+                    p_matName: item.material_name,
+                    p_testResult: item.result,
+                    p_testPassQty: item.qty,
+                    p_unit: item.unit,
+                    p_partnerName: item.partner_name,
+                    p_testNo: item.materialOrder_num,
+                    p_purchId: item.purch_id //발주서브T고유번호
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //행삭제버튼
         removeRow() {
@@ -167,7 +193,7 @@ export default {
                     comm: row.p_memo || null,
                     materialOrder_num: row.p_testNo || null,
                     purch_id: row.p_purchId || null,
-                    eName: this.userInfo.user.name || null
+                    eName: this.empName || null
                 }));
                 console.log(purInfo);
                 await axios.post('/api/stock/reMatLot', purInfo);
@@ -201,7 +227,7 @@ export default {
         },
         //반품
         async postReject() {
-            if (!this.selectPandingMats) {
+            if (!this.selectPandingMats.length) {
                 alert('입고대기중인 자재만 반품가능합니다.');
                 return;
             }
@@ -212,6 +238,7 @@ export default {
                     testNo: row.p_testNo
                 }));
                 await axios.post('/api/stock/matReturn', rejecgInfo);
+                 alert('반품처리 되었습니다.');
             } catch (error) {
                 console.log('반품실패', error);
             }
@@ -220,7 +247,7 @@ export default {
         },
         //입고취소
         async postCanelLot() {
-            if (!this.selectMatLots) {
+            if (!this.selectMatLots.length) {
                 alert('입고가 확정된 자재만 취소가능합니다.');
                 return;
             }

@@ -22,12 +22,10 @@ export default {
             selectWare: null,
             products: [],
             warehouses: [],
-
+            //테이블 행 - 행인덱스!!
+            selectRow: null,
             // 반품 리스트
-            returnList: [
-                // { id: 1, dueDate: '2025-08-01', outNo: 'R001', prdCode: 'M001', prdName: '테스트제품1', returnQty: 10, receiptQty: null, location: '', memo: '', status: '대기' },
-                // { id: 2, dueDate: '2025-08-02', outNo: 'R002', prdCode: 'M002', prdName: '테스트제품2', returnQty: 5, receiptQty: 5, location: 'A-01', memo: '포장불량', status: '확정' }
-            ],
+            returnList: [],
             selectedReturnList: []
         };
     },
@@ -38,6 +36,39 @@ export default {
             this.orderNumber = '';
             this.prdCode = '';
             this.prdName = '';
+            this.getList();
+        },
+        //조회
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    due_date: this.dateFormat(this.dueDate) || null,
+                    orderNo: this.orderNumber || null,
+                    prdId: this.prdCode || null,
+                    prdN: this.prdName || null
+                };
+
+                console.log(filters);
+
+                const res = await axios.post('/api/stock/searchReturnList', filters);
+                //조회결과
+               this.returnList = res.data.map((item) => ({
+                    id: item.id, // 행식별 위한 인덱스용,
+                    dueDate: item.return_date,
+                    outNo: item.prd_out_no,
+                    prdCode: item.product_id,
+                    prdName: item.product_name,
+                    retunQty: item.quantity,
+                    unit: `${'EA'}`,
+                    status: item.inbound_pro,
+                    receiptQty: item.in_qty,
+                    location: item.warehouse_name,
+                    memo: item.in_comm
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //테이블===========================================
         async getList() {
@@ -81,7 +112,7 @@ export default {
             this.getList();
             this.selectedReturnList = [];
         },
-        //수정버튼
+        //수정버튼=======================================
         async postUpdate() {
             try {
                 let updateInfo = this.selectedReturnList.map((row) => ({
@@ -103,7 +134,6 @@ export default {
         onSelectonSelectPrd() {
             this.prdCode = this.selectPrd.prdCode;
             this.prdName = this.selectPrd.prdName;
-            console.log(this.selectPrd.prdCode);
             this.selectPrd = [];
             this.productModal = false;
         },
@@ -120,6 +150,35 @@ export default {
             } catch (error) {
                 console.error('제품목록 불러오기 실패:', error);
             }
+        },
+        //보관창고(모달) ===========
+        openWarehouseeModal(rowIndex) {
+            console.log(rowIndex);
+            this.selectRow = rowIndex;
+            this.WarehouseModal = true;
+            this.getWareList();
+        },
+        async getWareList() {
+            try {
+                const res = await axios.get('/api/stock/modalWareList');
+                this.warehouses = res.data.map((item) => ({
+                    wareCode: item.warehouse_id,
+                    warerName: item.warehouse,
+                    warerType: item.warehouse_type
+                }));
+            } catch (error) {
+                console.error('창고목록 불러오기 실패:', error);
+            }
+        },
+        onSelectWare() {
+            this.returnList[this.selectRow].location = this.selectWare.warerName;
+            this.selectWare = null;
+            this.WarehouseModal = false;
+        },
+        dateFormat(date) {
+            let newDateFormat = new Date(date);
+            if (isNaN(newDateFormat.getTime())) return null;
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
     mounted() {
@@ -173,7 +232,7 @@ export default {
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <Column field="dueDate" header="반품등록일" style="width: 12rem" />
                 <Column field="outNo" header="출고번호" style="width: 15rem" />
-                <Column field="prdCode" header="제품코드" style="width: 10rem" />
+                <Column field="prdCode" header="제품코드" style="width: 10rem"/>
                 <Column field="prdName" header="제품명" style="width: 15rem" />
                 <Column field="retunQty" header="반품수량" style="width: 8rem" />
 
@@ -187,7 +246,7 @@ export default {
                 <!-- 보관위치 -->
                 <Column header="보관위치" style="width: 10rem">
                     <template #body="slotProps">
-                        <InputText v-model="slotProps.data.location" :disabled="slotProps.data.status === '확정'" />
+                        <InputText v-model="slotProps.data.location"  @click="openWarehouseeModal(slotProps.index)" :disabled="slotProps.data.status === '확정'" />
                     </template>
                 </Column>
 

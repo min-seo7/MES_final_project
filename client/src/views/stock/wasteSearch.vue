@@ -184,12 +184,12 @@ export default {
             <Column field="id" header="-" style="display: none"></Column>
             <Column field="reDate" header="등록일" sortable></Column>
             <Column field="prdNo" header="제품LOT번호" sortable></Column>
-            <Column field="prdType" header="제품유형" sortable></Column>
-            <Column field="prdCode" header="제품코드" sortable></Column>
+            <Column field="prdType" header="제품유형"></Column>
+            <Column field="prdCode" header="제품코드"></Column>
             <Column field="prdName" header="제품명" sortable></Column>
             <Column field="prdQty" header="재고수량" sortable></Column>
             <Column field="unit" header="단위"></Column>
-            <Column field="warehouse" header="보관위치" sortable></Column>
+            <Column field="warehouse" header="보관위치" ></Column>
             <Column field="status" header="상태" sortable></Column>
         </DataTable>
     </div>
