@@ -63,10 +63,10 @@ function selectComplete() {
     </div>
   </div>
 
-  <div class="flex justify-center border p-4 rounded-md bg-white">
-    <!-- 설비코드 -->
+  <!-- 🔹 왼쪽 정렬 -->
+  <div class="flex justify-start border p-4 rounded-md bg-white">
     <div class="flex items-center gap-2">
-      <label class="w-20 text-right">설비코드</label>
+      <label class="w-20 text-left">설비코드</label>
       <div class="relative w-80">
         <InputText v-model="search.eq_id" readonly class="w-full pr-10" />
         <i class="pi pi-search absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
@@ -95,3 +95,4 @@ function selectComplete() {
     </div>
   </Dialog>
 </template>
+

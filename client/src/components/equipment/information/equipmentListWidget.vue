@@ -41,15 +41,18 @@ async function fetchSearch(p, s) {
 
 /* 파라미터 감시 */
 watch(
-    () => props.params,
-    (p) => {
-        const has = ['equipment_id', 'equipment_type', 'equipment_name', 'location', 'status'].some((k) => p && p[k]);
-        const pNo = Number(p?.page || 1);
-        const sNo = Number(p?.size || 10);
-        if (has) fetchSearch(pNo, sNo);
-        else fetchSimple(pNo, sNo);
-    },
-    { immediate: true, deep: true }
+  () => props.params,
+  (p) => {
+    const has = ['equipment_id', 'equipment_type', 'equipment_name', 'location', 'status']
+      .some((k) => p && p[k] != null && String(p[k]).trim() !== '');
+
+    const pNo = Number(p?.page || 1);
+    const sNo = Number(p?.size || 10);
+
+    if (has) fetchSearch(pNo, sNo);
+    else     fetchSimple(pNo, sNo);
+  },
+  { immediate: true, deep: true }
 );
 
 /* 리스트 페이지네이션 */

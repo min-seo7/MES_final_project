@@ -22,7 +22,7 @@ const pickerList = ref([])
 const selected = ref('')
 const page = ref(1)
 const total = ref(0)
-const size = 5
+const size = 10
 
 async function openPicker() {
   await fetchPicker(1)

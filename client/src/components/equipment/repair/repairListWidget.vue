@@ -3,16 +3,18 @@ import { ref, watch, computed } from 'vue'
 import axios from 'axios'
 
 const props = defineProps({
-  params: { type: Object, default: () => ({ page: 1, size: 10 }) }
+  // ✅ 기본 size 5로 변경
+  params: { type: Object, default: () => ({ page: 1, size: 5 }) }
 })
 const emit = defineEmits(['loaded'])
 
 const rows = ref([])
 const page = ref(1)
-const size = ref(10)
+// ✅ 초기 size도 5로 변경
+const size = ref(5)
 const total = ref(0)
 
-const totalPages = computed(() => Math.max(1, Math.ceil(Number(total.value || 0) / Number(size.value || 10))))
+const totalPages = computed(() => Math.max(1, Math.ceil(Number(total.value || 0) / Number(size.value || 5))))
 
 const fmt = (d) => {
   if (!d) return ''
@@ -72,7 +74,7 @@ watch(
     const keys = ['repair_id', 'eq_id', 'status', 'date_from', 'date_to']
     const hasFilter = keys.some((k) => p && p[k])
     const pNo = Number(p?.page || 1)
-    const sNo = Number(p?.size || 10)
+    const sNo = Number(p?.size || 5) // ✅ size 5 반영
     hasFilter ? fetchSearch(pNo, sNo) : fetchSimple(pNo, sNo)
   },
   { immediate: true, deep: true }
@@ -92,47 +94,56 @@ function goto(p) {
 </script>
 
 <template>
-  <div class="border rounded-md bg-white overflow-hidden">
-    <table class="w-full table-fixed border-t border-gray-200 select-none">
-      <thead class="bg-gray-50 text-[14px]">
-        <tr>
-          <th class="h-11 text-left pl-4 border-b">설비코드</th>
-          <th class="text-left border-b">수리코드</th>
-          <th class="text-left border-b">비가동일시</th>
-          <th class="text-left border-b">재가동일시</th>
-          <th class="text-left border-b">수리시작일</th>
-          <th class="text-left border-b">수리완료일</th>
-          <th class="text-left border-b">책임자</th>
-          <th class="text-left border-b">수리사유</th>
-          <th class="text-left border-b">항목</th>
-          <th class="text-left border-b">결과</th>
-          <th class="text-left border-b">조치사항</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(r, i) in rows" :key="i">
-          <td class="h-11 pl-4 border-b">{{ r.eq_id }}</td>
-          <td class="border-b">{{ r.repair_id }}</td>
-          <td class="border-b">{{ fmt(r.fault_dtime) }}</td>
-          <td class="border-b">{{ fmt(r.restart_dtime) }}</td>
-          <td class="border-b">{{ fmt(r.start_dtime) }}</td>
-          <td class="border-b">{{ fmt(r.end_dtime) }}</td>
-          <td class="border-b">{{ r.repairer }}</td>
-          <td class="border-b truncate">{{ r.reason }}</td>
-          <td class="border-b truncate">{{ r.item }}</td>
-          <td class="border-b truncate">{{ r.result }}</td>
-          <td class="border-b truncate">{{ r.action }}</td>
-        </tr>
-        <tr v-if="!rows.length">
-          <td colspan="11" class="h-16 text-center text-gray-500">데이터가 없습니다.</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="mt-8 space-y-4">
+    <!-- ✅ 목록 제목 -->
+    <div class="flex items-center justify-between">
+      <div class="font-bold text-[18.5px]">목록</div>
+    </div>
 
-    <div class="flex items-center justify-center gap-6 px-4 py-3 border-t bg-white">
-      <Button label="이전" :disabled="page === 1" @click="prev" />
-      <span>{{ page }} / {{ totalPages }}</span>
-      <Button label="다음" :disabled="page >= totalPages" @click="next" />
+    <div class="border rounded-md bg-white overflow-hidden">
+      <table class="w-full table-fixed border-t border-gray-200 select-none">
+        <thead class="bg-gray-50 text-[14px]">
+          <tr>
+            <th class="h-11 text-left pl-4 border-b">설비코드</th>
+            <th class="text-left border-b">수리코드</th>
+            <th class="text-left border-b">비가동일시</th>
+            <th class="text-left border-b">재가동일시</th>
+            <th class="text-left border-b">수리시작일</th>
+            <th class="text-left border-b">수리완료일</th>
+            <th class="text-left border-b">책임자</th>
+            <th class="text-left border-b">수리사유</th>
+            <th class="text-left border-b">항목</th>
+            <th class="text-left border-b">결과</th>
+            <!-- ✅ 조치사항만 폭 넓힘 -->
+            <th class="text-left border-b w-[13%] pl-2">조치사항</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(r, i) in rows" :key="i">
+            <td class="h-11 pl-4 border-b">{{ r.eq_id }}</td>
+            <td class="border-b">{{ r.repair_id }}</td>
+            <td class="border-b">{{ fmt(r.fault_dtime) }}</td>
+            <td class="border-b">{{ fmt(r.restart_dtime) }}</td>
+            <td class="border-b">{{ fmt(r.start_dtime) }}</td>
+            <td class="border-b">{{ fmt(r.end_dtime) }}</td>
+            <td class="border-b">{{ r.repairer }}</td>
+            <td class="border-b truncate">{{ r.reason }}</td>
+            <td class="border-b truncate">{{ r.item }}</td>
+            <td class="border-b truncate">{{ r.result }}</td>
+            <!-- ✅ 조치사항도 넓힘 -->
+            <td class="border-b truncate text-left pl-2">{{ r.action }}</td>
+          </tr>
+          <tr v-if="!rows.length">
+            <td colspan="11" class="h-16 text-center text-gray-500">데이터가 없습니다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="flex items-center justify-center gap-6 px-4 py-3 border-t bg-white">
+        <Button label="이전" :disabled="page === 1" @click="prev" />
+        <span>{{ page }} / {{ totalPages }}</span>
+        <Button label="다음" :disabled="page >= totalPages" @click="next" />
+      </div>
     </div>
   </div>
 </template>

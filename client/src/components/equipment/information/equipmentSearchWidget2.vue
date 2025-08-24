@@ -9,19 +9,20 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'clear']);
 
 const search = ref({
-    equipment_id: '',
-    equipment_type: '',
-    equipment_name: '',
-    location: '',
-    status: '사용'
+  equipment_id: '',
+  equipment_type: '',
+  equipment_name: '',
+  location: '',
+  status: ''   // ⬅ null 말고 '' (빈문자열)로 초기화
 });
+
 
 function onSubmit() {
     emit('submit', { ...search.value });
 }
 function onClear() {
-    search.value = { equipment_id: '', equipment_type: '', equipment_name: '', location: '', status: '사용' };
-    emit('clear');
+  search.value = { equipment_id: '', equipment_type: '', equipment_name: '', location: '', status: '' };
+  emit('clear');
 }
 
 /* ===== 모달(돋보기) + 페이지네이션: 5개 고정 ===== */
@@ -109,10 +110,10 @@ function selectPicker(v) {
 
             <div class="flex items-center gap-3">
                 <label class="whitespace-nowrap mr-1">설비상태</label>
-                <RadioButton inputId="st1" name="status" value="사용" v-model="search.status" />
-                <label for="st1" class="mr-4">사용</label>
-                <RadioButton inputId="st2" name="status" value="미사용" v-model="search.status" />
-                <label for="st2">미사용</label>
+                <RadioButton inputId="st1" name="status" value="가동" v-model="search.status" />
+                <label for="st1" class="mr-4">가동</label>
+                <RadioButton inputId="st2" name="status" value="비가동" v-model="search.status" />
+                <label for="st2">비가동</label>
             </div>
         </div>
 
