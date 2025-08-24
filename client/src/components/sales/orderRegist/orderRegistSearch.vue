@@ -305,7 +305,7 @@ onMounted(() => {
                     <div class="flex flex-col">
                         <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
                         <IconField iconPosition="left">
-                            <InputText id="partnerId" type="text" class="w-48" v-model="form.partnerId" readonly />
+                            <InputText id="partnerId" type="text" class="w-48" v-model="form.partnerId" readonly style="background-color: lightgrey" />
                             <InputIcon class="pi pi-search" @click="openModal()" />
                         </IconField>
                     </div>
@@ -359,7 +359,7 @@ onMounted(() => {
                 <div class="flex flex-col">
                     <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
                     <IconField iconPosition="left" class="w-full">
-                        <InputText id="productName" type="text" class="w-60" v-model="order.productName" readonly />
+                        <InputText id="productName" type="text" class="w-60" v-model="order.productName" readonly style="background-color: lightgrey" />
                         <InputIcon class="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
                     </IconField>
                 </div>
@@ -387,15 +387,7 @@ onMounted(() => {
         </div>
         <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">거래처코드</label>
-                        <InputText v-model="supplierSearch.partnerId" @keyup.enter="fetchSuppliers" placeholder="거래처코드" />
-                        <label class="font-semibold text-sm">거래처명</label>
-                        <InputText v-model="supplierSearch.partnerName" @keyup.enter="fetchSuppliers" placeholder="거래처명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="fetchSuppliers" />
-                    </div>
-                </div>
+                <!-- 검색 입력 영역 제거 -->
                 <DataTable :value="items" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="10">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="partnerId" header="거래처코드" class="font-bold"></Column>
@@ -407,22 +399,15 @@ onMounted(() => {
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectSupplierAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectSupplierAndClose" />
                 </div>
             </template>
         </Dialog>
+
         <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">제품코드</label>
-                        <InputText v-model="productSearch.prodCode" @keyup.enter="fetchProducts" placeholder="제품코드" />
-                        <label class="font-semibold text-sm">제품명</label>
-                        <InputText v-model="productSearch.prodName" @keyup.enter="fetchProducts" placeholder="제품명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="fetchProducts" />
-                    </div>
-                </div>
+                <!-- 검색 입력 영역 제거 -->
                 <DataTable :value="products" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="10">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="productId" header="제품코드" class="font-bold"></Column>
@@ -434,8 +419,8 @@ onMounted(() => {
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectProductAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectProductAndClose" />
                 </div>
             </template>
         </Dialog>

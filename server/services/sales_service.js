@@ -150,6 +150,10 @@ const selectOrdRegistModal = () => {
   return query("selectOrdPartnerModal");
 };
 
+const selectOrderListModal = () => {
+  return query("selectOrdersModal");
+};
+
 // 주문등록 상세_완제품 제품 조회 모달창
 const selectOrderProductModal = () => {
   return query("selectOrderProduct");
@@ -389,6 +393,25 @@ const returnList = (filter) => {
   return list;
 };
 
+// 반품 내역 조회
+const returndelList = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.reStatus,
+    filter.reStatus,
+    filter.reStatus,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
+  let list = query("returnList", params);
+  return list;
+};
+
 // 반품 등록 전 조회
 const selectFiltereReturns = (filter) => {
   const params = [
@@ -426,8 +449,11 @@ const selectFilterInfoEmail = (filter) => {
     filter.partnerId,
     filter.partnerId,
     filter.partnerId,
-    filter.orderDate,
-    filter.orderDate,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.delDate,
+    filter.delDate,
   ];
   return query("mailPdfOrderList", params);
 };
@@ -606,4 +632,6 @@ module.exports = {
   selectFiltereReturns,
   generatePdfAndDownload,
   generatePdfAndSendEmail,
+  returndelList,
+  selectOrderListModal,
 };

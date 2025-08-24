@@ -194,6 +194,23 @@ const specOptions = computed(() => {
 // 주문 데이터
 const orders = ref([]);
 
+// --- 추가된 Paginator 상태 ---
+const first = ref(0);
+const rows = ref(5);
+const totalRecords = computed(() => orders.value.length);
+// --- 추가된 Paginator 상태 끝 ---
+
+// 페이징된 데이터 계산
+const paginatedOrders = computed(() => {
+    return orders.value.slice(first.value, first.value + rows.value);
+});
+
+// 페이징 이벤트 핸들러
+const onPage = (event) => {
+    first.value = event.first;
+    rows.value = event.rows;
+};
+
 // 주문 데이터 조회
 const fetchOrders = async () => {
     try {
@@ -236,6 +253,8 @@ const fetchOrders = async () => {
                 orderDetailId: item.order_detail_id,
                 prdOutNo: item.prd_out_no
             }));
+            // 검색 후 첫 페이지로 이동
+            first.value = 0;
         } else {
             orders.value = [];
             console.warn('서버 응답에 유효한 리스트 데이터가 없습니다.', response.data);
@@ -382,7 +401,7 @@ onMounted(() => {
                         <label for="partCode" class="font-semibold text-sm mb-1">거래처코드</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText id="partCode" type="text" class="w-60" placeholder="거래처코드" v-model="search.partCode" readonly />
+                                <InputText id="partCode" type="text" class="w-60" placeholder="거래처코드" v-model="search.partCode" readonly style="background-color: lightgrey" />
                                 <InputIcon class="pi pi-search" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
@@ -391,28 +410,10 @@ onMounted(() => {
                         <label for="prodCode" class="font-semibold text-sm mb-1">제품코드</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText id="prodCode" type="text" class="w-60" placeholder="제품코드" v-model="search.prodCode" readonly />
+                                <InputText id="prodCode" type="text" class="w-60" placeholder="제품코드" v-model="search.prodCode" readonly style="background-color: lightgrey" />
                                 <InputIcon class="pi pi-search" @click="openProductModal" />
                             </IconField>
                         </InputGroup>
-                    </div>
-                    <div class="flex flex-col space-y-1">
-                        <label class="font-semibold text-sm">제품명</label>
-                        <div class="flex flex-wrap gap-3">
-                            <div v-for="item in productList" :key="item" class="flex items-center gap-2">
-                                <RadioButton v-model="search.productName" :inputId="item" :value="item" />
-                                <label :for="item">{{ item }}</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col space-y-1">
-                        <label class="font-semibold text-sm">규격</label>
-                        <div class="flex flex-wrap gap-3">
-                            <div v-for="item in specOptions" :key="item" class="flex items-center gap-2">
-                                <RadioButton v-model="search.spec" :inputId="`spec-${item}`" :value="item" />
-                                <label :for="`spec-${item}`">{{ item }}</label>
-                            </div>
-                        </div>
                     </div>
                     <div class="flex flex-col space-y-1">
                         <label class="font-semibold text-sm">납기일</label>
@@ -434,8 +435,8 @@ onMounted(() => {
             <div class="w-2/3">
                 <br />
                 <div class="font-semibold text-xl mb-3 mt-8">검색내역</div>
-                <DataTable :value="orders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true" paginator :rows="10">
-                    <Column field="shipmentId" header="출하번호" style="min-width: 100px" frozen class="font-bold" />
+                <DataTable :value="paginatedOrders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true" class="mb-4">
+                    <Column field="shipmentId" header="출하번호" style="min-width: 100px" />
                     <Column field="prdOutNo" header="출하완료번호" style="min-width: 100px" />
                     <Column field="partnerId" header="거래처코드" style="min-width: 100px" />
                     <Column field="partnerName" header="거래처명" style="min-width: 100px" />
@@ -453,6 +454,7 @@ onMounted(() => {
                     </Column>
                     <Column field="orderManager" header="담당자" style="min-width: 100px" />
                 </DataTable>
+                <Paginator v-model:first="first" :rows="rows" :totalRecords="totalRecords" @page="onPage" :rowsPerPageOptions="[5, 10, 20, 30]"></Paginator>
             </div>
             <div class="w-1/3">
                 <div class="flex justify-end space-x-2 mb-4">
@@ -501,8 +503,8 @@ onMounted(() => {
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectSupplierAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectSupplierAndClose" />
                 </div>
             </template>
         </Dialog>
@@ -515,11 +517,12 @@ onMounted(() => {
                     <Column field="productId" header="제품코드"></Column>
                     <Column field="productName" header="제품명"></Column>
                     <Column field="specification" header="규격"></Column>
+                    <Column field="unit" header="단위"></Column>
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectProductAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectProductAndClose" />
                 </div>
             </template>
         </Dialog>

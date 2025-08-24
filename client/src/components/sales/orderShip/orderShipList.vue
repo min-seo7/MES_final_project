@@ -25,11 +25,14 @@ const totalRecords = ref(0);
 const first = ref(0);
 const rows = ref(10);
 
-// 모달 관련 상태 변수
-const showSupplierModal = ref(false);
-const supplierList = ref([]);
-const showProductModal = ref(false);
-const productList = ref([]);
+// --- 거래처 모달 ---
+const showSupplierDialog = ref(false);
+const allSuppliers = ref([]);
+const selectedSupplierFromDialog = ref(null);
+// --- 제품 모달 ---
+const showProductDialog = ref(false);
+const allProducts = ref([]);
+const selectedProductFromDialog = ref(null);
 
 // 상태코드 ↔ 상태명 매핑
 const shipStateMap = { 1: '출하대기', 2: '출하중', 3: '출하완료' };
@@ -95,7 +98,7 @@ const fetchShipList = async () => {
 const fetchSuppliers = async () => {
     try {
         const response = await axios.get('/api/sales/ordPaModalList');
-        supplierList.value = response.data.list.map((item) => ({
+        allSuppliers.value = response.data.list.map((item) => ({
             code: item.partner_id,
             name: item.partner_name,
             address: item.address,
@@ -106,11 +109,23 @@ const fetchSuppliers = async () => {
         supplierList.value = [];
     }
 };
+const openSupplierModal = async () => {
+    selectedSupplierFromDialog.value = null;
+    await fetchSuppliers();
+    showSupplierDialog.value = true;
+};
+
+const selectSupplierAndClose = () => {
+    if (selectedSupplierFromDialog.value) {
+        searchFilters.value.partnerId = selectedSupplierFromDialog.value.partnerId;
+    }
+    showSupplierDialog.value = false;
+};
 
 const fetchProducts = async () => {
     try {
         const response = await axios.get('/api/sales/ordModalPrdList');
-        productList.value = response.data.list.map((item) => ({
+        allProducts.value = response.data.list.map((item) => ({
             code: item.product_id,
             name: item.product_name,
             spec: item.specification,
@@ -122,27 +137,17 @@ const fetchProducts = async () => {
     }
 };
 
-// 모달 열기/선택 함수
-const openSupplierModal = () => {
-    showSupplierModal.value = true;
-    fetchSuppliers();
+const openProductModal = async () => {
+    selectedProductFromDialog.value = null;
+    await fetchProducts();
+    showProductDialog.value = true;
 };
 
-const selectSupplier = (event) => {
-    const supplier = event.data;
-    searchFilters.value.partCode = supplier.code;
-    showSupplierModal.value = false;
-};
-
-const openProductModal = () => {
-    showProductModal.value = true;
-    fetchProducts();
-};
-
-const selectProduct = (event) => {
-    const product = event.data;
-    searchFilters.value.prodCode = product.code;
-    showProductModal.value = false;
+const selectProductAndClose = () => {
+    if (selectedProductFromDialog.value) {
+        searchFilters.value.productName = selectedProductFromDialog.value.productName;
+    }
+    showProductDialog.value = false;
 };
 
 // 조회 / 초기화
@@ -188,7 +193,7 @@ onMounted(fetchShipList);
                     <label class="font-semibold text-sm mb-1">제품코드</label>
                     <InputGroup>
                         <IconField iconPosition="right">
-                            <InputText v-model="searchFilters.prodCode" placeholder="제품코드" />
+                            <InputText v-model="searchFilters.prodCode" placeholder="제품코드" readonly style="background-color: lightgrey" />
                             <InputIcon class="pi pi-search cursor-pointer" @click="openProductModal" />
                         </IconField>
                     </InputGroup>
@@ -198,7 +203,7 @@ onMounted(fetchShipList);
                     <label class="font-semibold text-sm">거래처코드</label>
                     <InputGroup>
                         <IconField iconPosition="right">
-                            <InputText v-model="searchFilters.partCode" placeholder="거래처코드" />
+                            <InputText v-model="searchFilters.partCode" placeholder="거래처코드" readonly style="background-color: lightgrey" />
                             <InputIcon class="pi pi-search cursor-pointer" @click="openSupplierModal" />
                         </IconField>
                     </InputGroup>
@@ -233,9 +238,8 @@ onMounted(fetchShipList);
             </div>
         </div>
 
-        <div class="font-semibold text-xl mb-4">출하내역</div>
-        <DataTable :value="paginatedData" scrollable scrollHeight="400px" class="mt-4">
-            <Column field="shipmentId" header="출하번호" style="min-width: 100px" frozen class="font-bold" />
+        <DataTable :value="paginatedData" :paginator="true" :rows="5" class="mt-3">
+            <Column field="shipmentId" header="출하번호" style="min-width: 100px" />
             <Column field="productId" header="제품코드" style="min-width: 100px" />
             <Column field="productName" header="제품명" style="min-width: 120px" />
             <Column field="partnerName" header="거래처명" style="min-width: 120px" />
@@ -250,26 +254,40 @@ onMounted(fetchShipList);
             </Column>
             <Column field="orderManager" header="담당자" style="min-width: 100px" />
         </DataTable>
-
-        <div class="flex justify-center mt-4">
-            <Paginator :rows="rows" :totalRecords="totalRecords" :rowsPerPageOptions="[10, 20, 30]" @page="onPage" />
-        </div>
-
-        <Dialog v-model:visible="showSupplierModal" modal header="거래처 검색" :style="{ width: '50vw' }">
-            <DataTable :value="supplierList" selectionMode="single" @row-select="selectSupplier">
-                <Column field="code" header="거래처코드" />
-                <Column field="name" header="거래처명" />
-                <Column field="address" header="주소" />
-                <Column field="manager" header="담당자" />
-            </DataTable>
+        <!-- 거래처 모달 -->
+        <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
+            <div class="p-4">
+                <DataTable :value="allSuppliers" selectionMode="single" dataKey="code" v-model:selection="selectedSupplierFromDialog">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="code" header="거래처코드"></Column>
+                    <Column field="name" header="거래처명"></Column>
+                    <Column field="address" header="주소"></Column>
+                    <Column field="manager" header="담당자"></Column>
+                </DataTable>
+            </div>
+            <template #footer>
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectSupplierAndClose" />
+                </div>
+            </template>
         </Dialog>
 
-        <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '50vw' }">
-            <DataTable :value="productList" selectionMode="single" @row-select="selectProduct">
-                <Column field="code" header="제품코드" />
-                <Column field="name" header="제품명" />
-                <Column field="spec" header="규격" />
-            </DataTable>
+        <!-- 제품 모달 -->
+        <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
+            <div class="p-4">
+                <DataTable :value="allProducts" selectionMode="single" dataKey="code" v-model:selection="selectedProductFromDialog">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="code" header="제품코드"></Column>
+                    <Column field="name" header="제품명"></Column>
+                    <Column field="spec" header="규격"></Column>
+                    <Column field="stock" header="재고"></Column>
+                </DataTable>
+            </div>
+            <template #footer>
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectProductAndClose" />
+                </div>
+            </template>
         </Dialog>
     </div>
 </template>
