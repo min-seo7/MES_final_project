@@ -429,6 +429,7 @@ SELECT    s.shipment_id,
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(r.return_date) >= ?)
     AND (? IS NULL OR DATE(r.return_date) <= ?)
+    ORDER by r.return_id desc
   `;
 
 //반품등록
@@ -497,7 +498,7 @@ WHERE
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
-ORDER BY s.shipment_id, i.product_id`;
+ORDER BY s.shipment_id DESC`;
 
 // const selectReturnPreList = `
 // SELECT
