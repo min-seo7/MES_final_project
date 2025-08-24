@@ -1,7 +1,12 @@
 <script setup>
-import { ref, defineProps, watch } from 'vue';
+import { ref, defineProps, watch, defineEmits } from 'vue'; // defineEmits 추가
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import RadioButton from 'primevue/radiobutton';
 
 const props = defineProps({
     detailData: {
@@ -13,6 +18,8 @@ const props = defineProps({
         default: () => []
     }
 });
+
+const emits = defineEmits(['resetLine']); // emits 정의
 
 const form = ref({
     lineId: '',
@@ -117,20 +124,43 @@ const registLine = async () => {
         const res = await axios.post('/api/information/line', payload, {
             headers: { 'Content-Type': 'application/json' }
         });
-
-        alert(res.data.message || '등록 성공');
+        form.value = {
+            lineId: '',
+            lineName: '',
+            flowId: '',
+            productId: '',
+            productName: '',
+            note: '',
+            status: ''
+        };
+        
+        emits('resetLine'); // 부모로 초기화 이벤트 전송
+        
+        alert('등록이 완료되었습니다.');
     } catch (err) {
         console.error(err);
-        alert('등록 실패');
+        alert('등록할 수 없습니다.');
     }
 };
 
 const modifyLine = async () => {
     try {
         const res = await axios.post('/api/information/line/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+            lineId: '',
+            lineName: '',
+            flowId: '',
+            productId: '',
+            productName: '',
+            note: '',
+            status: ''
+        };
+        
+        emits('resetLine'); // 부모로 초기화 이벤트 전송
+        
+        alert("수정이 완료되었습니다.");
     } catch (err) {
-        console.log('라인수정실패');
+        alert('수정할 수 없습나다.');
     }
 };
 

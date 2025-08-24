@@ -55,19 +55,54 @@ const registEmployee = async () => {
         if (form.value.emailDomain) {
             form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
         }
-        const res = await axios.post('/api/information/employee', form.value);
-        alert(res.data.message);
+        const res = await axios.post('/api/information/employee', form.value || null);
+        
+        form.value = {
+                employeeId: '',
+                name: '',
+                phone: '',
+                email: '',
+                hireDate: '',
+                leaveDate: '',
+                auth: '',
+                department: '',
+                status: ''
+            };
+        alert('등록이 완료되었습니다.');
     } catch (err) {
-        console.log('사원등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 
 const modifyEmployee = async () => {
     try {
-        const res = await axios.post('/api/information/employee/modify', form.value);
-        alert(res.data.message);
+        // 도메인을 선택했으면 합쳐서 email 완성
+        if (form.value.emailDomain) {
+            form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
+        }
+
+        // leaveDate 값이 빈 문자열일 경우, null로 변경
+        const employeeData = {
+            ...form.value,
+            leaveDate: form.value.leaveDate === '' ? null : form.value.leaveDate
+        };
+
+        const res = await axios.post('/api/information/employee', employeeData);
+
+        form.value = {
+                employeeId: '',
+                name: '',
+                phone: '',
+                email: '',
+                hireDate: '',
+                leaveDate: '',
+                auth: '',
+                department: '',
+                status: ''
+            };
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('사원수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 

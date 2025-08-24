@@ -1,7 +1,12 @@
 <script setup>
-import { ref, defineProps, watch } from 'vue';
+import { ref, defineProps, watch, defineEmits } from 'vue'; // defineEmits 추가
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import RadioButton from 'primevue/radiobutton';
 
 const props = defineProps({
     detailData: {
@@ -13,6 +18,8 @@ const props = defineProps({
         default: () => []
     }
 });
+
+const emits = defineEmits(['resetBomDetail']); // emits 정의
 
 const item = ref([]);
 const columns = ref([]);
@@ -114,19 +121,32 @@ const registBom = async () => {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        alert(res.data.message || '등록 성공');
+        // 폼 초기화
+        form.value = {
+                bomId: '',
+                prodId: '',
+                prodName: '',
+                prodForm: '',
+                prodType: '',
+                status: ''
+            }
+        
+        // 부모 컴포넌트에 bomDetailData 초기화를 요청하는 이벤트 발생
+        emits('resetBomDetail');
+
+        alert('등록이 완료되었습니다.');
     } catch (err) {
-        console.error(err);
-        alert('등록 실패');
+
+        alert('등록할 수 없습니다.');
     }
 };
 
 const modifyBom = async () => {
     try {
         const res = await axios.post('/api/information/bom/modify', form.value);
-        alert(res.data.message);
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('bom 수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 
@@ -165,10 +185,6 @@ const resetRegist = () => {
                 <label class="block text-sm mb-1">BOM코드</label>
                 <InputText v-model="form.bomId" class="w-full h-8" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
             </div>
-            <div class="w-1/4">
-                <label class="block text-sm mb-1">제품명</label>
-                <InputText v-model="form.prodName" class="w-full h-8" />
-            </div>
 
             <div class="w-1/4">
                 <label class="block text-sm mb-1">제품코드</label>
@@ -178,15 +194,20 @@ const resetRegist = () => {
                 </IconField>
             </div>
             <div class="w-1/4">
+                <label class="block text-sm mb-1">제품명</label>
+                <InputText v-model="form.prodName" class="w-full h-8" />
+            </div>
+
+            <div class="w-1/4">
                 <label class="block text-sm mb-1">상태</label>
                 <div class="flex items-center border rounded px-1 h-8">
                     <div class="flex items-center mr-2">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-1 text-sm">활성</label>
+                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
+                        <label for="status1" class="ml-1 text-sm">사용</label>
                     </div>
                     <div class="flex items-center">
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-1 text-sm">비활성</label>
+                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
+                        <label for="status2" class="ml-1 text-sm">미사용</label>
                     </div>
                 </div>
             </div>

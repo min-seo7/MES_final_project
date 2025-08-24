@@ -1,7 +1,12 @@
 <script setup>
-import { ref, defineProps, watch } from 'vue';
+import { ref, defineProps, watch, defineEmits } from 'vue'; // defineEmits 추가
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import RadioButton from 'primevue/radiobutton';
 
 const props = defineProps({
     detailData: {
@@ -13,6 +18,8 @@ const props = defineProps({
         default: () => []
     }
 });
+
+const emits = defineEmits(['resetFlow']); // emits 정의
 
 const item = ref([]);
 const columns = ref([]);
@@ -118,20 +125,45 @@ const registFlowchart = async () => {
         const res = await axios.post('/api/information/flowchart', payload, {
             headers: { 'Content-Type': 'application/json' }
         });
-
-        alert(res.data.message || '등록 성공');
+        form.value = {
+                flowId: '',
+                flowName: '',
+                productId: '',
+                productName: '',
+                note: '',
+                status: '',
+                flowchart: ''
+            };
+        
+        // 부모 컴포넌트로 초기화 이벤트 전송
+        emits('resetFlow');
+        
+        alert('등록이 완료되었습니다.');
     } catch (err) {
         console.error(err);
-        alert('등록 실패');
+        alert('등록할 수 없습니다.');
     }
 };
 
 const modifyFlow = async () => {
     try {
         const res = await axios.post('/api/information/flowchart/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+                flowId: '',
+                flowName: '',
+                productId: '',
+                productName: '',
+                note: '',
+                status: '',
+                flowchart: ''
+            };
+        
+        // 부모 컴포넌트로 초기화 이벤트 전송
+        emits('resetFlow');
+
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('흐름도 수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 
@@ -167,7 +199,6 @@ const resetRegist = async () => {
     </div>
     <div class="card border rounded mb-2">
         <div class="flex flex-col md:flex-row gap-2">
-            <!-- 왼쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1 md:w-1/2">흐름도코드</label>
@@ -188,7 +219,6 @@ const resetRegist = async () => {
                 </div>
             </div>
 
-            <!-- 오른쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">흐름도명</label>
@@ -218,6 +248,6 @@ const resetRegist = async () => {
 <style scoped>
 /* 기존 스타일 */
 .card {
-    margin-bottom: 0 !important; /* 이 스타일을 유지하여 다른 곳에서 영향을 받지 않도록 합니다. */
+    margin-bottom: 0 !important; 
 }
 </style>

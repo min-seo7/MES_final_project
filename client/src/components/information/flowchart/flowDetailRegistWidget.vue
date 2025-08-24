@@ -73,6 +73,12 @@ const selectModalValue = (item) => {
 
 const addFlowchartdetail = () => {
     emits('flowchartDetail', form.value);
+    form.value = {
+    processId: '',
+    processName: '',
+    useOrder: '',
+    status: ''
+};
 };
 </script>
 

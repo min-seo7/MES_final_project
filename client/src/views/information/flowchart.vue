@@ -76,6 +76,11 @@ const handleResetForm = () => {
     flowchartSelectedData.value = {}; // 초기화
 };
 
+// flowchartDetailData를 빈 배열로 초기화
+const handleResetDetail = () => {
+    flowchartDetailData.value = [];
+};
+
 
 onUnmounted(() => {
     console.log('flow.vue unmounted!');
@@ -92,7 +97,7 @@ onUnmounted(() => {
                 <flowDetailWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />
             </div>
             <div class="md:w-1/2 flex flex-col h-full">
-                <flowRegistWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />
+                <flowRegistWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" @resetFlow="handleResetDetail" />
                 <flowDetailRegistWidget @flowchartDetail="handleFlowchartDetail" />
             </div>
         </div>

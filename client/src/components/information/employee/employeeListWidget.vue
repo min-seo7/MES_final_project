@@ -71,7 +71,6 @@ const tableData = computed(() => {
         <Column field="hireDate" header="입사일자" style="width: 150px" />
         <Column field="endDate" header="퇴사일자" style="width: 150px" />
         <Column field="pw" header="비밀번호" style="width: 150px" />
-        <Column field="pwstatus" header="비밀번호변경유무" style="width: 150px" />
         <Column field="status" header="상태" style="width: 100px" />
         <Column field="auth" header="권한" style="width: 100px" />
     </DataTable>

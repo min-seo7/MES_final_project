@@ -23,9 +23,20 @@ const form = ref({
 const modifyWarehouse = async () => {
     try {
         const res = await axios.post('/api/information/warehouse/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+                warehouseId: '',
+                warehouse: '',
+                zone: '',
+                subZone: '',
+                floor: '',
+                location: '',
+                warehouseType: '',
+                status: ''
+            };
+        
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('창고수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 
@@ -74,9 +85,19 @@ watch(
 const registWarehouse = async () => {
     try {
         const res = await axios.post('/api/information/warehouse', form.value);
-        alert(res.data.message);
+        
+        form.value = {
+                warehouseId: '',
+                warehouse: '',
+                zone: '',
+                subZone: '',
+                floor: '',
+                location: '',
+                warehouseType: '',
+                status: ''
+            };alert("등록이 완료되었습니다.");
     } catch (err) {
-        console.log('창고등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 </script>

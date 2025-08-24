@@ -33,6 +33,7 @@ const openModal = async (type) => {
                 processId: item.process_id,
                 processName: item.process_name
             }));
+            console.log(item.value);
             columns.value = [
                 { field: 'processId', header: '공정코드' },
                 { field: 'processName', header: '공정명' }
@@ -69,19 +70,27 @@ const selectModalValue = (item) => {
 
     if (modalType.value === 'processId') {
         form.value.processId = item.processId;
-        // form.value.processName = item.processName; // 혹시 공정명도 필요하다면 추가
+        form.value.processName = item.processName; 
     } else if (modalType.value === 'equipmentId') {
         form.value.equipmentId = item.equipmentId;
-        // form.value.equipmentName = item.equipmentName; // 혹시 설비명도 필요하다면 추가
+        form.value.equipmentName = item.equipmentName; 
     }
     
-    selectedItem.value = item; // 선택된 항목 전체를 저장
+    selectedItem.value = item;
 
     showModal.value = false;
 };
 
 const addLinedetail = () => {
     emits('lineDetail', form.value);
+    form.value = {
+            processId: '',
+    processName: '',
+    equipmentId: '',
+    equipmentName: '',
+    useOrder: '',
+    status: ''
+        };
 };
 
 const resetRegist = async () => {
