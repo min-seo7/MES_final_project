@@ -77,24 +77,32 @@ const handleSelect = (row) => {
     console.log(lineSelectedData);
 };
 
+const handleResetForm = () => {
+    lineSelectedData.value = {}; // 초기화
+    lineDetailData.value = {}
+};
+
+
 onUnmounted(() => {
     console.log('line.vue unmounted!');
 });
 </script>
 
 <template>
-    <section class="line-container">
-        <lineSearchWidget @lineFilterSearch="handleSearch" />
+        <lineSearchWidget @lineFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <lineListWidget :items="lineSearchData" @lineSelected="handleSelect" />
-        <lineRegistWidget :detailData="lineDetailData" :items="lineSelectedData" />
+            <div class="mt-2"></div>
 
-        <div class="flex flex-col md:flex-row gap-8">
-            <div class="md:w-1/2">
-                <lineDetailWidget :detailData="lineDetailData" :items="lineSelectedData" />
-            </div>
-            <div class="md:w-1/2">
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="md:w-1/2 flex flex-col h-full">
+            <lineDetailWidget :detailData="lineDetailData" :items="lineSelectedData" />
+        </div>
+        
+        <div class="md:w-1/2 flex flex-col h-full">
+            <div class="flex flex-col">
+                <lineRegistWidget :detailData="lineDetailData" :items="lineSelectedData" />
                 <lineDetailRegistWidget @lineDetail="handleLineDetail" />
             </div>
         </div>
-    </section>
+    </div>
 </template>

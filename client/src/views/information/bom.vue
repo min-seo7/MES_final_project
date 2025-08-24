@@ -67,24 +67,29 @@ const handleSelect = (row) => {
     console.log(bomSelectedData);
 };
 
+const handleResetForm = () => {
+    bomSelectedData.value = {}; // 초기화
+};
+
 onUnmounted(() => {
     console.log('employee.vue unmounted!');
 });
 </script>
 
 <template>
-    <section class="employee-container">
-        <BomSearchWidget @bomFilterSearch="handleSearch" />
-        <BomListWidget :items="bomSearchData" @bomSelected="handleSelect" />
+        <BomSearchWidget @bomFilterSearch="handleSearch" @resetForm="handleResetForm"/>
+        <BomListWidget :items="bomSearchData" @bomSelected="handleSelect" class="mb-4" />
+        
         <div class="flex flex-col md:flex-row gap-8">
-            <div class="md:w-1/2">
+            <div class="md:w-1/2 flex flex-col h-full">
                 <BomDetailWidget :detailData="bomDetailData" :items="bomSelectedData" />
             </div>
-            <div class="md:w-1/2">
-                <BomRegistWidget :detailData="bomDetailData" :items="bomSelectedData" />
-
-                <BomDetailRegistWidget @bomDetail="handleBomDetail" />
+            
+            <div class="md:w-1/2 flex flex-col h-full">
+                <div class="flex flex-col">
+                    <BomRegistWidget :detailData="bomDetailData" :items="bomSelectedData" />
+                    <BomDetailRegistWidget @bomDetail="handleBomDetail" />
+                </div>
             </div>
         </div>
-    </section>
 </template>

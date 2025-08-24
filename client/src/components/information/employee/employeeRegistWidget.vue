@@ -117,9 +117,12 @@ const resetRegist = async () => {
         <div class="flex flex-col md:flex-row gap-6">
             <div class="flex flex-col gap-4 w-full">
                 <div>
-                    <label class="block mb-1">이름</label>
-                    <InputText v-model="form.name" class="w-full" />
+                    <label class="block mb-1">사원번호</label>
+                    <div>
+                        <InputText v-model="form.employeeId" :readonly="true" :placeholder="!form.employeeId?.trim() ? '자동생성' : ''" class="w-full bg-gray-200" style="background-color: lightgrey"/>
+                    </div>
                 </div>
+
                 <div>
                     <label class="block mb-1">연락처</label>
                     <InputText :value="form.phone" @input="onPhoneInput" class="w-full" />
@@ -150,10 +153,8 @@ const resetRegist = async () => {
 
             <div class="flex flex-col gap-4 w-full">
                 <div>
-                    <label class="block mb-1">사원번호</label>
-                    <div>
-                        <InputText v-model="form.employeeId" :readonly="true" :placeholder="!form.employeeId?.trim() ? '자동생성' : ''" class="w-full bg-gray-200" />
-                    </div>
+                    <label class="block mb-1">이름</label>
+                    <InputText v-model="form.name" class="w-full" />
                 </div>
                 <div class="flex gap-4">
                     <div class="flex-1">

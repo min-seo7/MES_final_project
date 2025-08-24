@@ -49,7 +49,7 @@ const tableData = computed(() => {
                 expiration: '\u00A0',
                 storageCondition: '\u00A0',
                 safetyStock: '\u00A0',
-                manual: '\u00A0',
+                productCategory: '\u00A0',
                 status: '\u00A0'
             });
         }
@@ -61,7 +61,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="productId" header="제품코드" style="width: 150px" />
         <Column field="productType" header="제품유형" style="width: 150px" />
         <Column field="productForm" header="제품형태" style="width: 150px" />
@@ -70,7 +70,7 @@ const tableData = computed(() => {
         <Column field="expiration" header="유통기한" style="width: 150px" />
         <Column field="storageCondition" header="보관조건" style="width: 150px" />
         <Column field="safetyStock" header="안전재고" style="width: 150px" />
-        <Column field="manual" header="제품카테고리" style="width: 150px" />
+        <Column field="productCategory" header="제품카테고리" style="width: 150px" />
         <Column field="status" header="상태" style="width: 100px" />
     </DataTable>
 </template>

@@ -57,6 +57,11 @@ const handleSelect = (row) => {
     console.log(processSelectedData);
 };
 
+
+const handleResetForm = () => {
+    processSelectedData.value = {}; // 초기화
+};
+
 onUnmounted(() => {
     console.log('process.vue unmounted!');
 });
@@ -64,7 +69,7 @@ onUnmounted(() => {
 
 <template>
     <section class="process-container">
-        <processSearchWidget @processFilterSearch="handleSearch" />
+        <processSearchWidget @processFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <processListWidget :items="processSearchData" @processSelected="handleSelect" />
         <div class="mt-2"></div>
         <processRegistWidget :items="processSelectedData" />

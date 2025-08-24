@@ -82,7 +82,8 @@ WHERE 1=1
   AND warehouse = COALESCE(?, warehouse)
   AND location = COALESCE(?, location)
   AND warehouse_type = COALESCE(?, warehouse_type)
-  AND status = COALESCE(?, status)`;
+  AND status = COALESCE(?, status)
+ORDER BY 1 desc`;
 
 // 마지막 창고id 조회
 const selectMaxWarehouseId = `
@@ -128,7 +129,7 @@ SELECT product_id,
        storage_condition,
        safety_stock,
        safety_stock_unit,
-       product_category,
+       product_cate_id,
        status
 FROM product
 WHERE 1=1
@@ -136,7 +137,8 @@ WHERE 1=1
   AND product_name = COALESCE(?, product_name)
   AND product_type = COALESCE(?, product_type)
   AND product_form = COALESCE(?, product_form)
-  AND status = COALESCE(?, status)`;
+  AND status = COALESCE(?, status)
+ORDER BY 1 desc`;
 
 // 마지막 제품 ID 조회
 const selectMaxProductId = `
@@ -157,7 +159,7 @@ INSERT INTO product (product_id,
 			storage_condition,
 			safety_stock,
 			safety_stock_unit,
-			product_category,
+			product_cate_id,
 			status)
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
@@ -174,7 +176,7 @@ SET product_type = ?,
     storage_condition = ?,
     safety_stock = ?,
     safety_stock_unit = ?,
-    product_category = ?,
+    product_cate_id = ?,
     status = ?
 WHERE  product_id = ?`;
 
@@ -193,7 +195,8 @@ FROM material
 WHERE 1=1
   AND material_id = COALESCE(?, material_id)
   AND material_name = COALESCE(?, material_name)
-  AND status = COALESCE(?, status)`;
+  AND status = COALESCE(?, status)
+ORDER BY 1 desc`;
 
 // 자재 등록
 const insertMaterial = `
@@ -238,6 +241,7 @@ WHERE 1=1
   AND partner_name = COALESCE(?, partner_name)
   AND partner_type = COALESCE(?, partner_type)
   AND status = COALESCE(?, status)
+ORDER BY 1 desc
 `;
 
 // 거래처 조회
@@ -322,6 +326,7 @@ WHERE 1=1
   AND f.product_id = COALESCE(?, f.product_id)
   AND p.product_name = COALESCE(?, p.product_name)
   AND f.status = COALESCE(?, f.status)
+ORDER BY 1 desc
  `;
 
 // 흐름도 등록
@@ -424,6 +429,7 @@ WHERE 1=1
           AND (? IS NULL OR d.equipment_id = ?)
       )
   AND l.status = COALESCE(?, l.status)
+ORDER BY 1 desc
 `;
 
 // 라인등록
@@ -472,7 +478,8 @@ FROM process
 WHERE 1=1
   AND process_id = COALESCE(?, process_id)
   AND process_name = COALESCE(?, process_name)
-  AND status = COALESCE(?, status)`;
+  AND status = COALESCE(?, status)
+ORDER BY 1 desc`;
 
 // 공정수정
 const updateProcess = `
@@ -497,7 +504,8 @@ WHERE 1=1
   AND b.bom_id = COALESCE(?, b.bom_id)
   AND p.product_name = COALESCE(?, p.product_name)
   AND p.product_type = COALESCE(?, p.product_type)
-  AND b.status = COALESCE(?, b.status)`;
+  AND b.status = COALESCE(?, b.status)
+ORDER BY 1 desc`;
 
 // bom detail 조회
 const selectBomDetail = `
@@ -572,6 +580,7 @@ WHERE 1=1
   AND department = COALESCE(?, department)
   AND auth = COALESCE(?, auth)
   AND status = COALESCE(?, status)
+ORDER BY 1 desc
 `;
 
 // 마지막 material_id 조회

@@ -60,7 +60,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="partnerId" header="거래처코드" style="width: 150px" />
         <Column field="partnerType" header="거래처유형" style="width: 100px" />
         <Column field="partnerName" header="거래처명" style="width: 150px" />

@@ -62,7 +62,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="employeeId" header="사원번호" style="width: 150px" />
         <Column field="name" header="이름" style="width: 100px" />
         <Column field="department" header="부서" style="width: 150px" />

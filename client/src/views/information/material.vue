@@ -82,6 +82,10 @@ const handleSelect = (row) => {
     console.log(materialSelectedData.value);
 };
 
+const handleResetForm = () => {
+    materialSelectedData.value = {}; // 초기화
+};
+
 onUnmounted(() => {
     console.log('material.vue unmounted!');
 });
@@ -89,7 +93,7 @@ onUnmounted(() => {
 
 <template>
     <section class="material-container">
-        <materialSearchWidget @materialFilterSearch="handleSearch" />
+        <materialSearchWidget @materialFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <materialListWidget :items="materialSearchData" @materialSelected="handleSelect" />
         <div class="mt-2"></div>
         <materialRegistWidget :items="materialSelectedData" />
