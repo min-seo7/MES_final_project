@@ -232,7 +232,7 @@ const router = createRouter({
                 {
                     path: '/production/processSearch',
                     name: 'processSearch',
-                    component: () => import('@/views//production/processSearch.vue')
+                    component: () => import('@/views/production/processSearch.vue')
                 },
                 {
                     path: '/production/prodStockSearch',

@@ -229,6 +229,10 @@ onMounted(async () => {
 //     performanceNumber.value = generateCode();
 // };
 const registStartPerformance = async () => {
+    if(worker.value.trim() === '') {
+        alert('작업자 이름을 입력해주세요.');
+        return;
+    }
     if (status.value == '완료' || status.value == '진행') {
         alert('이미 실적이 등록되었거나 공정진행중입니다');
         return;

@@ -1,35 +1,63 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputNumber from 'primevue/inputnumber';
 import Dialog from 'primevue/dialog';
+import axios from 'axios';
+import { useUserStore } from '@/store/index';
+
+
+let userInfo = useUserStore(); // user session information
+console.log('session joined user name : ', userInfo.lastname ? userInfo.lastname : null);
 const search = ref({
     productPlanCode: '',
     planStartDate: '',
     planEndDate: '',
     director: ''
 });
+const currentEditRow = ref(null);
 
 // 모달 상태 관리
 const showModal = ref(false);
 const modalType = ref('');
 
-// const openModal = (type) => {
-//     modalType.value = type;
-//     showModal.value = true;
-// };
+const openModal = (type) => {
+    modalType.value = type;
+    showModal.value = true;
+};
 
 const closeModal = () => {
     showModal.value = false;
 };
 
+
+
 const selectModalValue = (value) => {
-    if (modalType.value === 'productCode') search.value.productCode = value.code;
-    else if (modalType.value === 'name') search.value.name = value.name;
+    if (modalType.value === 'productPlanCode') {
+        search.value.productPlanCode = value.code;
+    }
+    if (modalType.value === 'productCode') {
+        if (currentEditRow.value) {
+            // 변경할 행의 인덱스 찾기
+            const rowIndex = products.value.findIndex((p) => p.id === currentEditRow.value.id);
+            if (rowIndex !== -1) {
+                // 행의 제품 코드와 제품명 업데이트
+                products.value[rowIndex].productCode = value.productCode;
+                products.value[rowIndex].productname = value.productName;
+                products.value[rowIndex].productType = value.productType;
+                products.value[rowIndex].specification = value.specification;
+                products.value[rowIndex].unit = value.unit;
+                products.value[rowIndex].lineId = value.lineId;
+                products.value[rowIndex].linename = value.linename;
+            }
+        
+        currentEditRow.value = null; // 편집 중인 행 초기화
+        }
+    }
     showModal.value = false;
-};
+}
 // const productCodeList = ref([
 //     { code: 'PRD001', name: '분말형비료', specification: 'kg', unit: 20, prd_form: '완제품' }, //
 //     { code: 'PRD001', name: '분말형비료', specification: 'kg', unit: 40, prd_form: '완제품' }, //
@@ -42,25 +70,14 @@ const selectModalValue = (value) => {
 //     { code: 'PRD001', name: '액상형비료', specification: null, unit: null, prd_form: '반제품' } //
 // ]);
 
-// const currentPage = ref(1);
-// const pageSize = 5;
-// eslint-disable-next-line no-undef
-// const totalPages = computed(() => Math.ceil(productPlanCodeList.value.length / pageSize));
-
-// // eslint-disable-next-line no-undef
-// const pagedProductPlanCodes = computed(() => {
-//     const start = (currentPage.value - 1) * pageSize;
-
-//     return productPlanCodeList.value.slice(start, start + pageSize);
-// });
-
 const products = ref([
-    { id: 1, productCode: 'PRD001', productname: '분말형비료', line: 'A01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' },
-    { id: 2, productCode: 'PRD002', productname: '과립형비료', line: 'B01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' },
-    { id: 3, productCode: 'PRD003', productname: '액상형비료', line: 'C01', productPlanQty: 10000, plannedQty: 1000, undefinedQty: 9000, currentQty: 1000, productType: '완제품' }
+    { id: 1, productCode: 'P001', productname: '분말형비료', productType: '완제품',specification:20,unit:'kg', lineId: 'line001',linename:'라인A', productPlanQty: 10000, plannedQty: 1000 },
+    { id: 2, productCode: 'P003', productname: '과립형비료', productType: '완제품', specification:20,unit:'kg',lineId: 'line002',linename:'라인B', productPlanQty: 10000, plannedQty: 1000 },
+    // { id: 3, productCode: 'PRD003', productname: '액상형비료', line: 'C01', productPlanQty: 10000, plannedQty: 1000,  currentQty: 1000, productType: '완제품' }
 ]);
 const selectedProducts = ref([]);
 const hiddenProductIds = ref(new Set());
+const productInfoList = ref([]); // 제품정보 리스트
 
 // 체크박스가 찍힌 제품들을 넣을 배열
 const filteredProducts = computed(() => {
@@ -82,41 +99,72 @@ const hideSelected = () => {
 const columns = ref([
     { field: 'productCode', header: '제품코드' },
     { field: 'productname', header: '제품명' },
-    { field: 'line', header: '라인' },
+    { field: 'productType', header: '제품유형' },
+    { field: 'specification', header: '규격' },
+    { field: 'unit', header: '단위' },
+    { field: 'lineId', header: '라인코드' },
+    { field: 'linename', header: '라인명' },
     { field: 'productPlanQty', header: '생산계획수량' },
     { field: 'plannedQty', header: '기지시수량' },
-    { field: 'productType', header: '제품형태' }
 ]);
 
 // const formatCurrency = (value) => {
 //     return value.toLocaleString('ko-KR', { style: 'currency', currency: 'KRW' });
 // };
-const formatDate = (value) => {
-    if (!value) return '';
-    const date = new Date(value);
-    return date.toLocaleString('ko-KR'); // 또는 원하는 형식으로 포맷
+// const formatDate = (value) => {
+//     if (!value) return '';
+//     const date = new Date(value);
+//     return date.toLocaleString('ko-KR'); // 또는 원하는 형식으로 포맷
+// };
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+const productListMoal = async() => {
+    try {
+        const response = await axios.get('/api/production/productListModal'); // 실제 API 엔드포인트로 변경
+        console.log( response.data.list);
+        if(Array.isArray(response.data.list)){
+            productInfoList.value = response.data.list.map( (item) => ({
+                productCode: item.product_id,
+                productName: item.product_name,
+                productType: item.product_type,
+                specification: item.specification,
+                unit: item.unit,
+                lineId: item.line_id,
+                linename: item.line_name
+            }));
+        } else {
+            console.error('제품 정보가 배열이 아닙니다:', response.data.list);
+        }
+    } catch (error) {
+        console.error('제품 정보를 가져오는 중 오류 발생:', error);
+    }
 };
 
 const onCellEditComplete = (event) => {
     // event 객체에서 편집된 정보를 가져옵니다.
     let { data, newValue, field } = event;
     console.log(data);
-    //예시: 가격이 0보다 작으면 업데이트하지 않음
-    if (field === 'price' && newValue < 0) {
-        console.error('가격은 0보다 작을 수 없습니다.');
-        return;
-    }
-    if (['productPlanQty', 'plannedQty'].includes(field)) {
-        if (isNaN(newValue) || newValue < 0) {
-            console.warn('음수는 허용되지 않습니다.');
-
+   if (['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)) {
+        if (newValue == null || isNaN(newValue) || newValue < 0) {
             return;
         }
+        data[field] = newValue;
+        if (field == 'productPlanQty' || field == 'currentQty') {
+            data.undefinedQty = (data.productPlanQty || 0) - (data.currentQty || 0);
+        }
     }
-
-    // // 데이터 업데이트
-    data[field] = newValue;
-    // // 여기에서 API 호출 등의 로직을 추가할 수 있습니다.
+    // 그 외 일반 텍스트 필드 처리
+    else {
+        data[field] = newValue;
+    }
 };
 const addNewRow = () => {
     // Create a new data object for the row
@@ -128,17 +176,62 @@ const addNewRow = () => {
         productPlanQty: 0,
         plannedQty: 1000,
         productType: '',
-        lastname: '김관리'
+        lastname: userInfo.lastname || '김관리'
     };
     // Add the new object to the data array
     products.value.push(newProduct);
 };
 
+
+// 데이터 모델
+const planData = ref({
+    planType: null, // 계획 구분 (코드 값 저장)
+    planDate: null,
+    planStartDate: null,
+    planEndDate: null,
+    dueDate: null,
+    director:userInfo.lastname || '김계획',
+});
+
+// 계획 구분 Dropdown 옵션
+const planCategories = ref([
+    { label: '계획생산', value: 'planFormCode001' },
+    { label: '주문생산', value: 'planFormCode002' },
+    { label: '긴급생산', value: 'planFormCode003' }
+]);
+
 const dropContent = () => {
     Object.assign(search.value, {
-        productPlanCode: ''
+        productPlanCode: '',
+         planType: null,
     });
 };
+
+const insertPlan  = async () =>{
+    try {
+        const payload = {  
+            planType: planData.value.planType,
+            planDate: formatDate(planData.value.planDate),
+            planStartDate: formatDate(planData.value.planStartDate),
+            planEndDate: formatDate(planData.value.planEndDate),
+            dueDate: formatDate(planData.value.dueDate),
+            director: userInfo.lastname || '김계획',
+            products: products.value.filter(p => !hiddenProductIds.value.has(p.id))
+        };
+        console.log('payload : ', payload);
+        const response = await axios.post('/api/production/insertPlan',payload);
+        if(response){
+            alert('계획이 성공적으로 등록되었습니다.');
+        }
+    } catch (error) {
+        console.error('계획 등록 중 오류 발생:', error);
+    }
+}
+
+
+onMounted(async () => {
+    await productListMoal();
+});
 </script>
 <template>
     <div class="flex justify-end mb-4 space-x-2">
@@ -149,14 +242,21 @@ const dropContent = () => {
     <div class="card flex justify-center gap-6 py-4">
         <!-- 생산계획코드 영역 -->
         <div class="flex flex-col">
-            <label for="planCode" class="mb-1">계획구분</label>
+            <!-- <label for="planCode" class="mb-1">계획구분</label>
             <div class="flex items-center gap-2">
                 <InputText class="w-64" list="item-list" />
-                <!-- <Button icon="pi pi-search" severity="secondary" variant="text" @click="openModal('productPlanCode')" /> -->
-                <!-- <IconField iconPosition="left">
-                    <InputText class="w-64" ref="inputValue" v-model="search.productPlanCode" id="planCodeInput" readonly />
-                    <InputIcon class="pi pi-search" @click="openModal('productPlanCode')" />
-                </IconField> -->
+            </div> -->
+            <label for="planType" class="mb-1">계획구분</label>
+            <div class="flex items-center gap-2">
+                <Dropdown
+                    id="planType"
+                    v-model="planData.planType"
+                    :options="planCategories"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="계획 구분 선택"
+                    class="w-64"
+                />
             </div>
         </div>
         <datalist id="item-list">
@@ -167,24 +267,24 @@ const dropContent = () => {
 
         <!-- 지시자 영역 -->
         <div class="flex flex-col">
-            <label for="lastname" class="mb-1">계획일자</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" v-model="planDate" showIcon fluid iconDisplay="input" />
+            <label for="planDate" class="mb-1">계획일자</label>
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" v-model="planData.planDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
-            <label for="lastname" class="mb-1">계획시작일시</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planStartDate" showIcon fluid iconDisplay="input" />
+            <label for="planStartDate" class="mb-1">계획시작일시</label>
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planData.planStartDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
-            <label for="lastname" class="mb-1">계획종료일시</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planEndDate" showIcon fluid iconDisplay="input" />
+            <label for="planEndDate" class="mb-1">계획종료일시</label>
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planData.planEndDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
-            <label for="lastname" class="mb-1">납기일시</label>
-            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="dueDate" showIcon fluid iconDisplay="input" />
+            <label for="dueDate" class="mb-1">납기일시</label>
+            <DatePicker class="flex-1" dateFormat="yy-mm-dd" showTime hourFormat="24" v-model="planData.dueDate" showIcon fluid iconDisplay="input" />
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>
-            <InputText id="lastnameTxt" type="text" value="김관리" disabled />
+            <InputText id="lastnameTxt" type="text" v-model="userInfo.lastname" disabled />
         </div>
     </div>
     <div class="flex justify-end mb-4 space-x-2">
@@ -215,20 +315,14 @@ const dropContent = () => {
             <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
                 <template #body="{ data, field }">
                     <!-- {{ field === ['name', 'endDate'] ? formatCurrency(data[field]) : data[field] }} -->
-                    <span v-if="['startDatetime', 'endDatetime'].includes(field)">
-                        {{ formatDate(data[field]) }}
-                    </span>
-                    <span v-else>{{ data[field] }}</span>
+                    <span>{{ data[field] }}</span>
                 </template>
                 <template #editor="{ data, field }">
-                    <template v-if="['startDatetime', 'endDatetime'].includes(field)">
-                        <Calendar v-model="data[field]" dateFormat="yy-mm-dd" showTime hourFormat="24" fluid />
-                    </template>
-                    <template v-else-if="['productPlanQty', 'undefinedQty', 'currentQty'].includes(field)">
-                        <InputNumber v-model="data[field]" autofocus fluid />
+                    <template v-if="['productCode'].includes(field)">
+                        <InputText v-model="data[field]"  autofocus  @click="()=>{ currentEditRow = data; openModal('productCode');}" />
                     </template>
                     <template v-else>
-                        <InputText v-model="data[field]" autofocus fluid />
+                        <InputText v-model="data[field]" autofocus  />
                     </template>
                 </template>
             </Column>
@@ -241,9 +335,7 @@ const dropContent = () => {
             {{
                 {
                     productPlanCode: '생산계획코드',
-                    productStartDate: '생산시작예정일',
-                    productEndDate: '생산종료예정일',
-                    productName: '제품명'
+                    productCode: '제품명'
                 }[modalType]
             }}
         </p>
@@ -262,6 +354,25 @@ const dropContent = () => {
                 <Column field="startDate" header="생산시작일시"></Column>
                 <Column field="endDate" header="생산종료일시"></Column>
                 <Column field="director" header="지시자"></Column>
+            </DataTable>
+        </div>
+        <div v-else-if="modalType === 'productCode'">
+            <!-- <ul class="mb-3"> -->
+
+            <DataTable :value="productInfoList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 20rem" class="mb-3">
+                <Column field="productCode" header="제품코드">
+                    <template #body="{ data }">
+                        <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
+                            {{ data.productCode }}
+                        </span>
+                    </template>
+                </Column>
+                <Column field="productName" header="제품명"></Column>
+                <Column field="productType" header="제품유형"></Column>
+                <Column field="specification" header="규격"></Column>
+                <Column field="unit" header="단위"></Column>
+                <Column field="lineId" header="라인코드"></Column>
+                <Column field="linename" header="라인명"></Column>
             </DataTable>
         </div>
     </Dialog>

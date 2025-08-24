@@ -4,7 +4,7 @@ import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import DatePicker from 'primevue/datepicker';
+// import DatePicker from 'primevue/datepicker';
 import InputNumber from 'primevue/inputnumber';
 import Dialog from 'primevue/dialog';
 import { useUserStore } from '@/store/index';
@@ -70,7 +70,7 @@ const fetchPrdOrders = async () => {
                 specification: item.specification,
                 unit: item.unit,
                 prd_form: item.prd_form,
-                lastname: userInfo.lastname
+                lastname: userInfo.lastname || '김지시'
             }));
         } else {
             // 3. 배열이 아니면 빈 배열로 초기화
@@ -200,42 +200,7 @@ const productNameList = ref([
 //     { line_id: 'line002', line_name: '라인B', productname: '과립형비료' },
 //     { line_id: 'line003', line_name: '라인C', productname: '액체형비료' }
 // ]);
-const products = ref([
-    // {
-    //     id: 1,
-    //     startDatetime: new Date('2025-08-10 10:00'),
-    //     endDatetime: new Date('2025-08-12 10:10'),
-    //     productId: 'P003',
-    //     productname: '과립형비료',
-    //     productPlanQty: 10000,
-    //     productType: '과립형',
-    //     specification: 20,
-    //     unit: 'kg',
-    //     prd_form: '완제품',
-    //     undefinedQty: 9000,
-    //     currentQty: 1000,
-    //     line_id: 'line002',
-    //     line_name: '라인B',
-    //     lastname: '김관리'
-    // },
-    // {
-    //     id: 2,
-    //     startDatetime: new Date('2025-08-10 10:20'),
-    //     endDatetime: new Date('2025-08-12 10:20'),
-    //     productId: 'P004',
-    //     productname: '과립형비료',
-    //     productPlanQty: 10000,
-    //     productType: '과립형',
-    //     specification: 40,
-    //     unit: 'kg',
-    //     prd_form: '완제품',
-    //     undefinedQty: 9000,
-    //     currentQty: 1000,
-    //     line_id: 'line002',
-    //     line_name: '라인B',
-    //     lastname: '김관리'
-    // }
-]);
+const products = ref([]);
 const productCodeToBomId = {
     P001: 'BOM001',
     P002: 'BOM001',
@@ -368,8 +333,12 @@ const startProduction = async () => {
         // 서버에 POST 요청을 보내기
         const response = await axios.post('/api/production/productionOrder', payload);
         console.log('성공:', response.data);
+        
         if (response) {
-            prdOrderList.value = null;
+             products.value = []; // 데이터 테이블 초기화
+             selectedProducts.value = []; // 선택된 행 초기화
+             hiddenProductIds.value = new Set(); // 숨겨진 행 초기화
+            //prdOrderList.value = null;
         }
     } catch (err) {
         console.log(err);
@@ -482,7 +451,7 @@ const addNewRow = () => {
         currentQty: 0,
         line_id: '',
         line_name: '',
-        lastname: userInfo.lastname
+        lastname: userInfo.lastname  || '김관리',
     };
     newProduct.undefinedQty = (newProduct.productPlanQty || 0) - (newProduct.currentQty || 0);
     products.value.push(newProduct);
@@ -517,7 +486,7 @@ onMounted(async () => {
 
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>
-            <InputText id="lastnameTxt" value="김지시" type="text" readonly />
+            <InputText id="lastnameTxt" v-model="userInfo.lastname" type="text" readonly />
         </div>
     </div>
     <div class="mb-6">

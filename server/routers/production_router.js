@@ -12,23 +12,26 @@ router.get("/orderSearch", async (req, res) => {
     res.status(500).json({ message: "서버 오류" });
   }
 });
+router.post("/filterPerformance", async (req, res) => {
+  try {
+    // // req.body로 값을 받습니다. (axios.post를 사용했기 때문)
+    // const { w_ed_date, nextDay, process_id, line_id, e_name, product_type, product_form } = req.body;
+    
+    // // 이 console.log를 통해 payload가 정상적으로 들어오는지 확인할 수 있습니다.
+    // console.log(req.body);
+
+    // 서비스 함수에 값을 전달합니다.
+    let list = await productionService.filterPerformance(req.body);
+    
+    res.json({ message: "조회 성공!", list });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
+  }
+});
 
 router.post("/productionOrder", async (req, res) => {
   try {
-    // // 세션에서 로그인한 사용자의 이름을 가져옵니다.
-    //         // req.body에서 director를 추출하지 않습니다.
-    //         const { plan_detail_no, details } = req.body;
-    //         const directorName = req.session.user.name; // 세션에서 director 값을 가져옵니다.
-
-    //         console.log("라우터가 받은 데이터:", req.body);
-
-    //         // 서비스 함수에 세션에서 가져온 directorName을 전달합니다.
-    //         const result = await productionService.startWork(directorName, plan_detail_no, details);
-    // res.status(201).json({ message: "등록성공!", result });
-    // } catch (error) {
-    //     console.error("지시등록에 실패하였습니다.", error);
-    //     res.status(500).json({ message: "작업지시등록실패", error: error.message });
-    // }
     const { director, plan_detail_no, details } = req.body;
     console.log("라우터가 받은 데이터:", req.body);
     console.log("받은 productPlanCode:", plan_detail_no);
@@ -133,5 +136,45 @@ router.get("/productionOrder", async (req, res) => {
     console.error("요청 실패:", error);
     res.status(500).json({ message: "요청 실패", error: error.message });
   }
+});
+// 모달 - 공정 리스트
+router.get("/selectProcessList", async (req, res) => {
+  try {
+    const processList = await productionService.selectProcessList();
+    res.status(200).json({list : processList});
+  } catch (error) {
+    console.error("공정 목록 조회 실패:", error);
+    res.status(500).json({ message: "공정 목록 조회 실패", error: error.message });
+  }
+});
+// 페이지 - 공정 리스트
+router.get("/processesNotSearchList", async (req, res) => {
+  try {
+    const selectProcessNotSearchList = await productionService.selectProcessNotSearchList();
+    res.status(200).json({ list: selectProcessNotSearchList });
+  } catch (error) {
+    console.error("공정 목록 조회 실패:", error);
+    res.status(500).json({ message: "공정 목록 조회 실패", error: error.message });
+  }
+});
+
+router.get("/productListModal", async (req, res) => {
+  try {
+    const productList = await productionService.productListModal();
+    res.status(200).json({ list: productList });
+  } catch (error) {
+    console.error("제품 목록 조회 실패:", error);
+    res.status(500).json({ message: "제품 목록 조회 실패", error: error.message });
+  }
+});
+
+router.post("/insertPlan",async(req ,res)=>{
+try {
+  const payload = req.body;
+  const insertPlan = await productionService.insertPlan(payload);
+   res.status(201).json({ list: insertPlan });
+} catch (error) {
+   res.status(500).json({ message: "계획 등록 실패 !",error: error.message })
+}
 });
 module.exports = router;
