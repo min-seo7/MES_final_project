@@ -113,12 +113,12 @@ updateTableData();
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-1">
         <h2 class="text-xl font-bold">라인 상세 목록</h2>
     </div>
-    <div class="card mt-4 p-4 border rounded" style="height: 300px">
+    <div class="card mt-1 p-4 border rounded" style="height: 380px">
         <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="tableData.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-            <Column field="num" header="" style="width: 50px" />
+            <Column field="num" header="No" style="width: 50px" />
             <Column field="processId" header="공정코드" style="width: 150px" />
             <Column field="processName" header="공정명" style="width: 150px" />
             <Column field="equipmentId" header="설비코드" style="width: 150px" />

@@ -134,4 +134,36 @@ router.get("/productionOrder", async (req, res) => {
     res.status(500).json({ message: "요청 실패", error: error.message });
   }
 });
+
+
+router.post("/orderSearch", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const orderData = req.body.ord_no;
+    console.log(orderData);
+    const result = await productionService.findAllOrderSearch(orderData);
+    res.status(201).json({ message: "order 검색성공", result });
+  } catch (error) {
+    console.error("order 검색 실패: production_router.js", error);
+    res
+      .status(500)
+      .json({ message: "order 검색 실패", error: error.message });
+  }
+});
+
+router.post("/orderSearchResult", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    const orderData = req.body.wo_no;
+    console.log(orderData);
+    const result = await productionService.findAllOrderSearchResult(orderData);
+    res.status(201).json({ message: "result 검색성공", result });
+  } catch (error) {
+    console.error("result 검색 실패: production_router.js", error);
+    res
+      .status(500)
+      .json({ message: "result 검색 실패", error: error.message });
+  }
+});
+
 module.exports = router;

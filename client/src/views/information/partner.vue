@@ -87,6 +87,10 @@ const handleSelect = (row) => {
     console.log(partnerSelectedData.value);
 };
 
+const handleResetForm = () => {
+    partnerSelectedData.value = {}; // 초기화
+};
+
 onUnmounted(() => {
     console.log('partner.vue unmounted!');
 });
@@ -94,7 +98,7 @@ onUnmounted(() => {
 
 <template>
     <section class="partner-container">
-        <partnerSearchWidget @partnerFilterSearch="handleSearch" />
+        <partnerSearchWidget @partnerFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <partnerListWidget :items="partnerSearchData" @partnerSelected="handleSelect" />
         <div class="mt-2"></div>
         <partnerRegistWidget :items="partnerSelectedData" />

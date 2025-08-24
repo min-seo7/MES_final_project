@@ -19,6 +19,22 @@ const search = ref({
     status: ''
 });
 
+// 선택필터초기화
+const resetSearch = () => {
+    search.value.warehouseId = '';
+    search.value.warehouse = '';
+    search.value.location = '';
+    search.value.warehouseType = '';
+    search.value.status = '';
+    selectedItem.value = null;
+
+    selectSearch();
+    onReset();
+};
+const onReset = () => {
+    emits('resetForm');
+};
+
 // 모달 열기
 const openModal = async (type) => {
     modalType.value = type;
@@ -68,17 +84,7 @@ const selectModalValue = () => {
     showModal.value = false;
 };
 
-// 선택필터초기화
-const resetSearch = () => {
-    search.value.warehouseId = '';
-    search.value.warehouse = '';
-    search.value.location = '';
-    search.value.warehouseType = '';
-    search.value.status = '';
-    selectedItem.value = null;
 
-    selectSearch();
-};
 
 // 검색
 const selectSearch = async () => {

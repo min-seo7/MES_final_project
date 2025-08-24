@@ -207,10 +207,10 @@ const onBusinessNoInput = (e) => {
                 <div>
                     <label class="block mb-1">상태</label>
                     <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2">비활성</label>
+                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">사용</label>
+                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
+                        <label for="status2" class="ml-2">미사용</label>
                     </div>
                 </div>
             </div>

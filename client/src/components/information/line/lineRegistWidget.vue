@@ -156,7 +156,7 @@ const resetRegist = async () => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between font-semibold text-xl mb-4">
+    <div class="flex items-center justify-between font-semibold text-xl mb-1">
         <div>등록</div>
         <div class="space-x-2">
             <Button label=" 등록 " size="small" rounded @click="registLine()" :disabled="form.lineId?.trim() !== ''" />
@@ -164,9 +164,8 @@ const resetRegist = async () => {
             <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
-    <div class="card mt-4 p-4 border rounded">
-        <div class="flex flex-col md:flex-row gap-6">
-            <!-- 왼쪽 영역 -->
+    <div class="card border rounded mb-2">
+        <div class="flex flex-col md:flex-row gap-4">
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">라인코드</label>
@@ -179,18 +178,17 @@ const resetRegist = async () => {
                         <InputIcon class="pi pi-search" @click="openModal('productId')" />
                     </IconField>
                 </div>
-                <div style="display: flex; gap: 20px">
-                    <label class="block mb-1" style="text-align: center">상태</label>
-                    <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">비활성</label>
-                    </label>
+                <div>
+                    <label class="block mb-1">상태</label>
+                    <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
+                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">사용</label>
+                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
+                        <label for="status2" class="ml-2">미사용</label>
+                    </div>
                 </div>
             </div>
 
-            <!-- 오른쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
                     <label class="block mb-1">라인명</label>
@@ -204,7 +202,7 @@ const resetRegist = async () => {
                         <InputText v-model="form.productName" class="w-full" />
                     </div>
                 </div>
-                <div>
+                <div class="flex-1">
                     <label class="block mb-1">비고</label>
                     <div class="flex gap-2 items-center">
                         <InputText v-model="form.note" class="w-full" />
@@ -217,7 +215,7 @@ const resetRegist = async () => {
 </template>
 
 <style scoped>
-.font-semibold.text-xl.mb-4 {
-    margin: 0;
+.card {
+    margin-bottom: 0 !important;
 }
 </style>
