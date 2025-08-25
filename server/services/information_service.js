@@ -84,8 +84,23 @@ const findAllProduct = async (productInfo) => {
     productInfo.productForm ?? null,
     productInfo.status ?? null,
   ];
-  let list = await mariadb.query("selectProductList", insertData);
-  return list;
+    try {
+    let list = await mariadb.query("selectProductList", insertData);
+    
+    // 🚨 핵심 수정: list가 undefined이거나 null인 경우 빈 배열을 반환하도록 보장합니다.
+    if (!list) {
+        console.log("DB 쿼리 결과가 없습니다. 빈 배열을 반환합니다.");
+        return [];
+    }
+    
+    // DB에서 정상적으로 배열을 반환한 경우 그대로 반환
+    return list; 
+    
+  } catch (error) {
+    console.error("DB 쿼리 오류:", error);
+    // 쿼리 실패 시에도 빈 배열 반환 또는 오류 던지기
+    throw error; 
+  }
 };
 
 // 제품 등록
