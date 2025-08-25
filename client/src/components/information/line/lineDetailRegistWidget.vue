@@ -70,12 +70,12 @@ const selectModalValue = (item) => {
 
     if (modalType.value === 'processId') {
         form.value.processId = item.processId;
-        form.value.processName = item.processName; 
+        form.value.processName = item.processName;
     } else if (modalType.value === 'equipmentId') {
         form.value.equipmentId = item.equipmentId;
-        form.value.equipmentName = item.equipmentName; 
+        form.value.equipmentName = item.equipmentName;
     }
-    
+
     selectedItem.value = item;
 
     showModal.value = false;
@@ -84,26 +84,25 @@ const selectModalValue = (item) => {
 const addLinedetail = () => {
     emits('lineDetail', form.value);
     form.value = {
-            processId: '',
-    processName: '',
-    equipmentId: '',
-    equipmentName: '',
-    useOrder: '',
-    status: ''
-        };
+        processId: '',
+        processName: '',
+        equipmentId: '',
+        equipmentName: '',
+        useOrder: '',
+        status: ''
+    };
 };
 
 const resetRegist = async () => {
-
-        // 등록 상태: 전체 필드 초기화
-        form.value = {
-            processId: '',
-    processName: '',
-    equipmentId: '',
-    equipmentName: '',
-    useOrder: '',
-    status: ''
-        };
+    // 등록 상태: 전체 필드 초기화
+    form.value = {
+        processId: '',
+        processName: '',
+        equipmentId: '',
+        equipmentName: '',
+        useOrder: '',
+        status: ''
+    };
 };
 </script>
 
@@ -112,41 +111,41 @@ const resetRegist = async () => {
         <div class="absolute top-2 right-2 z-10">
             <div class="space-x-2">
                 <Button label=" 등록 " size="small" rounded @click="addLinedetail()" />
-                <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()"/>
+                <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
             </div>
         </div>
 
         <div class="flex flex-row gap-4 items-center pt-4">
             <div class="flex-1">
                 <label class="block">공정코드</label>
-            <IconField iconPosition="left" class="w-full">
-                <InputText v-model="form.processId" class="w-full" />
-                        <InputIcon class="pi pi-search" @click="openModal('processId')" />
-                    </IconField></div>
+                <IconField iconPosition="left" class="w-full">
+                    <InputText v-model="form.processId" class="w-full" />
+                    <InputIcon class="pi pi-search" @click="openModal('processId')" />
+                </IconField>
+            </div>
             <div class="flex-1">
                 <label class="block">설비코드</label>
                 <IconField iconPosition="left" class="w-full">
                     <InputText v-model="form.equipmentId" class="w-full" />
                     <InputIcon class="pi pi-search" @click="openModal('equipmentId')" />
-                    </IconField>
+                </IconField>
             </div>
             <div class="flex-1">
                 <label class="block">사용순서</label>
                 <InputText v-model="form.useOrder" class="w-full" />
             </div>
             <div class="flex-1">
-                <label class="block">상태</label>
+                <label class="block text-sm">상태</label>
                 <div class="flex items-center gap-4 border rounded px-3 py-2">
                     <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
-                    <label for="status1">사용</label>
+                    <label for="status1" class="text-sm">사용</label>
                     <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
-                    <label for="status2">미사용</label>
+                    <label for="status2" class="text-sm">미사용</label>
                 </div>
             </div>
         </div>
     </div>
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="item" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
-
 </template>
 
 <style scoped>

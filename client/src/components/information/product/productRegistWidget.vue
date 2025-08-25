@@ -70,6 +70,7 @@ const registProduct = async () => {
             storageCondition: ''
         };
         alert('등록이 완료되었습니다.');
+        return res;
     } catch (err) {
         alert('등록할 수 없습니다.');
     }
@@ -93,7 +94,9 @@ const modifyProduct = async () => {
             productCategory: '',
             storageCondition: ''
         };
+
         alert('수정이 완료되었습니다.');
+        return res;
     } catch (err) {
         alert('수정할 수 없습니다.');
     }

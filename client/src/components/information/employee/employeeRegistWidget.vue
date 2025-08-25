@@ -13,22 +13,57 @@ const form = ref({
     name: '',
     phone: '',
     email: '',
-    hireDate: '',
-    leaveDate: '',
+    hireDate: null, // DatePicker 사용을 위해 null로 초기화
+    leaveDate: null, // DatePicker 사용을 위해 null로 초기화
     employeeId: '',
     auth: '',
     department: '',
     status: ''
 });
 
+// 날짜 유틸리티 함수: 들어오는 값을 Date 객체 또는 null로 변환
+const getValidDate = (dateVal) => {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date) return dateVal;
+
+    // 'YYYY-MM-DD' 형식 문자열을 Date 객체로 변환
+    if (typeof dateVal === 'string' && dateVal.includes('-')) {
+        const [year, month, day] = dateVal.split('-');
+        // new Date(year, month - 1, day)를 사용하여 시간대 문제를 방지
+        return new Date(year, month - 1, day);
+    }
+    return null;
+};
+
+// 날짜 유틸리티 함수: Date 객체를 'YYYY-MM-DD' 문자열 또는 null로 변환
+const formatDate = (dateVal) => {
+    if (!dateVal) return null;
+
+    let dateObj = dateVal;
+
+    if (typeof dateVal === 'string' && dateVal.includes('-')) {
+        return dateVal; // 이미 문자열이면 그대로 사용
+    } else if (dateVal instanceof Date) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    return null;
+};
+
 watch(
     () => props.items,
     (newVal) => {
         if (newVal && newVal.length) {
-            // 공백이면 빈 문자열로 변환
+            const item = newVal[0];
+
             form.value = {
-                ...newVal[0],
-                employeeId: newVal[0].employeeId?.trim() || ''
+                ...item,
+                employeeId: item.employeeId?.trim() || '',
+                // 날짜 값을 Date 객체로 변환하여 DatePicker와 바인딩
+                hireDate: getValidDate(item.hireDate),
+                leaveDate: getValidDate(item.leaveDate)
             };
         } else {
             form.value = {
@@ -36,8 +71,8 @@ watch(
                 name: '',
                 phone: '',
                 email: '',
-                hireDate: '',
-                leaveDate: '',
+                hireDate: null,
+                leaveDate: null,
                 auth: '',
                 department: '',
                 status: ''
@@ -55,20 +90,35 @@ const registEmployee = async () => {
         if (form.value.emailDomain) {
             form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
         }
-        const res = await axios.post('/api/information/employee', form.value || null);
-        
+
+        const employeeData = {
+            ...form.value,
+            // 등록 시에도 날짜를 서버 포맷으로 변환
+            hireDate: formatDate(form.value.hireDate),
+            leaveDate: formatDate(form.value.leaveDate),
+            phone: form.value.phone?.replace(/-/g, '') || null
+        };
+
+        // leaveDate가 null이거나 빈 문자열이면 서버에 null로 전송 (formatDate에서 처리되었음)
+        if (!employeeData.leaveDate) {
+            employeeData.leaveDate = null;
+        }
+
+        const res = await axios.post('/api/information/employee', employeeData);
+
         form.value = {
-                employeeId: '',
-                name: '',
-                phone: '',
-                email: '',
-                hireDate: '',
-                leaveDate: '',
-                auth: '',
-                department: '',
-                status: ''
-            };
+            employeeId: '',
+            name: '',
+            phone: '',
+            email: '',
+            hireDate: null,
+            leaveDate: null,
+            auth: '',
+            department: '',
+            status: ''
+        };
         alert('등록이 완료되었습니다.');
+        return res;
     } catch (err) {
         alert('등록할 수 없습니다.');
     }
@@ -81,26 +131,34 @@ const modifyEmployee = async () => {
             form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
         }
 
-        // leaveDate 값이 빈 문자열일 경우, null로 변경
         const employeeData = {
             ...form.value,
-            leaveDate: form.value.leaveDate === '' ? null : form.value.leaveDate
+            // Date 객체를 'YYYY-MM-DD' 문자열로 변환 (leaveDate 포함)
+            hireDate: formatDate(form.value.hireDate),
+            leaveDate: formatDate(form.value.leaveDate),
+            phone: form.value.phone?.replace(/-/g, '') || null
         };
 
-        const res = await axios.post('/api/information/employee', employeeData);
+        // leaveDate가 null이거나 빈 문자열이면 서버에 null로 전송
+        if (!employeeData.leaveDate) {
+            employeeData.leaveDate = null;
+        }
+
+        const res = await axios.post('/api/information/employee/modify', employeeData);
 
         form.value = {
-                employeeId: '',
-                name: '',
-                phone: '',
-                email: '',
-                hireDate: '',
-                leaveDate: '',
-                auth: '',
-                department: '',
-                status: ''
-            };
+            employeeId: '',
+            name: '',
+            phone: '',
+            email: '',
+            hireDate: null,
+            leaveDate: null,
+            auth: '',
+            department: '',
+            status: ''
+        };
         alert('수정이 완료되었습니다.');
+        return res;
     } catch (err) {
         alert('수정할 수 없습니다.');
     }
@@ -120,7 +178,13 @@ const resetRegist = async () => {
     if (form.value.employeeId?.trim()) {
         // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
         if (props.items && props.items.length) {
-            form.value = { ...props.items[0], employeeId: props.items[0].employeeId?.trim() || '' };
+            const item = props.items[0];
+            form.value = {
+                ...item,
+                employeeId: item.employeeId?.trim() || '',
+                hireDate: getValidDate(item.hireDate),
+                leaveDate: getValidDate(item.leaveDate)
+            };
         }
     } else {
         // 등록 상태: 전체 필드 초기화
@@ -128,8 +192,8 @@ const resetRegist = async () => {
             name: '',
             phone: '',
             email: '',
-            hireDate: '',
-            leaveDate: '',
+            hireDate: null,
+            leaveDate: null,
             employeeId: '',
             auth: '',
             department: '',
@@ -154,7 +218,7 @@ const resetRegist = async () => {
                 <div>
                     <label class="block mb-1">사원번호</label>
                     <div>
-                        <InputText v-model="form.employeeId" :readonly="true" :placeholder="!form.employeeId?.trim() ? '자동생성' : ''" class="w-full bg-gray-200" style="background-color: lightgrey"/>
+                        <InputText v-model="form.employeeId" :readonly="true" :placeholder="!form.employeeId?.trim() ? '자동생성' : ''" class="w-full bg-gray-200" style="background-color: lightgrey" />
                     </div>
                 </div>
 

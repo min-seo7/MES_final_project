@@ -3,7 +3,6 @@ import { ref, defineEmits } from 'vue';
 import CommonModal from '@/components/common/modal.vue';
 import axios from 'axios';
 
-
 const emits = defineEmits(['flowchartDetail']);
 const item = ref([]);
 const columns = ref([]);
@@ -19,14 +18,13 @@ const form = ref({
 });
 
 const resetRegist = async () => {
-
-// 등록 상태: 전체 필드 초기화
-form.value = {
-    processId: '',
-    processName: '',
-    useOrder: '',
-    status: ''
-};
+    // 등록 상태: 전체 필드 초기화
+    form.value = {
+        processId: '',
+        processName: '',
+        useOrder: '',
+        status: ''
+    };
 };
 
 // 모달 열기
@@ -51,7 +49,7 @@ const openModal = async (type) => {
             console.error('공정코드 API 호출 오류:', error);
             alert('공정코드 목록을 불러오는 데 실패했습니다.');
         }
-    } 
+    }
 };
 
 // 모달 선택 완료
@@ -63,32 +61,28 @@ const selectModalValue = (item) => {
     form.value.processId = item.processId;
     form.value.processName = item.processName;
 
-
-    
     selectedItem.value = item; // 선택된 항목 전체를 저장
 
     showModal.value = false;
 };
 
-
 const addFlowchartdetail = () => {
     emits('flowchartDetail', form.value);
     form.value = {
-    processId: '',
-    processName: '',
-    useOrder: '',
-    status: ''
-};
+        processId: '',
+        processName: '',
+        useOrder: '',
+        status: ''
+    };
 };
 </script>
 
 <template>
     <div class="card p-2 border rounded relative mt-4">
-        
         <div class="absolute top-2 right-2 z-10">
             <div class="space-x-2">
                 <Button label=" 추가 " size="small" rounded @click="addFlowchartdetail()" />
-                <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()"/>
+                <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
             </div>
         </div>
 
@@ -112,18 +106,17 @@ const addFlowchartdetail = () => {
             </div>
 
             <div class="flex-1">
-                <label class="block mb-1">상태</label>
+                <label class="block text-sm">상태</label>
                 <div class="flex items-center gap-4 border rounded px-3 py-2">
                     <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
-                    <label for="status1">사용</label>
+                    <label for="status1" class="text-sm">사용</label>
                     <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
-                    <label for="status2">미사용</label>
+                    <label for="status2" class="text-sm">미사용</label>
                 </div>
             </div>
         </div>
     </div>
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="item" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
-
 </template>
 
 <style scoped>

@@ -84,8 +84,6 @@ const selectModalValue = () => {
     showModal.value = false;
 };
 
-
-
 // 검색
 const selectSearch = async () => {
     try {

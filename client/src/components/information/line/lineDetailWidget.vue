@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, defineProps } from 'vue';
 import axios from 'axios';
+// ... (나머지 script 내용은 동일)
 
 const item = ref([]); // 서버에서 받아온 데이터
 const tableData = ref([]); // 화면에 표시할 데이터
@@ -113,7 +114,7 @@ updateTableData();
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-1">
+    <div class="flex justify-between items-center mb-0">
         <h2 class="text-xl font-bold">라인 상세 목록</h2>
     </div>
     <div class="card mt-1 p-4 border rounded" style="height: 380px">

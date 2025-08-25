@@ -89,4 +89,18 @@ function checkActiveRoute(item) {
     </li>
 </template>
 
-<style lang="scss" scoped></style>
+<style scoped>
+/* 활성화된 (클릭된) 최하위 라우터 링크에 대한 스타일 */
+:deep(.router-link-active),
+:deep(.active-route) {
+    background-color: #beef79 !important;
+    color: #333333 !important; /* 글자색을 대비되게 변경 (필요하다면) */
+}
+
+/* 활성화된 (열린) 부모 메뉴 아이템에 대한 스타일 */
+.active-menuitem > a {
+    color: #333333; /* 부모 메뉴의 글자색 변경 (클릭된 것처럼 보이도록) */
+}
+
+/* 추가: PrimeVue 템플릿의 .p-ripple-link 클래스에 대한 스타일링이 필요할 수 있습니다. */
+</style>
