@@ -1,41 +1,75 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import axios from 'axios';
 
 function formatDate(val) {
     if (!val) return '';
-    return new Date(val).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return new Date(val).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
 }
 
-const props = defineProps({ params: { type: Object, default: () => ({ page: 1, size: 20 }) } });
+const props = defineProps({
+    params: { type: Object, default: () => ({ page: 1, size: 5 }) }
+});
 const emit = defineEmits(['loaded']);
-const rows = ref([]);
 
-/* 목록 단순 조회 */
-async function fetchSimple(page, size) {
-    const { data } = await axios.get('/api/equipment/inspection', { params: { page, size } });
-    rows.value = Array.isArray(data) ? data : [];
+const rows = ref([]);
+const total = ref(0);
+const page = ref(1);
+const size = ref(5);
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / size.value)));
+
+/* 단순 조회 */
+async function fetchSimple(p, s) {
+    const { data } = await axios.get('/api/equipment/inspection', {
+        params: { page: p, size: s }
+    });
+    rows.value = Array.isArray(data?.items) ? data.items : data;
+    total.value = data?.total ?? rows.value.length;
+    page.value = p;
+    size.value = s;
     emit('loaded', rows.value);
 }
 
 /* 조건 검색 */
 async function fetchSearch(p) {
-    const { data } = await axios.get('/api/equipment/inspection/search', { params: p });
-    rows.value = Array.isArray(data) ? data : [];
+    const { data } = await axios.get('/api/equipment/inspection/search', {
+        params: { ...p }
+    });
+    rows.value = Array.isArray(data?.items) ? data.items : data;
+    total.value = data?.total ?? rows.value.length;
+    page.value = p.page || 1;
+    size.value = p.size || 5;
     emit('loaded', rows.value);
 }
 
-/* 파라미터 변경 감시 → 단순/검색 분기
-   ⚠ 점검코드(insp_code) 포함하도록 보강 */
+/* 파라미터 감시 */
 watch(
     () => props.params,
     (p) => {
         const hasFilter = ['insp_code', 'eq_id', 'insp_type', 'date_from', 'date_to', 'next_from', 'next_to'].some((k) => p && p[k]);
-        if (hasFilter) fetchSearch(p);
-        else fetchSimple(p.page || 1, p.size || 20);
+        if (hasFilter) fetchSearch({ ...p, page: p.page || 1, size: p.size || 5 });
+        else fetchSimple(p.page || 1, p.size || 5);
     },
     { immediate: true, deep: true }
 );
+
+function prev() {
+    if (page.value > 1) changePage(page.value - 1);
+}
+function next() {
+    if (page.value < totalPages.value) changePage(page.value + 1);
+}
+/* ✅ goto → changePage */
+function changePage(p) {
+    const hasFilter = ['insp_code', 'eq_id', 'insp_type', 'date_from', 'date_to', 'next_from', 'next_to'].some((k) => props.params && props.params[k]);
+    if (hasFilter) fetchSearch({ ...props.params, page: p, size: size.value });
+    else fetchSimple(p, size.value);
+}
 </script>
 
 <template>
@@ -71,5 +105,12 @@ watch(
                 </tr>
             </tbody>
         </table>
+
+        <!-- ✅ 페이지네이션 -->
+        <div class="flex items-center justify-center gap-6 px-4 py-3 border-t bg-white">
+            <Button label="이전" :disabled="page === 1" @click="prev" />
+            <span>{{ page }} / {{ totalPages }}</span>
+            <Button label="다음" :disabled="page >= totalPages" @click="next" />
+        </div>
     </div>
 </template>

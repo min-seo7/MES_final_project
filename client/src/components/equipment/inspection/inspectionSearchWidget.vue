@@ -73,7 +73,7 @@ function confirmSelect() {
 
         <!-- 모달 -->
         <!-- 모달: 라디오 + 페이지네이션(모달 내부만) + 중앙 선택완료 -->
-        <Dialog v-model:visible="showPicker" header="점검코드 선택" :modal="true" :style="{ width: '30rem' }">
+        <Dialog v-model:visible="showPicker" header="점검코드" :modal="true" :style="{ width: '30rem' }">
             <!-- 리스트 -->
             <ul class="divide-y">
                 <li v-for="(code, idx) in pickerList" :key="idx" class="p-2 flex items-center gap-3 cursor-pointer" @click="selected = code">
