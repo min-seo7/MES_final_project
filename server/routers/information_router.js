@@ -74,6 +74,8 @@ router.post("/product/search", async (req, res) => {
     console.log("BODY:", req.body);
     const productData = req.body;
     const result = await informationService.findAllProduct(productData);
+    console.log("findAllProduct 결과 타입:", typeof result);
+    console.log("findAllProduct 결과 내용:", result);
     res.status(201).json({ message: "product 검색성공", result });
   } catch (error) {
     console.error("product 검색 실패: information_router.js", error);
