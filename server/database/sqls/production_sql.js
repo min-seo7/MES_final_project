@@ -195,7 +195,7 @@ FROM performance
 WHERE wo_no = ?`;
 
 const selectAllOrder = `
-SELECT ord_no, director, order_date, status
+SELECT ord_no, director, DATE_FORMAT(order_date, '%Y-%m-%d') as order_date, status
 FROM production_order`;
 
 const productionOrderList = `
@@ -222,6 +222,51 @@ ON pod.ord_no = po.ord_no
 ORDER BY pod.p_st_date DESC;
 `;
 
+const selectOrdersearch = `SELECT
+    pod.wo_no AS "wo_no",
+    pod.product_id AS "product_id",
+    pod.p_st_date AS "p_st_date",
+    pod.p_ed_date AS "p_ed_date",
+    pod.prd_noworder_qty AS "prd_noworder_qty",
+    pod.line_id AS "line_id",
+    pod.product_name AS "product_name"
+FROM
+    prd_order_detail pod
+WHERE
+    pod.ord_no = ?
+ORDER BY
+    pod.wo_no ASC;`
+
+const selectOrdersearchResult = `SELECT
+    ld.use_order AS "use_order",
+    ld.process_id AS "process", 
+    prc.process_name AS "process_name",
+    pf.w_st_date AS "startDate",
+    pf.w_ed_date AS "endDate", 
+    pf.in_qty AS "in_qty",
+    pf.d_qty AS "def_qty",
+    pf.qty AS qty,
+    CASE
+        WHEN pf.status IS NULL OR pf.status = 1 THEN '대기'
+        WHEN pf.status = 2 THEN '진행'
+        WHEN pf.status = 3 THEN '완료'
+        ELSE pf.status
+    END AS status
+FROM
+    line_detail ld
+JOIN
+    prd_flow flow ON ld.process_id = flow.process_id
+JOIN
+    prd_order_detail pod ON ld.line_id = pod.line_id AND pod.wo_no = flow.wo_no
+LEFT JOIN
+    performance pf ON pf.wo_no = pod.wo_no AND pf.line_id = pod.line_id AND pf.process_id = flow.process_id
+JOIN
+    process prc ON ld.process_id = prc.process_id
+WHERE
+    pod.wo_no = ?
+ORDER BY
+    ld.use_order`
+
 module.exports = {
   selectAllOrder,
   insertPrdOrderDetail,
@@ -238,4 +283,6 @@ module.exports = {
   selectStatusCheck,
   insertRequestBom,
   productionOrderList,
+  selectOrdersearch,
+  selectOrdersearchResult
 };

@@ -25,6 +25,25 @@ const search = ref({
     status: ''
 });
 
+// 선택필터초기화
+const resetSearch = () => {
+    search.value.lineId = '';
+    search.value.lineName = '';
+    search.value.processId = '';
+    search.value.equipmentId = '';
+    search.value.status = '';
+
+    selectedItems.value.lineName = null;
+    selectedItems.value.processId = null;
+    selectedItems.value.equipmentId = null;
+
+    selectSearch();
+    onReset();
+};
+const onReset = () => {
+    emits('resetForm');
+};
+
 // 모달 열기
 const openModal = async (type) => {
     modalType.value = type;
@@ -84,20 +103,6 @@ const selectModalValue = (item) => {
     showModal.value = false;
 };
 
-// 선택필터초기화
-const resetSearch = () => {
-    search.value.lineId = '';
-    search.value.lineName = '';
-    search.value.processId = '';
-    search.value.equipmentId = '';
-    search.value.status = '';
-
-    selectedItems.value.lineName = null;
-    selectedItems.value.processId = null;
-    selectedItems.value.equipmentId = null;
-
-    selectSearch();
-};
 
 // 검색
 const selectSearch = async () => {

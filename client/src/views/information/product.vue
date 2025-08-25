@@ -37,7 +37,7 @@ const handleSearch = (result) => {
         expiration: item.expiration_date + item.expiration_date_unit,
         storageCondition: item.storage_condition,
         safetyStock: item.safety_stock + item.safety_stock_unit,
-        productCategory: item.product_category,
+        productCategory: item.product_cate_id,
         status: item.status
     }));
 

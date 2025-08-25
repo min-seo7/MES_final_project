@@ -96,7 +96,7 @@ const insertProduct = async (productInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 product_id 조회 (락)
-    const rows = await conn.query("selectMaxProductId");
+    const rows = await conn.query(sqlList.selectMaxProductId);
     const maxId = rows?.[0]?.max_product_id || null;
 
     // 2. 새로운 product_id 생성 (예: PR001, PR002 ...)
@@ -108,6 +108,13 @@ const insertProduct = async (productInfo) => {
       }
     }
 
+    if (productInfo.productForm === '분말형') {
+      productInfo.productCategory = 'CAT001';
+    } else if (productInfo.productForm === '과립형') {
+      productInfo.productCategory = 'CAT002';
+    } else if (productInfo.productForm === '액상형') {
+      productInfo.productCategory = 'CAT003';
+    }
     // 3. INSERT 실행
     const insertData = [
       newProductId,
@@ -125,7 +132,7 @@ const insertProduct = async (productInfo) => {
       productInfo.status,
     ];
 
-    await conn.query("insertProduct", insertData);
+    await conn.query(sqlList.insertProduct, insertData);
 
     // 4. 커밋
     await conn.commit();
@@ -142,6 +149,13 @@ const insertProduct = async (productInfo) => {
 
 // 제품 수정
 const updateProduct = async (productInfo) => {
+  if (productInfo.productForm === '분말형') {
+    productInfo.productCategory = 'CAT001';
+  } else if (productInfo.productForm === '과립형') {
+    productInfo.productCategory = 'CAT002';
+  } else if (productInfo.productForm === '액상형') {
+    productInfo.productCategory = 'CAT003';
+  }
   const insertData = convertToArray(productInfo, [
     "productType",
     "productForm",

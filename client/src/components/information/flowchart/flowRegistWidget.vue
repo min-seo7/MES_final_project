@@ -157,16 +157,16 @@ const resetRegist = async () => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between font-semibold text-xl mb-4">
-        <div></div>
+    <div class="flex items-center justify-between font-semibold text-xl mb-1">
+        <div>등록</div>
         <div class="space-x-2">
             <Button label=" 등록 " size="small" rounded @click="registFlowchart()" :disabled="form.flowId?.trim() !== ''" />
             <Button label=" 수정 " size="small" rounded :disabled="form.flowId?.trim() === ''" @click="modifyFlow()" />
             <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
         </div>
     </div>
-    <div class="card mt-4 p-4 border rounded">
-        <div class="flex flex-col md:flex-row gap-6">
+    <div class="card border rounded mb-2">
+        <div class="flex flex-col md:flex-row gap-2">
             <!-- 왼쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
@@ -191,8 +191,8 @@ const resetRegist = async () => {
             <!-- 오른쪽 영역 -->
             <div class="flex flex-col gap-4 w-full">
                 <div>
-                    <label class="block mb-1">흐름도</label>
-                    <InputText v-model="form.flowchart" class="w-full" />
+                    <label class="block mb-1">흐름도명</label>
+                    <InputText v-model="form.flowName" class="w-full" />
                 </div>
                 <div>
                     <label class="block mb-1">제품명</label>
@@ -216,7 +216,8 @@ const resetRegist = async () => {
 </template>
 
 <style scoped>
-.font-semibold.text-xl.mb-4 {
-    margin: 0;
+/* 기존 스타일 */
+.card {
+    margin-bottom: 0 !important; /* 이 스타일을 유지하여 다른 곳에서 영향을 받지 않도록 합니다. */
 }
 </style>

@@ -59,7 +59,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="lineId" header="라인코드" style="width: 150px" />
         <Column field="lineName" header="라인명" style="width: 150px" />
         <Column field="flowId" header="흐름도코드" style="width: 150px" />
