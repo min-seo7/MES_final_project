@@ -22,12 +22,10 @@ export default {
             selectWare: null,
             products: [],
             warehouses: [],
-
+            //테이블 행 - 행인덱스!!
+            selectRow: null,
             // 반품 리스트
-            returnList: [
-                // { id: 1, dueDate: '2025-08-01', outNo: 'R001', prdCode: 'M001', prdName: '테스트제품1', returnQty: 10, receiptQty: null, location: '', memo: '', status: '대기' },
-                // { id: 2, dueDate: '2025-08-02', outNo: 'R002', prdCode: 'M002', prdName: '테스트제품2', returnQty: 5, receiptQty: 5, location: 'A-01', memo: '포장불량', status: '확정' }
-            ],
+            returnList: [],
             selectedReturnList: []
         };
     },
@@ -38,6 +36,39 @@ export default {
             this.orderNumber = '';
             this.prdCode = '';
             this.prdName = '';
+            this.getList();
+        },
+        //조회
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    due_date: this.dateFormat(this.dueDate) || null,
+                    orderNo: this.orderNumber || null,
+                    prdId: this.prdCode || null,
+                    prdN: this.prdName || null
+                };
+
+                console.log(filters);
+
+                const res = await axios.post('/api/stock/searchReturnList', filters);
+                //조회결과
+                this.returnList = res.data.map((item) => ({
+                    id: item.id, // 행식별 위한 인덱스용,
+                    dueDate: item.return_date,
+                    outNo: item.prd_out_no,
+                    prdCode: item.product_id,
+                    prdName: item.product_name,
+                    retunQty: item.quantity,
+                    unit: `${'EA'}`,
+                    status: item.inbound_pro,
+                    receiptQty: item.in_qty,
+                    location: item.warehouse_name,
+                    memo: item.in_comm
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //테이블===========================================
         async getList() {
@@ -63,10 +94,20 @@ export default {
         },
         //입고등록===========================================
         async postInreturn() {
-            // if (!this.selectedReturnList.length) {
-            //     alert('확정할 항목을 선택하세요.');
-            //     return;
-            // }
+            if (!this.selectedReturnList.length) {
+                alert('반품등록 제품을 선택해주세요.');
+                return;
+            }
+
+            // 필수값 체크
+            let checkNull = this.selectedReturnList.find((row) => {
+                return !row.receiptQty || !row.location;
+            });
+
+            if (checkNull) {
+                alert(' 입고수량, 창고 입력해주세요.');
+                return;
+            }
             try {
                 let returnInfo = this.selectedReturnList.map((row) => ({
                     id: row.id,
@@ -81,7 +122,7 @@ export default {
             this.getList();
             this.selectedReturnList = [];
         },
-        //수정버튼
+        //수정버튼=======================================
         async postUpdate() {
             try {
                 let updateInfo = this.selectedReturnList.map((row) => ({
@@ -89,11 +130,9 @@ export default {
                 }));
                 await axios.post('/api/stock/returnRewri', updateInfo);
             } catch (error) {
-                console.log('등록실패', error);
+                console.log('수정실패', error);
             }
-            console.log('이거');
             this.getList();
-            console.log('이거탐???');
             this.selectedReturnList = [];
         },
         //모달=============================================
@@ -105,7 +144,6 @@ export default {
         onSelectonSelectPrd() {
             this.prdCode = this.selectPrd.prdCode;
             this.prdName = this.selectPrd.prdName;
-            console.log(this.selectPrd.prdCode);
             this.selectPrd = [];
             this.productModal = false;
         },
@@ -122,6 +160,35 @@ export default {
             } catch (error) {
                 console.error('제품목록 불러오기 실패:', error);
             }
+        },
+        //보관창고(모달) ===========
+        openWarehouseeModal(rowIndex) {
+            console.log(rowIndex);
+            this.selectRow = rowIndex;
+            this.WarehouseModal = true;
+            this.getWareList();
+        },
+        async getWareList() {
+            try {
+                const res = await axios.get('/api/stock/modalWareList');
+                this.warehouses = res.data.map((item) => ({
+                    wareCode: item.warehouse_id,
+                    warerName: item.warehouse,
+                    warerType: item.warehouse_type
+                }));
+            } catch (error) {
+                console.error('창고목록 불러오기 실패:', error);
+            }
+        },
+        onSelectWare() {
+            this.returnList[this.selectRow].location = this.selectWare.warerName;
+            this.selectWare = null;
+            this.WarehouseModal = false;
+        },
+        dateFormat(date) {
+            let newDateFormat = new Date(date);
+            if (isNaN(newDateFormat.getTime())) return null;
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
     mounted() {
@@ -189,7 +256,7 @@ export default {
                 <!-- 보관위치 -->
                 <Column header="보관위치" style="width: 10rem">
                     <template #body="slotProps">
-                        <InputText v-model="slotProps.data.location" :disabled="slotProps.data.status === '확정'" />
+                        <InputText v-model="slotProps.data.location" @click="openWarehouseeModal(slotProps.index)" :disabled="slotProps.data.status === '확정'" />
                     </template>
                 </Column>
 
@@ -204,12 +271,12 @@ export default {
     </div>
 
     <!--제품모달-->
-    <commModal v-model="productModal" header="제품목록" style="width: 40rem">
+    <commModal v-model="productModal" header="제품목록" style="width: 30rem">
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
-            <Column field="prdType" header="제품유형" headerStyle="width: 10em"></Column>
-            <Column field="prdName" header="제품명" headerStyle="width: 10em"></Column>
+            <Column field="prdCode" header="제품코드" headerStyle="width: 6rem"></Column>
+            <Column field="prdType" header="제품유형" headerStyle="width: 6em"></Column>
+            <Column field="prdName" header="제품명" headerStyle="width: 12em"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->
@@ -220,11 +287,11 @@ export default {
         </template>
     </commModal>
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 30rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12em"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
         </DataTable>
 
