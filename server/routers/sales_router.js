@@ -39,6 +39,16 @@ router.get("/ordModalPrdList", async (req, res) => {
   }
 });
 
+router.get("/ordsListModal", async (req, res) => {
+  try {
+    let list = await salesService.selectOrderListModal();
+    res.json({ list });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
+  }
+});
+
 router.get("/orderSearch", async (req, res) => {
   try {
     const filter = {
@@ -57,7 +67,8 @@ router.get("/orderSearch", async (req, res) => {
   }
 });
 
-router.get("/pdfEmail", async (req, res) => {
+//납기일 1
+router.get("/delDateSearch", async (req, res) => {
   try {
     const filter = {
       orderId: req.query.orderId || null,
@@ -65,8 +76,25 @@ router.get("/pdfEmail", async (req, res) => {
       productName: req.query.productName || null,
       partnerId: req.query.partnerId || null,
       delDate: req.query.delDate || null,
-      startDate: req.query.startDate || null,
-      endDate: req.query.endDate || null,
+    };
+    const filteredData = await salesService.selectFilteredOrders(filter);
+    res.json({ list: filteredData });
+  } catch (error) {
+    console.error("주문내역 조회 실패:sales_router.js", error);
+    res.status(500).json({ error: "데이터를 가져오는 데 실패했습니다." });
+  }
+});
+
+router.get("/pdfEmail", async (req, res) => {
+  try {
+    const filter = {
+      orderId: req.query.orderId || null,
+      // orderStatus: req.query.orderStatus || null,
+      productName: req.query.productName || null,
+      partnerId: req.query.partnerId || null,
+      delDate: req.query.delDate || null,
+      // startDate: req.query.startDate || null,
+      // endDate: req.query.endDate || null,
     };
     const filteredData = await salesService.selectFilterInfoEmail(filter);
     res.json({ list: filteredData });
@@ -97,7 +125,7 @@ router.get("/returnRegist", async (req, res) => {
   }
 });
 
-//반품내역 조회 라우터
+//반품내역 조회 라우터(시작-끝)
 router.get("/returnSearch", async (req, res) => {
   try {
     const filter = {
@@ -108,6 +136,22 @@ router.get("/returnSearch", async (req, res) => {
       endDate: req.query.endDate || null,
     };
     const filteredData = await salesService.returnList(filter);
+    res.json({ list: filteredData });
+  } catch (err) {
+    console.error("출하조회 실패:", err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+//납기일만 반품내역조회
+router.get("/returnDelSearch", async (req, res) => {
+  try {
+    const filter = {
+      orderId: req.query.orderId || null,
+      reStatus: req.query.reStatus || null,
+      partnerId: req.query.partnerId || null,
+      delDate: req.query.delDate || null,
+    };
+    const filteredData = await salesService.returndelList(filter);
     res.json({ list: filteredData });
   } catch (err) {
     console.error("출하조회 실패:", err);
@@ -136,9 +180,7 @@ router.post("/returnRegist", async (req, res) => {
   }
 });
 
-// ------------------
 // 출하 관련
-// ------------------
 router.get("/shipReqOrders", async (req, res) => {
   try {
     const filters = {
@@ -208,9 +250,7 @@ router.get("/shipReqSearch", async (req, res) => {
   }
 });
 
-// ------------------
 // 납기일 수정 및 조회
-// ------------------
 router.put("/updateOrderDelivery", async (req, res) => {
   try {
     const delDateInfo = req.body;

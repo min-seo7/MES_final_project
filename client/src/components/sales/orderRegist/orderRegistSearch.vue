@@ -10,11 +10,12 @@ import IconField from 'primevue/iconfield';
 import Dialog from 'primevue/dialog';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Paginator from 'primevue/paginator';
+// import Paginator from 'primevue/paginator';
+import { useUserStore } from '@/store/index';
 
 // 거래처 모달창 관련
 const showModal = ref(false);
-const modalType = ref('');
+// const modalType = ref('');
 const selectedSupplierFromDialog = ref(null); // 모달에서 선택된 거래처
 
 // 거래처 검색 폼
@@ -88,16 +89,16 @@ const openProductModal = (itemSeq) => {
     fetchProducts();
 };
 
-const selectProduct = (product) => {
-    const orderToUpdate = orders.value.find((o) => o.itemSeq === selectedOrderItemSeq.value);
-    if (orderToUpdate) {
-        orderToUpdate.productName = product.productName;
-        orderToUpdate.specification = product.specification;
-        orderToUpdate.productPrice = product.price;
-        orderToUpdate.productId = product.productId;
-    }
-    showProductModal.value = false;
-};
+// const selectProduct = (product) => {
+//     const orderToUpdate = orders.value.find((o) => o.itemSeq === selectedOrderItemSeq.value);
+//     if (orderToUpdate) {
+//         orderToUpdate.productName = product.productName;
+//         orderToUpdate.specification = product.specification;
+//         orderToUpdate.productPrice = product.price;
+//         orderToUpdate.productId = product.productId;
+//     }
+//     showProductModal.value = false;
+// };
 
 // 주문 폼
 const form = ref({
@@ -285,9 +286,13 @@ const registEmployee = async () => {
     }
 };
 
+const userInfo = useUserStore();
 onMounted(() => {
     fetchSuppliers();
     fetchProducts();
+    if (userInfo.user) {
+        form.value.orderManager = userInfo.user.name;
+    }
 });
 </script>
 
@@ -301,102 +306,95 @@ onMounted(() => {
         <div class="font-semibold text-xl mb-4">검색</div>
         <Toolbar>
             <template #center>
-                <IconField>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
-                        <div class="flex flex-col">
-                            <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
-                            <IconField iconPosition="left" class="w-full">
-                                <InputText id="partnerId" type="text" class="w-60" v-model="form.partnerId" readonly />
-                                <InputIcon class="pi pi-search" @click="openModal()" />
-                            </IconField>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">* 배송지</label>
-                            <InputText type="text" v-model="form.deliveryAddr" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">총수량</label>
-                            <InputText :value="totalQuantity.toLocaleString()" disabled style="background-color: lightgrey" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">총공급가액</label>
-                            <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled style="background-color: lightgrey" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">거래처 담당자</label>
-                            <InputText type="text" v-model="form.manager" disabled style="background-color: lightgrey" />
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-semibold text-sm mb-1">주문 담당자</label>
-                            <InputText type="text" v-model="form.orderManager" placeholder="담당자 이름" />
-                        </div>
+                <div class="flex flex-wrap gap-5">
+                    <div class="flex flex-col">
+                        <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
+                        <IconField iconPosition="left">
+                            <InputText id="partnerId" type="text" class="w-48" v-model="form.partnerId" readonly />
+                            <InputIcon class="pi pi-search" @click="openModal()" />
+                        </IconField>
                     </div>
                     <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">거래처명</label>
-                        <InputText type="text" class="w-60" v-model="form.partnerName" disabled style="background-color: lightgrey" />
+                        <InputText type="text" class="w-48" v-model="form.partnerName" disabled style="background-color: lightgrey" />
                     </div>
-                </IconField>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">* 배송지</label>
+                        <InputText type="text" class="w-48" v-model="form.deliveryAddr" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">총수량</label>
+                        <InputText :value="totalQuantity.toLocaleString()" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">총공급가액</label>
+                        <InputText type="text" :value="totalSupplyAmount.toLocaleString()" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">거래처 담당자</label>
+                        <InputText type="text" v-model="form.manager" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">주문 담당자</label>
+                        <InputText type="text" v-model="form.orderManager" placeholder="담당자 이름" readonly />
+                    </div>
+                </div>
             </template>
         </Toolbar>
+
         <br />
+
         <div class="flex gap-3 mt-4 justify-end">
             <Button label="추가" @click="addOrder" rounded />
             <Button label="삭제" severity="danger" @click="deleteOrder" :disabled="!selectedOrder || orders.length === 1" rounded />
         </div>
         <div class="font-semibold text-xl mb-4">주문등록</div>
         <div class="p-4 border rounded-md shadow-md mt-6" style="background-color: white">
-            <div
-                v-for="order in orders"
-                :key="order.itemSeq"
-                class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-4 items-start cursor-pointer p-2 rounded-md transition-colors"
-                :class="{ 'bg-blue-100': selectedOrder && selectedOrder.itemSeq === order.itemSeq }"
-                @click="selectOrder(order)"
-            >
-                <div class="flex flex-col min-h-[80px]">
-                    <label class="font-semibold text-sm mb-1">주문내역번호</label>
-                    <div class="text-sm font-medium text-center">{{ order.itemSeq }}</div>
-                </div>
-                <div class="flex flex-col">
-                    <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText id="productName" type="text" class="w-60" v-model="order.productName" readonly />
-                        <InputIcon class="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
-                    </IconField>
-                </div>
-                <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">* 수량</label>
-                    <InputNumber v-model="order.quantity" :min="1" showButtons class="w-full" />
-                </div>
-                <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">* 납기일</label>
-                    <Calendar v-model="order.delDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
-                </div>
-                <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">규격</label>
-                    <InputText v-model="order.specification" class="w-full" disabled style="background-color: lightgrey" />
-                </div>
-                <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">제품단가</label>
-                    <InputText v-model="order.productPrice" :min="0" class="w-full" disabled style="background-color: lightgrey" />
-                </div>
-                <div class="flex flex-col">
-                    <label class="font-semibold text-sm mb-1">공급가액</label>
-                    <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" style="background-color: lightgrey" />
+            <div class="scrollable-orders">
+                <div
+                    v-for="order in orders"
+                    :key="order.itemSeq"
+                    class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-4 items-start cursor-pointer p-2 rounded-md transition-colors"
+                    :class="{ 'bg-blue-100': selectedOrder && selectedOrder.itemSeq === order.itemSeq }"
+                    @click="selectOrder(order)"
+                >
+                    <div class="flex flex-col min-h-[80px]">
+                        <label class="font-semibold text-sm mb-1">주문내역번호</label>
+                        <div class="text-sm font-medium text-center">{{ order.itemSeq }}</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText id="productName" type="text" class="w-60" v-model="order.productName" readonly />
+                            <InputIcon class="pi pi-search" @click.stop="openProductModal(order.itemSeq)" />
+                        </IconField>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">* 수량</label>
+                        <InputNumber v-model="order.quantity" :min="1" showButtons class="w-full" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">* 납기일</label>
+                        <Calendar v-model="order.delDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">규격</label>
+                        <InputText v-model="order.specification" class="w-full" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">제품단가</label>
+                        <InputText v-model="order.productPrice" :min="0" class="w-full" disabled style="background-color: lightgrey" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">공급가액</label>
+                        <InputText :value="order.supplyPrice.toLocaleString()" disabled class="w-full" placeholder="자동 계산" style="background-color: lightgrey" />
+                    </div>
                 </div>
             </div>
         </div>
         <Dialog v-model:visible="showModal" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">거래처코드</label>
-                        <InputText v-model="supplierSearch.partnerId" @keyup.enter="fetchSuppliers" placeholder="거래처코드" />
-                        <label class="font-semibold text-sm">거래처명</label>
-                        <InputText v-model="supplierSearch.partnerName" @keyup.enter="fetchSuppliers" placeholder="거래처명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="fetchSuppliers" />
-                    </div>
-                </div>
-                <DataTable :value="items" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="10">
+                <DataTable :value="items" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="partnerId" header="거래처코드" class="font-bold"></Column>
                     <Column field="partnerName" header="거래처명"></Column>
@@ -407,23 +405,15 @@ onMounted(() => {
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectSupplierAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectSupplierAndClose" />
                 </div>
             </template>
         </Dialog>
+
         <Dialog v-model:visible="showProductModal" modal header="제품 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">제품코드</label>
-                        <InputText v-model="productSearch.prodCode" @keyup.enter="fetchProducts" placeholder="제품코드" />
-                        <label class="font-semibold text-sm">제품명</label>
-                        <InputText v-model="productSearch.prodName" @keyup.enter="fetchProducts" placeholder="제품명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="fetchProducts" />
-                    </div>
-                </div>
-                <DataTable :value="products" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="10">
+                <DataTable :value="products" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="productId" header="제품코드" class="font-bold"></Column>
                     <Column field="productType" header="제품유형"></Column>
@@ -434,8 +424,8 @@ onMounted(() => {
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectProductAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectProductAndClose" />
                 </div>
             </template>
         </Dialog>
@@ -472,5 +462,11 @@ onMounted(() => {
 :deep(.p-datatable .p-datatable-tbody > tr:hover) {
     background-color: #e8eaf6 !important;
     cursor: pointer;
+}
+
+/* 주문등록 스크롤 영역 스타일 */
+.scrollable-orders {
+    max-height: 400px;
+    overflow-y: auto;
 }
 </style>
