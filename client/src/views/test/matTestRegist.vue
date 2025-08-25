@@ -118,20 +118,19 @@ const defRegister = async () => {
 </script>
 
 <template>
-    <div>
-        <div class="font-semibold text-2xl mb-4">입고 검사 등록</div>
+    <div class="p-4">
+        <h4>입고 검사 등록</h4>
 
         <div class="flex justify-end mb-4 space-x-2">
-            <Button label=" 조회 " rounded @click="fetchInspWaitList" />
-            <Button label=" 초기화 " severity="info" rounded @click="handleClear" />
+            <Button label="조회" class="text-xs px-2 py-1 h-[28px]" rounded @click="fetchInspWaitList" />
+            <Button label="초기화" class="text-xs px-2 py-1 h-[28px]" rounded severity="info" @click="handleClear" />
         </div>
 
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- 대기 목록 -->
+        <div class="flex flex-col md:flex-row gap-6">
             <div class="md:w-2/3">
                 <div class="card flex flex-col gap-4">
-                    <div class="font-semibold text-xl mb-4">검사 대기 목록</div>
-                    <DataTable :value="waitList" selectionMode="single" dataKey="자재검수번호" v-model:selection="selectedItem" @rowSelect="handleRowSelect" :paginator="true" :rows="10">
+                    <div class="font-semibold text-lg">검사 대기 목록</div>
+                    <DataTable :value="waitList" selectionMode="single" dataKey="자재검수번호" v-model:selection="selectedItem" @rowSelect="handleRowSelect" :paginator="true" :rows="7">
                         <Column field="자재검수번호" header="검사번호" />
                         <Column field="구매번호" header="구매번호" />
                         <Column field="자재코드" header="자재코드" />
@@ -139,89 +138,70 @@ const defRegister = async () => {
                         <Column field="수량_EA" header="수량(EA)" />
                         <Column field="등록날짜" header="등록날짜" />
                         <Column field="담당자" header="담당자" />
-                        <Column field="상태" header="상태" />
+                        <Column field="inspStatus" header="상태" />
                         <Column field="메모" header="메모" />
                     </DataTable>
                 </div>
             </div>
 
-            <!-- 등록 폼 -->
             <div class="md:w-1/3">
                 <div class="card flex flex-col gap-4">
-                    <div class="font-semibold text-xl mb-4">자재 입고 검사 등록</div>
+                    <div class="font-semibold text-lg">자재 입고 검사 등록</div>
 
                     <div class="purchase-info">
-                        <div class="flex flex-wrap gap-4 my-4">
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>검사번호</label>
-                                <InputText v-model="form.검사번호" readonly />
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">검사번호</label>
+                                <InputText v-model="form.검사번호" readonly class="text-sm" />
                             </div>
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>검사유형</label>
-                                <InputText v-model="form.검사유형" readonly />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">검사유형</label>
+                                <InputText v-model="form.검사유형" readonly class="text-sm" />
                             </div>
-                        </div>
-
-                        <div class="flex flex-wrap gap-4 my-4">
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>구매번호</label>
-                                <InputText v-model="form.구매번호" readonly />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">구매번호</label>
+                                <InputText v-model="form.구매번호" readonly class="text-sm" />
                             </div>
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>자재코드</label>
-                                <InputText v-model="form.자재코드" readonly />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">자재코드</label>
+                                <InputText v-model="form.자재코드" readonly class="text-sm" />
                             </div>
-                        </div>
-
-                        <div class="flex flex-wrap gap-4 my-4">
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>자재명</label>
-                                <InputText v-model="form.자재명" readonly />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">자재명</label>
+                                <InputText v-model="form.자재명" readonly class="text-sm" />
                             </div>
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>수량</label>
-                                <InputText v-model="form.수량" readonly />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">수량</label>
+                                <InputText v-model="form.수량" readonly class="text-sm" />
                             </div>
-                        </div>
-
-                        <div class="flex flex-wrap gap-4 my-4">
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>검사자</label>
-                                <InputText v-model="form.검사자" readonly />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">검사자</label>
+                                <InputText v-model="form.검사자" readonly class="text-sm" />
                             </div>
-                            <div class="flex flex-col grow basis-0 gap-2">
-                                <label>비고</label>
-                                <InputText v-model="form.비고" />
+                            <div class="flex flex-col gap-1">
+                                <label class="text-sm">비고</label>
+                                <InputText v-model="form.비고" class="text-sm" />
                             </div>
                         </div>
 
-                        <div class="font-semibold text-xl mb-4">판정 입력</div>
-                        <div v-for="(item, index) in form.측정값리스트" :key="index" class="flex flex-row gap-2 w-full mb-2">
-                            <div class="flex flex-col flex-1 min-w-0">
-                                <label>검사항목</label>
-                                <InputText v-model="item.검사항목" readonly />
-                            </div>
-                            <div class="flex flex-col flex-1 min-w-0">
-                                <label>측정값</label>
-                                <div class="flex flex-wrap gap-4">
-                                    <div class="flex items-center gap-2">
-                                        <RadioButton v-model="item.판정" :inputId="`check_clear_${index}`" :name="`checkval_${index}`" value="적합" />
-                                        <label :for="`check_clear_${index}`">적합</label>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <RadioButton v-model="item.판정" :inputId="`check_fail_${index}`" :name="`checkval_${index}`" value="부적합" />
-                                        <label :for="`check_fail_${index}`">부적합</label>
-                                    </div>
+                        <div class="font-semibold text-lg mt-4">판정 입력</div>
+                        <div v-for="(item, index) in form.측정값리스트" :key="index" class="mb-2">
+                            <label class="block text-sm mb-1">{{ item.검사항목 }}</label>
+                            <div class="flex gap-2">
+                                <div class="flex items-center gap-1">
+                                    <RadioButton v-model="item.판정" :inputId="`check_clear_${index}`" :name="`checkval_${index}`" value="적합" />
+                                    <label :for="`check_clear_${index}`" class="text-sm">적합</label>
                                 </div>
-                            </div>
-                            <div class="flex flex-col flex-1 min-w-0">
-                                <label style="color: red">판정</label>
-                                <InputText v-model="item.판정" readonly />
+                                <div class="flex items-center gap-1">
+                                    <RadioButton v-model="item.판정" :inputId="`check_fail_${index}`" :name="`checkval_${index}`" value="부적합" />
+                                    <label :for="`check_fail_${index}`" class="text-sm">부적합</label>
+                                </div>
+                                <InputText v-model="item.판정" readonly class="ml-auto w-1/2 text-sm text-red-600 font-bold" />
                             </div>
                         </div>
 
-                        <div class="flex justify-end mb-4 space-x-2">
-                            <Button label=" 등록 " rounded @click="defRegister" />
+                        <div class="flex justify-end mt-4 space-x-2">
+                            <Button label="등록" class="text-xs px-2 py-1 h-[28px]" rounded @click="defRegister" />
                         </div>
                     </div>
                 </div>
@@ -232,8 +212,25 @@ const defRegister = async () => {
 
 <style scoped>
 .card {
-    padding: 1.5rem;
+    padding: 1rem;
     border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    border-radius: 8px;
 }
+
+/* 추가된 CSS: PrimeVue 컴포넌트의 내부 스타일 조정
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+}
+
+:deep(.p-inputtext) {
+    height: 28px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+} */
 </style>
