@@ -36,8 +36,8 @@ app.use(
     saveUninitialized: true,
     cookie: {
       httpOnly: true,
-      secure: false, //배포시에 true로 바꿔줄것. //SESSION_SECRET=your_secret_key => env파일 추가
-      maxAge: 60000,
+      secure: true, //배포시에 true로 바꿔줄것. //SESSION_SECRET=your_secret_key => env파일 추가
+      maxAge: 3600000,
     },
   })
 );

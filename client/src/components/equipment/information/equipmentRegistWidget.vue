@@ -136,7 +136,7 @@ const resetForm = () => {
         purchaseDate: null,
         startDate: null,
         location: '',
-        status: '사용',
+        status: '가동',
         note: ''
     };
     isEditing.value = false;
@@ -288,10 +288,10 @@ function selectLocComplete() {
                         <span class="text-red-500 text-[16px] mr-1">*</span>
                         <span class="text-[14px] whitespace-nowrap mr-1">설비상태</span>
                         <div class="flex items-center gap-4 flex-shrink-0">
-                            <RadioButton inputId="use1" name="use" value="사용" v-model="form.status" />
-                            <label for="use1" class="whitespace-nowrap">사용</label>
-                            <RadioButton inputId="use2" name="use" value="미사용" v-model="form.status" />
-                            <label for="use2" class="whitespace-nowrap">미사용</label>
+                            <RadioButton inputId="use1" name="use" value="가동" v-model="form.status" />
+                            <label for="use1" class="whitespace-nowrap">가동</label>
+                            <RadioButton inputId="use2" name="use" value="비가동" v-model="form.status" />
+                            <label for="use2" class="whitespace-nowrap">비가동</label>
                         </div>
                     </div>
                 </div>

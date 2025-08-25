@@ -1,4 +1,5 @@
 <script setup>
+// ... (script 내용은 동일)
 import { ref, defineEmits, onMounted } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
@@ -24,6 +25,25 @@ const search = ref({
     equipmentId: '',
     status: ''
 });
+
+// 선택필터초기화
+const resetSearch = () => {
+    search.value.lineId = '';
+    search.value.lineName = '';
+    search.value.processId = '';
+    search.value.equipmentId = '';
+    search.value.status = '';
+
+    selectedItems.value.lineName = null;
+    selectedItems.value.processId = null;
+    selectedItems.value.equipmentId = null;
+
+    selectSearch();
+    onReset();
+};
+const onReset = () => {
+    emits('resetForm');
+};
 
 // 모달 열기
 const openModal = async (type) => {
@@ -84,21 +104,6 @@ const selectModalValue = (item) => {
     showModal.value = false;
 };
 
-// 선택필터초기화
-const resetSearch = () => {
-    search.value.lineId = '';
-    search.value.lineName = '';
-    search.value.processId = '';
-    search.value.equipmentId = '';
-    search.value.status = '';
-
-    selectedItems.value.lineName = null;
-    selectedItems.value.processId = null;
-    selectedItems.value.equipmentId = null;
-
-    selectSearch();
-};
-
 // 검색
 const selectSearch = async () => {
     try {
@@ -124,7 +129,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between font-semibold text-xl mb-4">
+    <div class="flex items-center justify-between font-semibold text-xl mb-2">
         <div>검색조건</div>
         <div class="space-x-2">
             <Button label=" 조회 " size="small" rounded @click="selectSearch"></Button>
@@ -135,7 +140,6 @@ onMounted(() => {
     <Toolbar>
         <template #center>
             <div class="flex items-center gap-6">
-                <!-- 라인번호 -->
                 <div class="flex items-center gap-2">
                     <label for="lineId" class="whitespace-nowrap">라인번호</label>
                     <IconField iconPosition="left" class="w-full">
@@ -143,7 +147,6 @@ onMounted(() => {
                     </IconField>
                 </div>
 
-                <!-- 라인명 -->
                 <div class="flex items-center gap-2">
                     <label for="lineName" class="whitespace-nowrap">라인명</label>
                     <IconField iconPosition="left" class="w-full">
@@ -152,7 +155,6 @@ onMounted(() => {
                     </IconField>
                 </div>
 
-                <!-- 공정코드 -->
                 <div class="flex items-center gap-2">
                     <label for="processId" class="whitespace-nowrap">공정코드</label>
                     <IconField iconPosition="left" class="w-full">
@@ -161,7 +163,6 @@ onMounted(() => {
                     </IconField>
                 </div>
 
-                <!-- 설비코드 -->
                 <div class="flex items-center gap-2">
                     <label for="equipmentId" class="whitespace-nowrap">설비코드</label>
                     <IconField iconPosition="left" class="w-full">
@@ -170,7 +171,6 @@ onMounted(() => {
                     </IconField>
                 </div>
 
-                <!-- 상태 라디오 그룹 -->
                 <div class="flex items-center gap-2">
                     <label for="materialCode" class="whitespace-nowrap">상태</label>
                     <div class="flex items-center">
@@ -188,3 +188,5 @@ onMounted(() => {
 
     <CommonModal v-model:visible="showModal" :modalType="modalType" :items="items" :columns="columns" v-model:selectedItem="selectedItems[modalType]" @confirm="selectModalValue" />
 </template>
+
+<style lang="scss" scoped></style>

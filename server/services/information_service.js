@@ -96,7 +96,7 @@ const insertProduct = async (productInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 product_id 조회 (락)
-    const rows = await conn.query("selectMaxProductId");
+    const rows = await conn.query(sqlList.selectMaxProductId);
     const maxId = rows?.[0]?.max_product_id || null;
 
     // 2. 새로운 product_id 생성 (예: PR001, PR002 ...)
@@ -108,6 +108,13 @@ const insertProduct = async (productInfo) => {
       }
     }
 
+    if (productInfo.productForm === '분말형') {
+      productInfo.productCategory = 'CAT001';
+    } else if (productInfo.productForm === '과립형') {
+      productInfo.productCategory = 'CAT002';
+    } else if (productInfo.productForm === '액상형') {
+      productInfo.productCategory = 'CAT003';
+    }
     // 3. INSERT 실행
     const insertData = [
       newProductId,
@@ -125,7 +132,7 @@ const insertProduct = async (productInfo) => {
       productInfo.status,
     ];
 
-    await conn.query("insertProduct", insertData);
+    await conn.query(sqlList.insertProduct, insertData);
 
     // 4. 커밋
     await conn.commit();
@@ -142,6 +149,13 @@ const insertProduct = async (productInfo) => {
 
 // 제품 수정
 const updateProduct = async (productInfo) => {
+  if (productInfo.productForm === '분말형') {
+    productInfo.productCategory = 'CAT001';
+  } else if (productInfo.productForm === '과립형') {
+    productInfo.productCategory = 'CAT002';
+  } else if (productInfo.productForm === '액상형') {
+    productInfo.productCategory = 'CAT003';
+  }
   const insertData = convertToArray(productInfo, [
     "productType",
     "productForm",
@@ -181,7 +195,7 @@ const insertMaterial = async (materialInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 material_id 조회 (락)
-    const rows = await conn.query("selectMaxMaterialId");
+    const rows = await conn.query(sqlList.selectMaxMaterialId);
     const maxId = rows?.[0]?.max_material_id || null;
 
     // 2. 새로운 material_id 생성 (MAT001, MAT002 ...)
@@ -206,7 +220,7 @@ const insertMaterial = async (materialInfo) => {
       materialInfo.status,
     ];
 
-    await conn.query("insertMaterial", insertData);
+    await conn.query(sqlList.insertMaterial, insertData);
 
     // 4. 커밋
     await conn.commit();
@@ -266,7 +280,7 @@ const insertPartner = async (partnerInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 partner_id 조회 (락)
-    const rows = await conn.query("selectMaxPartnerId");
+    const rows = await conn.query(sqlList.selectMaxPartnerId);
     const maxId = rows?.[0]?.max_partner_id || null;
 
     // 2. 새로운 partner_id 생성 (PAT001, PAT002 ...)
@@ -291,7 +305,7 @@ const insertPartner = async (partnerInfo) => {
       partnerInfo.status,
     ];
 
-    await conn.query("insertPartner", insertData);
+    await conn.query(sqlList.insertPartner, insertData);
 
     // 4. 커밋
     await conn.commit();
@@ -528,7 +542,6 @@ const insertLine = async (lineInfo) => {
   const insertData = convertToArray(lineInfo, [
     "lineId",
     "lineName",
-    "flowId",
     "productId",
     "note",
     "status",
@@ -543,28 +556,33 @@ const insertAllLine = async (lineInfo, lineDetails) => {
   try {
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
-
+    const fId = await conn.query(sqlList.selectFlowIdByProductId, lineInfo.productId);
+    const flowId = fId?.[0]?.flow_id || null;
     // 1. 마지막 line_id 조회 (락)
     const rows = await conn.query(sqlList.selectMaxLineId);
     const maxId = rows?.[0]?.max_line_id || null;
+    console.log("Max ID 조회 결과:", rows?.[0]?.max_line_id);
 
-    let newLineId = "L001";
+    let newLineId = "L003";
     if (maxId) {
       const lastNum = parseInt(maxId.replace(/\D/g, ""), 10);
       if (!isNaN(lastNum)) {
         newLineId = `L${String(lastNum + 1).padStart(3, "0")}`;
       }
     }
-
+    console.log("생성된 new ID:", newLineId);
     // 3. 라인 등록
-    await conn.query(sqlList.insertLine, [
+    const insertLineResult = await conn.query(sqlList.insertLine, [
       newLineId,
       lineInfo.lineName,
-      lineInfo.flowId,
       lineInfo.productId,
       lineInfo.note,
       lineInfo.status,
+      flowId,
     ]);
+    
+    // [추가] INSERT 성공 여부 로그 확인
+    console.log("Insert Line Result:", insertLineResult);
 
     // 4. 라인 상세 등록
     for (const detail of lineDetails) {
@@ -579,11 +597,15 @@ const insertAllLine = async (lineInfo, lineDetails) => {
 
     // 5. 커밋
     await conn.commit();
-
+    console.log("Transaction committed successfully."); // [추가] 커밋 성공 로그
+    
     return { success: true, newLineId };
   } catch (err) {
     if (conn) await conn.rollback();
     console.error("insertAllLine Error:", err);
+    console.log("Transaction rolled back."); // [추가] 롤백 로그
+    
+    // [수정] 오류가 발생하면, err.message를 정확히 반환하여 프론트엔드에서 알 수 있게 합니다.
     return { success: false, error: err.message };
   } finally {
     if (conn) conn.release();
@@ -624,7 +646,7 @@ const insertProcess = async (processInfo) => {
     await conn.beginTransaction();
 
     // 1. 마지막 process_id 조회 (락)
-    const rows = await conn.query("selectMaxProcessId");
+    const rows = await conn.query(sqlList.selectMaxProcessId);
     const maxId = rows?.[0]?.max_process_id || null;
 
     // 2. 새로운 process_id 생성 (PR001, PR002 ...)
@@ -644,7 +666,7 @@ const insertProcess = async (processInfo) => {
       processInfo.status,
     ];
 
-    await conn.query("insertProcess", insertData);
+    await conn.query(sqlList.insertProcess, insertData);
 
     // 4. 커밋
     await conn.commit();
@@ -874,10 +896,12 @@ const insertEmployee = async (employeeInfo) => {
 
     const hireDate = formatDateToYMD(employeeInfo.hireDate);
     const leaveDate = formatDateToYMD(employeeInfo.leaveDate);
-
+    const pwchange = '0';
     // 4. INSERT 실행 (alias 그대로 사용)
     const insertData = [
       newEmpId,
+      newEmpId,
+      pwchange,
       employeeInfo.name,
       employeeInfo.department, // 기존 코드에서는 dept였는데 employeeInfo.department로 수정
       employeeInfo.phone,

@@ -289,6 +289,25 @@ const productionOrderList = async () => {
   }
 };
 
+
+
+
+const findAllOrderSearch = async (orderInfo) => {
+  const insertData = [
+    orderInfo ?? null,
+  ];
+  let list = await mariadb.query("selectOrdersearch", insertData);
+  return list;
+};
+
+
+const findAllOrderSearchResult = async (orderInfo) => {
+  const insertData = [
+    orderInfo ?? null,
+  ];
+  let list = await mariadb.query("selectOrdersearchResult", insertData);
+  return list;
+};
 module.exports = {
   findAllOrder,
   startWork,
@@ -301,4 +320,6 @@ module.exports = {
   checkWoStatus,
   bomRequestInsert,
   productionOrderList,
+  findAllOrderSearch,
+  findAllOrderSearchResult
 };

@@ -62,7 +62,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="employeeId" header="사원번호" style="width: 150px" />
         <Column field="name" header="이름" style="width: 100px" />
         <Column field="department" header="부서" style="width: 150px" />
@@ -71,7 +71,6 @@ const tableData = computed(() => {
         <Column field="hireDate" header="입사일자" style="width: 150px" />
         <Column field="endDate" header="퇴사일자" style="width: 150px" />
         <Column field="pw" header="비밀번호" style="width: 150px" />
-        <Column field="pwstatus" header="비밀번호변경유무" style="width: 150px" />
         <Column field="status" header="상태" style="width: 100px" />
         <Column field="auth" header="권한" style="width: 100px" />
     </DataTable>

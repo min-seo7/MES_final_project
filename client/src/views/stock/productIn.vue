@@ -76,6 +76,7 @@ export default {
             this.testNumber = '';
             this.prdCode = '';
             this.prdName = '';
+            this.getPrdPendigList();
         },
         //조회버튼
         async onSearch() {
@@ -90,12 +91,12 @@ export default {
 
                 console.log(filters);
 
-                const res = await axios.post('/api/stock/p', filters);
+                const res = await axios.post('/api/stock/searchProductInList', filters);
                 //조회결과
                 this.prdReceiptPending = res.data.map((item) => ({
-                    id: `${item.inspection_id}-${item.product_id}`,
+                    id: `${item.pf_code}-${item.product_id}`,
                     p_dueDate: item.inspection_date,
-                    p_No: item.inspection_id,
+                    p_No: item.pf_code,
                     p_prdType: item.product_type,
                     p_prdCode: item.product_id,
                     p_prdName: item.product_name,
@@ -126,8 +127,8 @@ export default {
                 p_prdType: '',
                 p_prdCode: '',
                 p_prdName: '',
-                p_testPassQty: 0,
-                p_receiptQty: 0,
+                p_testPassQty: '',
+                p_receiptQty: '',
                 p_unit: '',
                 p_exp: '',
                 p_warehouse: '',
@@ -187,6 +188,7 @@ export default {
             } catch (error) {
                 console.lof('취소실패', error);
             }
+            alert('입고취소처리 되었습니다.');
             this.getprdLotLIst();
             this.selectPandingPrds = [];
         },
@@ -195,9 +197,9 @@ export default {
             try {
                 const res = await axios.get('/api/stock/prdPendingList');
                 this.prdReceiptPending = res.data.map((item) => ({
-                    id: `${item.inspection_id}-${item.product_id}`,
+                    id: `${item.pf_code}-${item.product_id}`,
                     p_dueDate: item.inspection_date,
-                    p_No: item.inspection_id,
+                    p_No: item.pf_code,
                     p_prdType: item.product_type,
                     p_prdCode: item.product_id,
                     p_prdName: item.product_name,
@@ -293,6 +295,12 @@ export default {
         onSelectWare() {
             this.prdReceiptPending[this.selectRow].p_warehouse = this.selectWare.warerName;
             this.WarehouseModal = false;
+        },
+        //날짜포멧
+        dateFormat(date) {
+            if (!date || isNaN(new Date(date).getTime())) return null;
+            let newDateFormat = new Date(date);
+            return newDateFormat.getFullYear() + '-' + String(newDateFormat.getMonth() + 1).padStart(2, '0') + '-' + String(newDateFormat.getDate()).padStart(2, '0');
         }
     },
     mounted() {
@@ -384,12 +392,12 @@ export default {
     </div>
 
     <!--제품모달-->
-    <commModal v-model="productModal" header="제품목록" style="width: 40rem">
+    <commModal v-model="productModal" header="제품목록" style="width: 30rem">
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
-            <Column field="prdType" header="제품유형" headerStyle="width: 10em"></Column>
-            <Column field="prdName" header="제품명" headerStyle="width: 10em"></Column>
+            <Column field="prdCode" header="제품코드" headerStyle="width: 6rem"></Column>
+            <Column field="prdType" header="제품유형" headerStyle="width: 6em"></Column>
+            <Column field="prdName" header="제품명" headerStyle="width: 12em"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->
@@ -400,11 +408,11 @@ export default {
         </template>
     </commModal>
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 30rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12em"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
         </DataTable>
 

@@ -1,6 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const equipmentService = require("../services/equipment_service.js");
+const path = require("path");
+// router 최상단 근처
+router.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+
+// ⭐ multer 불러오기 추가
+const multer = require("multer");
+
 
 /* ========== 설비점검 페이지 (기존) ========== */
 // 심플 목록
@@ -28,7 +35,7 @@ router.get("/inspection/search", async (req, res) => {
 // DISTINCT (모달용)
 router.get("/inspection/distinct", async (req, res) => {
   try {
-    const { field, page = 1, size = 5 } = req.query;
+    const { field, page = 1, size = 10 } = req.query;
     const result = await equipmentService.findInspectionDistinct(
       field,
       Number(page),
@@ -288,28 +295,118 @@ router.put("/downtime/update", async (req, res) => {
 /* ===== 설비수리 목록 조회 ===== */
 router.get("/repair/list", async (req, res) => {
   try {
-    const result = await equipmentService.searchRepairList(req.query);
-    res.json(result);
+    const result = await equipmentService.searchRepairList(req.query)
+    res.json(result)
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "조회 실패" });
+    console.error(err)
+    res.status(500).json({ error: "조회 실패" })
   }
-});
+})
 
-/* ===== DISTINCT (모달용) ===== */
+// 설비수리 코드 DISTINCT (모달용)
 router.get("/repair/distinct", async (req, res) => {
   try {
-    const { field, page = 1, size = 5 } = req.query;
-    const result = await equipmentService.getRepairDistinct(
-      field,
-      Number(page),
-      Number(size)
-    );
-    res.json(result);
+    const { field, page = 1, size = 5 } = req.query
+    const result = await equipmentService.getRepairDistinct(field, Number(page), Number(size))
+    res.json(result)
   } catch (err) {
-    console.error("[GET /repair/distinct] Error:", err);
-    res.status(500).json({ message: "repair distinct 실패" });
+    console.error("[GET /repair/distinct] Error:", err)
+    res.status(500).json({ message: "repair distinct 실패" })
+  }
+})
+
+
+// 설비수리 등록수정 페이지
+
+// 설비수리 등록
+router.post("/repair/regist", async (req, res) => {
+  try {
+    const result = await equipmentService.registerRepair(req.body);
+    res.status(201).json({ message: "설비수리 등록 성공", ...result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "설비수리 등록 실패" });
   }
 });
 
+
+
+
+/* ========== 설비수리 단건 조회(폼 바인딩) ========== */
+router.get("/repair/find-one", async (req, res) => {
+  try {
+    const result = await equipmentService.findOneRepair(req.query?.repair_id)
+    res.json(result) // null or object
+  } catch (err) {
+    console.error("[GET /repair/find-one] Error:", err)
+    res.status(500).json({ message: "설비수리 단건 조회 실패" })
+  }
+})
+
+/* ========== 설비수리 수정(마스터+디테일) ========== */
+router.put("/repair/update", async (req, res) => {
+  try {
+    const result = await equipmentService.updateRepair(req.body)
+    res.json({ message: "설비수리 수정 성공", ...result })
+  } catch (err) {
+    console.error("[PUT /repair/update] Error:", err)
+    res.status(500).json({ message: err.message || "설비수리 수정 실패" })
+  }
+})
+
+
+
+// 메뉴얼 법 페이지
+// 단순 목록
+// equipment_router.js (manual-list 부분)
+router.get('/manual-list', async (req,res)=>{
+  try {
+    const { page=1, size=10 } = req.query
+    const result = await equipmentService.getManualList(Number(page), Number(size))
+    res.json(result)
+  } catch(err){
+    console.error(err)
+    res.status(500).json({error:'manual-list 조회 실패'})
+  }
+})
+
+// manual-search
+router.get('/manual-search', async (req,res)=>{
+  try {
+    const { page=1, size=10 } = req.query
+    const result = await equipmentService.searchManualList(req.query, Number(page), Number(size))
+    res.json(result)
+  } catch(err){
+    console.error(err)
+    res.status(500).json({error:'manual-search 조회 실패'})
+  }
+})
+
+
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads')); // 루트 uploads/
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage });
+
+// 업로드 라우트
+router.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).send('파일 없음');
+  res.json({
+    message: '업로드 성공',
+    // 라우터가 실제로 마운트된 baseUrl을 붙여서 돌려줌 -> /api/equipment/uploads/xxx
+    path: `${req.baseUrl}/uploads/${req.file.filename}`
+  });
+});
+
+
 module.exports = router;
+
+
+

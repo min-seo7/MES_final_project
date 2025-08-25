@@ -216,14 +216,13 @@ export default {
 
                 //서브 DB저장
                 await axios.post('/api/stock/purDetail', subInfo);
-
-                //등록 알람
-                alert('발주등록 완료');
-                //초기화
-                this.reset();
             } catch (error) {
                 console.error('등록 실패', error);
             }
+            //등록 알람
+            alert('발주등록 완료');
+            //초기화
+            this.reset();
         },
         //DB에 맞게 날짜포멧 변환.
         dateFormat(date) {
@@ -261,9 +260,9 @@ export default {
             <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl mb-4">안전재고 기준 미달 자재</div>
                 <DataTable :value="lowMat" scrollable scrollHeight="400px" class="mt-6" style="width: 100%" sortMode="multiple">
-                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold" sortable></Column>
+                    <Column field="low_matCode" header="자재코드" style="min-width: 80px" frozen class="font-bold"></Column>
                     <Column field="low_matName" header="자재명" style="min-width: 100px" sortable></Column>
-                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px" sortable></Column>
+                    <Column field="low_safeStock" header="안전재고" style="min-width: 80px"></Column>
                     <Column field="low_nowStock" header="현재고" style="min-width: 80px" sortable></Column>
                     <Column field="low_shortage" header="부족" style="min-width: 80px" sortable></Column>
                     <Column field="low_unit" header="단위" style="min-width: 80px"></Column>
@@ -324,14 +323,14 @@ export default {
                                 <InputText v-model="slotProps.data.mat_id" @click="openMatModal(slotProps.index)" style="width: 80px" />
                             </template>
                         </Column>
-                        <Column field="mat_name" header="자재명" style="min-width: 100px"></Column>
+                        <Column field="mat_name" header="자재명" style="min-width: 150px"></Column>
                         <Column field="purch_qty" header="발주수량" style="min-width: 30px">
                             <template #body="slotProps">
                                 <InputText v-model="slotProps.data.purch_qty" :min="0" type="number" style="width: 80%" />
                             </template>
                         </Column>
-                        <Column field="unit" header="단위" style="min-width: 80px"></Column>
-                        <Column field="patner" header="공급처" style="min-width: 80px"></Column>
+                        <Column field="unit" header="단위" style="min-width: 60px"></Column>
+                        <Column field="patner" header="공급처" style="min-width: 100px"></Column>
                         <Column field="comm" header="비고" style="min-width: 150px">
                             <template #body="slotProps">
                                 <InputText v-model="slotProps.data.comm" type="text" style="width: 100%" />
@@ -345,14 +344,13 @@ export default {
 
     <!--모달영역-->
     <!--공급처모달-->
-    <commModal v-model="partnerModal" header="거래처목록">
+    <commModal v-model="partnerModal" header="거래처목록" style="width: 33rem">
         <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
-        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 40rem">
+        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 23rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="partnerType" header="거래처유형"></Column>
-            <Column field="partnerId" header="거래처코드"></Column>
-            <Column field="partnerName" header="거래처명"></Column>
-            <Column field="memo" header="비고"></Column>
+            <Column field="partnerType" header="거래처유형" Style="width: 6rem"></Column>
+            <Column field="partnerId" header="거래처코드" Style="width: 6rem"></Column>
+            <Column field="partnerName" header="거래처명" Style="width: 15rem"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->
@@ -365,10 +363,10 @@ export default {
     </commModal>
 
     <!--자재모달-->
-    <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 40rem">
+    <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 30rem">
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 6rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 

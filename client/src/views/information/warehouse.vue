@@ -70,6 +70,10 @@ const handleSelect = (row) => {
     console.log(warehouseSelectedData);
 };
 
+const handleResetForm = () => {
+    warehouseSelectedData.value = {}; // 초기화
+};
+
 onUnmounted(() => {
     console.log('warehouse.vue unmounted!');
 });
@@ -77,8 +81,10 @@ onUnmounted(() => {
 
 <template>
     <section class="warehouse-container">
-        <warehouseSearchWidget @warehouseFilterSearch="handleSearch" />
+        <warehouseSearchWidget @warehouseFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <warehouseListWidget :items="warehouseSearchData" @warehouseSelected="handleSelect" />
+        <div class="mt-2"></div>
+
         <warehouseRegistWidget :items="warehouseSelectedData" />
     </section>
 </template>
