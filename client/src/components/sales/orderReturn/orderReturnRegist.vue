@@ -94,10 +94,10 @@ const openSupplierModal = async () => {
     showSupplierDialog.value = true;
 };
 
-// 거래처 검색 필터링 로직
-const searchSuppliers = async () => {
-    await fetchSuppliers();
-};
+// // 거래처 검색 필터링 로직
+// const searchSuppliers = async () => {
+//     await fetchSuppliers();
+// };
 
 // "선택 완료" 버튼 클릭 시
 const selectSupplierAndClose = () => {
@@ -179,20 +179,37 @@ const selectProductAndClose = () => {
 };
 
 // 동적 품목 및 규격 데이터
-const productList = ['분말형', '과립형', '액상형'];
-const productSpecs = {
-    분말형: ['20KG', '40KG'],
-    과립형: ['20KG', '40KG'],
-    액상형: ['5L', '10L', '20L']
-};
+// const productList = ['분말형', '과립형', '액상형'];
+// const productSpecs = {
+//     분말형: ['20KG', '40KG'],
+//     과립형: ['20KG', '40KG'],
+//     액상형: ['5L', '10L', '20L']
+// };
 
-// 품명에 따라 동적으로 변하는 규격 옵션
-const specOptions = computed(() => {
-    return productSpecs[search.value.productName] || [];
-});
+// // 품명에 따라 동적으로 변하는 규격 옵션
+// const specOptions = computed(() => {
+//     return productSpecs[search.value.productName] || [];
+// });
 
 // 주문 데이터
 const orders = ref([]);
+
+// --- 추가된 Paginator 상태 ---
+const first = ref(0);
+const rows = ref(5);
+const totalRecords = computed(() => orders.value.length);
+// --- 추가된 Paginator 상태 끝 ---
+
+// 페이징된 데이터 계산
+const paginatedOrders = computed(() => {
+    return orders.value.slice(first.value, first.value + rows.value);
+});
+
+// 페이징 이벤트 핸들러
+const onPage = (event) => {
+    first.value = event.first;
+    rows.value = event.rows;
+};
 
 // 주문 데이터 조회
 const fetchOrders = async () => {
@@ -236,6 +253,8 @@ const fetchOrders = async () => {
                 orderDetailId: item.order_detail_id,
                 prdOutNo: item.prd_out_no
             }));
+            // 검색 후 첫 페이지로 이동
+            first.value = 0;
         } else {
             orders.value = [];
             console.warn('서버 응답에 유효한 리스트 데이터가 없습니다.', response.data);
@@ -397,24 +416,6 @@ onMounted(() => {
                         </InputGroup>
                     </div>
                     <div class="flex flex-col space-y-1">
-                        <label class="font-semibold text-sm">제품명</label>
-                        <div class="flex flex-wrap gap-3">
-                            <div v-for="item in productList" :key="item" class="flex items-center gap-2">
-                                <RadioButton v-model="search.productName" :inputId="item" :value="item" />
-                                <label :for="item">{{ item }}</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col space-y-1">
-                        <label class="font-semibold text-sm">규격</label>
-                        <div class="flex flex-wrap gap-3">
-                            <div v-for="item in specOptions" :key="item" class="flex items-center gap-2">
-                                <RadioButton v-model="search.spec" :inputId="`spec-${item}`" :value="item" />
-                                <label :for="`spec-${item}`">{{ item }}</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col space-y-1">
                         <label class="font-semibold text-sm">납기일</label>
                         <Calendar v-model="search.deliveryDate" dateFormat="yy-mm-dd" showIcon class="w-full" />
                     </div>
@@ -434,8 +435,8 @@ onMounted(() => {
             <div class="w-2/3">
                 <br />
                 <div class="font-semibold text-xl mb-3 mt-8">검색내역</div>
-                <DataTable :value="orders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true" paginator :rows="10">
-                    <Column field="shipmentId" header="출하번호" style="min-width: 100px" frozen class="font-bold" />
+                <DataTable :value="paginatedOrders" selectionMode="single" dataKey="orderDetailId" v-model:selection="selectedOrder" @rowSelect="onOrderSelect" :rowHover="true" class="mb-4">
+                    <Column field="shipmentId" header="출하번호" style="min-width: 100px" />
                     <Column field="prdOutNo" header="출하완료번호" style="min-width: 100px" />
                     <Column field="partnerId" header="거래처코드" style="min-width: 100px" />
                     <Column field="partnerName" header="거래처명" style="min-width: 100px" />
@@ -453,6 +454,7 @@ onMounted(() => {
                     </Column>
                     <Column field="orderManager" header="담당자" style="min-width: 100px" />
                 </DataTable>
+                <Paginator v-model:first="first" :rows="rows" :totalRecords="totalRecords" @page="onPage" :rowsPerPageOptions="[5, 10, 20, 30]"></Paginator>
             </div>
             <div class="w-1/3">
                 <div class="flex justify-end space-x-2 mb-4">
@@ -490,16 +492,7 @@ onMounted(() => {
         </div>
         <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">거래처코드</label>
-                        <InputText v-model="supplierSearch.partnerId" @keyup.enter="searchSuppliers" placeholder="거래처코드" />
-                        <label class="font-semibold text-sm">거래처명</label>
-                        <InputText v-model="supplierSearch.partnerName" @keyup.enter="searchSuppliers" placeholder="거래처명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="searchSuppliers" />
-                    </div>
-                </div>
-                <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog">
+                <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="partnerId" header="거래처코드"></Column>
                     <Column field="partnerName" header="거래처명"></Column>
@@ -510,35 +503,26 @@ onMounted(() => {
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectSupplierAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectSupplierAndClose" />
                 </div>
             </template>
         </Dialog>
 
         <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="flex items-center gap-4">
-                        <label class="font-semibold text-sm w-20">제품코드</label>
-                        <InputText v-model="productSearch.prodCode" @keyup.enter="searchProducts" placeholder="제품코드" />
-                        <label class="font-semibold text-sm">제품명</label>
-                        <InputText v-model="productSearch.prodName" @keyup.enter="searchProducts" placeholder="제품명" />
-                        <Button label="검색" icon="pi pi-search" class="p-button-success" @click="searchProducts" />
-                    </div>
-                </div>
-
-                <DataTable :value="filteredProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog">
+                <DataTable :value="filteredProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="productType" header="제품유형"></Column>
                     <Column field="productId" header="제품코드"></Column>
                     <Column field="productName" header="제품명"></Column>
                     <Column field="specification" header="규격"></Column>
+                    <Column field="unit" header="단위"></Column>
                 </DataTable>
             </div>
             <template #footer>
-                <div class="flex justify-center">
-                    <Button label="선택 완료" severity="success" @click="selectProductAndClose" />
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectProductAndClose" />
                 </div>
             </template>
         </Dialog>

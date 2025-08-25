@@ -11,7 +11,6 @@ const rows = ref([]);
 const page = ref(1);
 const size = ref(10);
 const total = ref(0);
-
 const totalPages = computed(() => Math.max(1, Math.ceil(Number(total.value || 0) / Number(size.value || 10))));
 
 function fmt(d) {
@@ -43,9 +42,11 @@ async function fetchSearch(p, s) {
 watch(
     () => props.params,
     (p) => {
-        const has = ['equipment_id', 'equipment_type', 'equipment_name', 'location', 'status'].some((k) => p && p[k]);
+        const has = ['equipment_id', 'equipment_type', 'equipment_name', 'location', 'status'].some((k) => p && p[k] != null && String(p[k]).trim() !== '');
+
         const pNo = Number(p?.page || 1);
         const sNo = Number(p?.size || 10);
+
         if (has) fetchSearch(pNo, sNo);
         else fetchSimple(pNo, sNo);
     },

@@ -46,18 +46,42 @@ watch(
 const registMaterial = async () => {
     try {
         const res = await axios.post('/api/information/material', form.value);
-        alert(res.data.message);
+        
+        form.value = {
+            materialType: '',
+            materialId: '',
+            materialName: '',
+            storageCondition: '',
+            specification: '',
+            unit: '',
+            safetyStock: '',
+            safetyStockUnit: '',
+            status: ''
+        };
+        alert('등록이 완료되었습니다.');
+        return res;
     } catch (err) {
-        console.log('자재등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 
 const modifyMatrerial = async () => {
     try {
         const res = await axios.post('/api/information/material/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+            materialType: '',
+            materialId: '',
+            materialName: '',
+            storageCondition: '',
+            specification: '',
+            unit: '',
+            safetyStock: '',
+            safetyStockUnit: '',
+            status: ''
+        };
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('자재수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 

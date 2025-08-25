@@ -406,40 +406,45 @@ SET equipment_id = ?,
 
 // 라인조회
 const selectLineList = `
-SELECT l.line_id
-     , l.line_name
-     , l.flow_id
-     , f.flow_name
-     , l.product_id
-     , p.product_name
-     , l.note
-     , DATE_FORMAT(l.created_date, '%Y-%m-%d') AS created_date
-     , l.status
-FROM line l
-INNER JOIN product p ON l.product_id = p.product_id
-INNER JOIN flowchart f ON l.flow_id = f.flow_id
-WHERE 1=1
-  AND l.line_id   = COALESCE(?, l.line_id)
-  AND l.line_name = COALESCE(?, l.line_name)
-  AND EXISTS (
-        SELECT 1
-        FROM line_detail d
-        WHERE d.line_id = l.line_id
-          AND (? IS NULL OR d.process_id   = ?)
-          AND (? IS NULL OR d.equipment_id = ?)
-      )
-  AND l.status = COALESCE(?, l.status)
-ORDER BY 1 desc
+    SELECT l.line_id
+         , l.line_name
+         , l.flow_id
+         , f.flow_name
+         , l.product_id
+         , p.product_name
+         , l.note
+         , DATE_FORMAT(l.created_date, '%Y-%m-%d') AS created_date
+         , l.status
+    FROM line l
+    INNER JOIN product p ON l.product_id = p.product_id
+    INNER JOIN flowchart f ON l.flow_id = f.flow_id
+    WHERE 1=1
+      AND l.line_id   = COALESCE(?, l.line_id)
+      AND l.line_name = COALESCE(?, l.line_name)
+      AND EXISTS (
+            SELECT 1
+            FROM line_detail d
+            WHERE d.line_id = l.line_id
+              AND (? IS NULL OR d.process_id   = ?)
+              AND (? IS NULL OR d.equipment_id = ?)
+          )
+      AND l.status = COALESCE(?, l.status)
+    ORDER BY 1 desc
 `;
+
+const selectFlowIdByProductId = `
+SELECT flow_id
+FROM flowchart
+WHERE product_id = ?`;
 
 // 라인등록
 const insertLine = `
 INSERT INTO line (line_id,
                   line_name,
-                  flow_id,
                   product_id,
                   note,
-                  status)
+                  status,
+                  flow_id)
 VALUES (?,?,?,?,?,?)`;
 
 // 라인수정
@@ -550,6 +555,8 @@ VALUES (?,?,?,?,?,?,?)
 // 사원등록
 const insertEmployee = `
 INSERT INTO employee(employee_id,
+                    login_pw,
+                    pw_change,
                     name,
                     department,
                     phone,
@@ -558,7 +565,7 @@ INSERT INTO employee(employee_id,
                     leave_date,
                     auth,
                     status)
-VALUES (?,?,?,?,?,?,?,?,?)
+VALUES (?,?,?,?,?,?,?,?,?,?,?)
 `;
 
 // 사원조회
@@ -592,9 +599,7 @@ const selectMaxMaterialId = `
 
 // 마지막 line_id 조회
 const selectMaxLineId = `
-  SELECT MAX(line_id) AS max_line_id
-  FROM line
-  FOR UPDATE
+SELECT MAX(line_id) AS max_line_id FROM line FOR UPDATE
 `;
 
 // 마지막 flow_id 조회
@@ -618,7 +623,11 @@ const selectMaxEmpId = `
   FOR UPDATE
 `;
 
+
+
+
 module.exports = {
+  selectFlowIdByProductId,
   selectMaxMaterialId,
   updateBom,
   updateEmployee,

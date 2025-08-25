@@ -1,6 +1,7 @@
 <script setup>
+// 사용하지 않는 페이지
 import { ref } from 'vue';
-//import InputText from 'primevue/inputtext';
+// import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 

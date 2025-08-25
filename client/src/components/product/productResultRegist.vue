@@ -31,9 +31,7 @@ const selectModalValue = (value) => {
 const productionOrderList = ref([]);
 const loading = ref(true); // 로딩 상태를 관리하는 변수
 const columns = ref([
-    { field: 'wo_no', header: '공정지시코드' },
-    { field: 'startDate', header: '작업시작일시' },
-    { field: 'endDate', header: '작업종료일시' },
+    { field: 'wo_no', header: '생산지시코드' },
     { field: 'product_id', header: '제품코드' },
     { field: 'product_name', header: '제품명' },
     { field: 'specification', header: '규격' },
@@ -43,6 +41,8 @@ const columns = ref([
     { field: 'process_name', header: '공정명' },
     { field: 'line_id', header: '라인코드' },
     { field: 'equipment_id', header: '설비코드' },
+    { field: 'startDate', header: '작업시작일시' },
+    { field: 'endDate', header: '작업종료일시' },
     { field: 'prd_noworder_qty', header: '현지시수량' },
     { field: 'in_qty', header: '투입량' },
     { field: 'def_qty', header: '불량량' },
@@ -229,6 +229,10 @@ onMounted(async () => {
 //     performanceNumber.value = generateCode();
 // };
 const registStartPerformance = async () => {
+    if (worker.value.trim() === '') {
+        alert('작업자 이름을 입력해주세요.');
+        return;
+    }
     if (status.value == '완료' || status.value == '진행') {
         alert('이미 실적이 등록되었거나 공정진행중입니다');
         return;
@@ -320,11 +324,13 @@ const resetData = () => {
 <template>
     <div class="col-span-1 flex items-center gap-2">
         <div class="w-full flex justify-end gap-2">
-            <!-- <Button label=" 실적등록 " rounded @click="performanceInsert" /> -->
-            <Button label=" 작업시작 " rounded @click="registStartPerformance" />
-            <Button label=" 작업종료 " rounded @click="registEndPerformance" />
-            <Button label=" 지시목록 " rounded @click="openModal('orderList')" severity="help" />
-            <Button label=" 초기화 " severity="info" rounded @click="resetData" />
+            <div class="space-x-2">
+                <!-- <Button label=" 실적등록 " rounded @click="performanceInsert" /> -->
+                <Button label=" 작업시작 " class="text-xs px-2 py-1 h-[28px]" rounded @click="registStartPerformance" />
+                <Button label=" 작업종료 " class="text-xs px-2 py-1 h-[28px]" rounded @click="registEndPerformance" />
+                <Button label=" 지시목록 " class="text-xs px-2 py-1 h-[28px]" rounded @click="openModal('orderList')" severity="help" />
+                <Button label=" 초기화 " class="text-xs px-2 py-1 h-[28px]" rounded severity="info" @click="resetData" />
+            </div>
         </div>
     </div>
     <div class="h-[calc(100vh - 100px)] overflow-hidden flex flex-col p-4">

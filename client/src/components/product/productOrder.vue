@@ -4,7 +4,7 @@ import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import DatePicker from 'primevue/datepicker';
+// import DatePicker from 'primevue/datepicker';
 import InputNumber from 'primevue/inputnumber';
 import Dialog from 'primevue/dialog';
 import { useUserStore } from '@/store/index';
@@ -26,6 +26,21 @@ const productInstance = ref({
     productId: ''
 });
 const prdOrderList = ref([]);
+const prdPlanList = ref([
+    // { field: 'plan_detail_no', header: '생산계획상세코드' },
+    // { field: 'plan_no', header: '생산계획코드' },
+    // { field: 'startDate', header: '생산시작일시' },
+    // { field: 'endDate', header: '생산종료일시' },
+    // { field: 'planned_qty', header: '기지시수량' },
+    // { field: 'line_id', header: '라인코드' },
+    // { field: 'line_name', header: '라인명' },
+    // { field: 'product_id', header: '제품코드' },
+    // { field: 'product_type', header: '제품형태' },
+    // { field: 'productname', header: '제품명' },
+    // { field: 'productForm', header: '제품구분' },
+    // { field: 'specification', header: '규격' },
+    // { field: 'unit', header: '단위' }
+]);
 const currentEditRow = ref(null);
 const showModal = ref(false);
 const modalType = ref('');
@@ -70,7 +85,7 @@ const fetchPrdOrders = async () => {
                 specification: item.specification,
                 unit: item.unit,
                 prd_form: item.prd_form,
-                lastname: userInfo.lastname
+                lastname: userInfo.lastname || '김지시'
             }));
         } else {
             // 3. 배열이 아니면 빈 배열로 초기화
@@ -82,7 +97,36 @@ const fetchPrdOrders = async () => {
         console.error('데이터 조회 실패:', error);
     }
 };
-
+const fetchPlanList = async () => {
+    try {
+        const response = await axios.get('/api/production/fetchPlanList');
+        if (response) {
+            console.log('생산 계획 조회 성공');
+            console.log(response.data.list);
+            prdPlanList.value = response.data.list.map((item) => ({
+                plan_detail_no: item.planDetailNo,
+                plan_no: item.plan_no,
+                // startDate: formatDate(item.startDate),
+                // endDate: formatDate(item.endDate),
+                startDate: item.startDate,
+                endDate: item.endDate,
+                planned_qty: item.planned_qty,
+                line_id: item.line_id,
+                line_name: item.line_name,
+                product_id: item.product_id,
+                product_type: item.p_type,
+                productname: item.product_name,
+                productForm: item.product_form,
+                specification: item.specification,
+                unit: item.unit
+            }));
+        } else {
+            console.log('조회가 정상적으로 이루어 지지 않았습니다!');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+};
 // const selectModalValue = (value) => {
 //     if (modalType.value === 'productPlanCode') {
 //     search.value.productPlanCode = value.code;
@@ -114,7 +158,40 @@ const fetchPrdOrders = async () => {
 const selectModalValue = (value) => {
     // 생산계획코드 모달 처리
     if (modalType.value === 'productPlanCode') {
-        search.value.productPlanCode = value.code;
+        search.value.productPlanCode = value.plan_detail_no;
+        console.log(value.startDate);
+        const newProduct = {
+            id: products.value.length ? Math.max(...products.value.map((p) => p.id)) + 1 : 1,
+            startDatetime: value.startDate,
+            endDatetime: value.endDate,
+            productId: value.product_id,
+            productname: value.productname,
+            productPlanQty: value.planned_qty,
+            productType: value.p_type, // API 응답 필드명에 맞게 수정
+            specification: value.specification,
+            unit: value.unit,
+            prd_form: value.productForm,
+            undefinedQty: value.planned_qty, // 미지시수량을 계획수량과 동일하게 설정
+            currentQty: 0, // 현지시수량은 0으로 시작
+            line_id: value.line_id,
+            line_name: value.line_name,
+            lastname: userInfo.lastname || '김관리'
+        };
+
+        // 새로운 행을 products 배열에 추가
+        products.value.push(newProduct);
+        console.log('생산계획 데이터가 새로운 행으로 추가되었습니다:', newProduct);
+
+        // currentEditRow.value.startDatetime = formatDate(value.startDate);
+        // currentEditRow.value.endDatetime = formatDate(value.endDate);
+        // currentEditRow.value.productname = value.productname;
+        // currentEditRow.value.productId = value.product_id;
+        // currentEditRow.value.productType = value.product_type;
+        // currentEditRow.value.line_id = value.line_id;
+        // currentEditRow.value.line_name = value.line_name;
+        // currentEditRow.value.specification = value.specification;
+        // currentEditRow.value.unit = value.unit;
+        // currentEditRow.value.prd_form = value.productForm;
     }
     // 제품명 모달 처리
     else if (modalType.value === 'productNameInputModal') {
@@ -177,65 +254,23 @@ const selectModalValue = (value) => {
     showModal.value = false;
 };
 
-const productPlanCodeList = ref([
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:10', endDate: '2025-08-10 18:00', director: '김관리' },
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:20', endDate: '2025-08-10 18:00', director: '김관리' },
-    { code: 'PL20250808P003-20', startDate: '2025-08-10 09:30', endDate: '2025-08-10 18:00', director: '김관리' },
-    { code: 'PL20250808P003-40', startDate: '2025-08-10 09:40', endDate: '2025-08-10 18:00', director: '김관리' },
-    { code: 'PL20250808P002-20', startDate: '2025-08-10 09:50', endDate: '2025-08-10 18:00', director: '김관리' }
-]);
 const productNameList = ref([
-    { code: 'P001', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: 20, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
-    { code: 'P002', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: 40, unit: 'kg', line_id: 'line001', line_name: '라인A', prd_form: '완제품' },
-    { code: 'P003', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: 20, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
-    { code: 'P004', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: 40, unit: 'kg', line_id: 'line002', line_name: '라인B', prd_form: '완제품' },
-    { code: 'P005', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: 5, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
-    { code: 'P006', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: 10, unit: 'L', line_id: 'line003', line_name: '라인C', prd_form: '완제품' },
-    { code: 'P007', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: null, unit: null, line_id: 'line001', line_name: '라인A', prd_form: '반제품' },
-    { code: 'P008', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: null, unit: null, line_id: 'line002', line_name: '라인B', prd_form: '반제품' },
-    { code: 'P009', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: null, unit: null, line_id: 'line003', line_name: '라인C', prd_form: '반제품' }
+    { code: 'P001', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: 20, unit: 'kg', line_id: 'L001', line_name: '라인001', prd_form: '완제품' },
+    { code: 'P002', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: 40, unit: 'kg', line_id: 'L001', line_name: '라인001', prd_form: '완제품' },
+    { code: 'P003', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: 20, unit: 'kg', line_id: 'L002', line_name: '라인002', prd_form: '완제품' },
+    { code: 'P004', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: 40, unit: 'kg', line_id: 'L002', line_name: '라인002', prd_form: '완제품' },
+    { code: 'P005', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: 5, unit: 'L', line_id: 'L003', line_name: '라인003', prd_form: '완제품' },
+    { code: 'P006', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: 10, unit: 'L', line_id: 'L003', line_name: '라인003', prd_form: '완제품' },
+    { code: 'P007', name: '분말형비료', product_cate: 'P001', type: '분말형', specification: null, unit: null, line_id: 'L001', line_name: '라인001', prd_form: '반제품' },
+    { code: 'P008', name: '과립형비료', product_cate: 'P002', type: '과립형', specification: null, unit: null, line_id: 'L002', line_name: '라인002', prd_form: '반제품' },
+    { code: 'P009', name: '액상형비료', product_cate: 'P003', type: '액상형', specification: null, unit: null, line_id: 'L003', line_name: '라인003', prd_form: '반제품' }
 ]);
 // const lineInfoList = ref([
 //     { line_id: 'line001', line_name: '라인A', productname: '분말형비료' },
 //     { line_id: 'line002', line_name: '라인B', productname: '과립형비료' },
 //     { line_id: 'line003', line_name: '라인C', productname: '액체형비료' }
 // ]);
-const products = ref([
-    // {
-    //     id: 1,
-    //     startDatetime: new Date('2025-08-10 10:00'),
-    //     endDatetime: new Date('2025-08-12 10:10'),
-    //     productId: 'P003',
-    //     productname: '과립형비료',
-    //     productPlanQty: 10000,
-    //     productType: '과립형',
-    //     specification: 20,
-    //     unit: 'kg',
-    //     prd_form: '완제품',
-    //     undefinedQty: 9000,
-    //     currentQty: 1000,
-    //     line_id: 'line002',
-    //     line_name: '라인B',
-    //     lastname: '김관리'
-    // },
-    // {
-    //     id: 2,
-    //     startDatetime: new Date('2025-08-10 10:20'),
-    //     endDatetime: new Date('2025-08-12 10:20'),
-    //     productId: 'P004',
-    //     productname: '과립형비료',
-    //     productPlanQty: 10000,
-    //     productType: '과립형',
-    //     specification: 40,
-    //     unit: 'kg',
-    //     prd_form: '완제품',
-    //     undefinedQty: 9000,
-    //     currentQty: 1000,
-    //     line_id: 'line002',
-    //     line_name: '라인B',
-    //     lastname: '김관리'
-    // }
-]);
+const products = ref([]);
 const productCodeToBomId = {
     P001: 'BOM001',
     P002: 'BOM001',
@@ -368,8 +403,12 @@ const startProduction = async () => {
         // 서버에 POST 요청을 보내기
         const response = await axios.post('/api/production/productionOrder', payload);
         console.log('성공:', response.data);
+
         if (response) {
-            prdOrderList.value = null;
+            products.value = []; // 데이터 테이블 초기화
+            selectedProducts.value = []; // 선택된 행 초기화
+            hiddenProductIds.value = new Set(); // 숨겨진 행 초기화
+            //prdOrderList.value = null;
         }
     } catch (err) {
         console.log(err);
@@ -382,23 +421,23 @@ const startProduction = async () => {
         console.log('BOM 요청 실패:', err);
     }
 };
-const onSelectionChange = (event) => {
-    // selectedProducts.value = event.value;
-    selectedProducts.value = event.value.map((product) => ({
-        ...product,
-        bom_id: productCodeToBomId[product.productId] || null
-    }));
-    console.log('선택된 행들:', selectedProducts.value);
-    alert('선택된 행들: ' + selectedProducts.value.length + '개');
-    // selectedProducts.value.forEach((product) => {
-    //     if (product.endDatetime) {
-    //         product.endDatetime = formatDate(product.endDatetime);
-    //     }
-    //     if (product.startDatetime) {
-    //         product.startDatetime = formatDate(product.startDatetime);
-    //     }
-    // });
-};
+// const onSelectionChange = (event) => {
+//     // selectedProducts.value = event.value;
+//     selectedProducts.value = event.value.map((product) => ({
+//         ...product,
+//         bom_id: productCodeToBomId[product.productId] || null
+//     }));
+//     console.log('선택된 행들:', selectedProducts.value);
+//     alert('선택된 행들: ' + selectedProducts.value.length + '개');
+//     // selectedProducts.value.forEach((product) => {
+//     //     if (product.endDatetime) {
+//     //         product.endDatetime = formatDate(product.endDatetime);
+//     //     }
+//     //     if (product.startDatetime) {
+//     //         product.startDatetime = formatDate(product.startDatetime);
+//     //     }
+//     // });
+// };
 
 // const onCellEditComplete = (event) => {
 //     let { data, newValue, field } = event;
@@ -482,7 +521,7 @@ const addNewRow = () => {
         currentQty: 0,
         line_id: '',
         line_name: '',
-        lastname: userInfo.lastname
+        lastname: userInfo.lastname || '김관리'
     };
     newProduct.undefinedQty = (newProduct.productPlanQty || 0) - (newProduct.currentQty || 0);
     products.value.push(newProduct);
@@ -495,13 +534,16 @@ const dropContent = () => {
 };
 onMounted(async () => {
     await fetchPrdOrders();
+    await fetchPlanList();
 });
 </script>
 
 <template>
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" 지시등록 " @click="startProduction" rounded />
-        <Button label=" 초기화 " severity="info" rounded @click="dropContent" />
+        <div class="space-x-2">
+            <Button label=" 지시등록 " class="text-xs px-2 py-1 h-[28px]" @click="startProduction" rounded />
+            <Button label=" 초기화 " class="text-xs px-2 py-1 h-[28px]" severity="info" rounded @click="dropContent" />
+        </div>
     </div>
 
     <div class="font-semibold text-xl mb-4">작업지시</div>
@@ -517,7 +559,7 @@ onMounted(async () => {
 
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>
-            <InputText id="lastnameTxt" value="김지시" type="text" readonly />
+            <InputText id="lastnameTxt" v-model="userInfo.lastname" type="text" readonly />
         </div>
     </div>
     <div class="mb-6">
@@ -537,8 +579,8 @@ onMounted(async () => {
     </div>
 
     <div class="flex justify-end mb-4 space-x-2">
-        <Button label=" 행추가 " rounded @click="addNewRow" />
-        <Button label=" 선택삭제 " severity="danger" rounded @click="hideSelected" />
+        <Button label=" 행추가 " class="text-xs px-2 py-1 h-[28px]" rounded @click="addNewRow" />
+        <Button label=" 선택삭제 " class="text-xs px-2 py-1 h-[28px]" severity="danger" rounded @click="hideSelected" />
     </div>
 
     <div class="flex flex-row gap-4 h-full">
@@ -555,18 +597,7 @@ onMounted(async () => {
                 @cell-edit-complete="onCellEditComplete"
                 dataKey="id"
             > -->
-            <DataTable
-                v-model:selection="selectedProducts"
-                :value="filteredProducts"
-                :paginator="true"
-                :rows="4"
-                editMode="cell"
-                scrollable
-                scrollHeight="120px"
-                @cell-edit-complete="onCellEditComplete"
-                @selection-change="onSelectionChange"
-                dataKey="id"
-            >
+            <DataTable v-model:selection="selectedProducts" :value="filteredProducts" :paginator="true" :rows="6" editMode="cell" scrollable scrollHeight="190px" @cell-edit-complete="onCellEditComplete" dataKey="id">
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header">
                     <template #body="{ data, field }">
@@ -600,6 +631,8 @@ onMounted(async () => {
                                 @click="
                                     () => {
                                         currentEditRow = data;
+                                        console.log('data List : ', data);
+                                        console.log('productname : ', currentEditRow.productname);
                                         // productInstance = data;
                                         openModal('productNameInputModal');
                                     }
@@ -627,7 +660,7 @@ onMounted(async () => {
         </div> -->
     </div>
 
-    <Dialog v-model:visible="showModal" modal header="생산계획코드 리스트" :style="{ width: '40vw' }" @hide="closeModal">
+    <Dialog v-model:visible="showModal" modal header="생산계획코드 리스트" :style="{ width: '72vw' }" @hide="closeModal">
         <p class="font-bold mb-4 text-lg">
             🔍
             {{
@@ -640,17 +673,38 @@ onMounted(async () => {
         </p>
 
         <div v-if="modalType === 'productPlanCode'">
-            <DataTable :value="productPlanCodeList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]">
-                <Column field="code" header="생산계획코드">
+            <DataTable :value="prdPlanList" paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]">
+                <Column field="plan_detail_no" header="생산계획상세코드">
                     <template #body="{ data }">
                         <span class="cursor-pointer hover:text-blue-600" @click="selectModalValue(data)">
-                            {{ data.code }}
+                            {{ data.plan_detail_no }}
                         </span>
                     </template>
                 </Column>
-                <Column field="startDate" header="생산시작일시"></Column>
-                <Column field="endDate" header="생산종료일시"></Column>
-                <Column field="director" header="지시자"></Column>
+                <Column field="plan_no" header="생산계획코드"></Column>
+                <Column field="startDate" header="생산시작일시">
+                    <template #body="{ data }">
+                        <span>
+                            {{ formatDate(data.startDate) }}
+                        </span>
+                    </template>
+                </Column>
+                <Column field="endDate" header="생산종료일시">
+                    <template #body="{ data }">
+                        <span>
+                            {{ formatDate(data.endDate) }}
+                        </span>
+                    </template>
+                </Column>
+                <Column field="planned_qty" header="기지시수량"></Column>
+                <Column field="product_id" header="제품코드"></Column>
+                <Column field="productname" header="제품명"></Column>
+                <Column field="product_type" header="제품형태"></Column>
+                <Column field="productForm" header="제품구분"></Column>
+                <Column field="line_id" header="라인코드"></Column>
+                <Column field="line_name" header="라인명"></Column>
+                <Column field="specification" header="규격"></Column>
+                <Column field="unit" header="단위"></Column>
             </DataTable>
         </div>
         <div v-else-if="modalType === 'productNameInputModal'">

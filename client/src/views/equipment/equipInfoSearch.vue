@@ -1,10 +1,11 @@
+<!-- src/views/equipment/equipmentView.vue -->
 <script setup>
 import { ref } from 'vue';
 import EquipmentSearchWidget from '@/components/equipment/information/equipmentSearchWidget2.vue';
 import EquipmentListWidget from '@/components/equipment/information/equipmentListWidget.vue';
 
-const params = ref({ page: 1, size: 10 }); // 진입 즉시 10건
-const pickerData = ref([]);
+const params = ref({ page: 1, size: 10 }); // 조회 조건
+const pickerData = ref([]); // SearchWidget에 내려줄 distinct 후보 데이터
 
 function handleSearch(q) {
     params.value = {
@@ -22,7 +23,7 @@ function handleClear() {
 }
 
 function handleLoaded(rows) {
-    // 모달 fallback용 백업
+    // 목록 데이터를 기반으로 SearchWidget fallback 데이터 구성
     pickerData.value = (rows || []).map((r) => ({
         equipment_id: r.eq_id,
         equipment_type: r.eq_type,

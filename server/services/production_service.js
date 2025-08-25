@@ -21,6 +21,8 @@ const formatToDatabaseDatetime = (dateString) => {
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+// 작업지시 함수
 const startWork = async (director, plan_detail_no, details) => {
   let conn;
   try {
@@ -140,6 +142,7 @@ const selectOrderList = async () => {
     if (conn) conn.release();
   }
 };
+// 실적이 등록되지 않은 공정 리스트
 const notRegistPrcList = async () => {
   let conn;
   try {
@@ -153,6 +156,7 @@ const notRegistPrcList = async () => {
     if (conn) conn.release();
   }
 };
+// 실적 등록
 const insertPerform = async (payload) => {
   let conn;
   try {
@@ -184,6 +188,7 @@ const insertPerform = async (payload) => {
     if (conn) conn.release();
   }
 };
+// 등록된 실적데이터데 작업종료일시 등록
 const updatePerform = async (payload) => {
   let conn;
   try {
@@ -207,6 +212,7 @@ const updatePerform = async (payload) => {
     if (conn) conn.release();
   }
 };
+// 실적 등록시 이전에 등록된 작업자 이름을 조회
 const selectEname = async (wo_no, process_id) => {
   let conn;
   try {
@@ -223,6 +229,7 @@ const selectEname = async (wo_no, process_id) => {
     if (conn) conn.release();
   }
 };
+// 실적등록시 이전 공정중인지 체크
 const checkWoStatus = async (wo_no) => {
   let conn;
   try {
@@ -248,7 +255,7 @@ const findAllOrder = async () => {
   let list = await mariadb.query("selectAllOrder");
   return list;
 };
-
+// BOM 요청 등록
 const bomRequestInsert = async (details) => {
   let conn;
   try {
@@ -275,6 +282,7 @@ const bomRequestInsert = async (details) => {
     if (conn) conn.release();
   }
 };
+// 작업 지시 목록 출력
 const productionOrderList = async () => {
   let conn;
   try {
@@ -288,26 +296,239 @@ const productionOrderList = async () => {
     if (conn) conn.release();
   }
 };
+// 모달인듯?
+const selectProcessList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.selectProcessingList);
+    console.log("공정 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+// 필터링되지 않은 공정리스트 출력
+const selectProcessNotSearchList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.selectProcessNotSearchList);
+    console.log("공정 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+// 실적조회 페이지 필터링
+const filterPerformance = async (payload) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const dateValues = [
+      payload.w_ed_date || null,
+      payload.nextDay || null,
+      payload.w_ed_date || null,
+    ];
+    const otherValues = [
+      payload.process_id || null,
+      payload.process_id || null,
 
+      payload.line_id || null,
+      payload.line_id || null,
 
+      payload.e_name || null,
+      payload.e_name || null,
 
+      payload.product_type || null,
+      payload.product_type || null,
 
-const findAllOrderSearch = async (orderInfo) => {
-  const insertData = [
-    orderInfo ?? null,
-  ];
-  let list = await mariadb.query("selectOrdersearch", insertData);
-  return list;
+      payload.product_form || null,
+      payload.product_form || null,
+    ];
+    const values = [...dateValues, ...otherValues];
+    const list = await conn.query(sqlList.filterPerformance, values);
+    console.log("최종 파라미터:", values);
+    console.log("필터링된 실적 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    console.log("최종 SQL:", sqlList.filterPerformance);
+
+    if (conn) conn.release();
+  }
+};
+// 제품 리스트 모달창 데이터
+const productListModal = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.productListModal);
+    console.log("제품 목록 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
 };
 
+// 생산 계획 등록
+const insertPlan = async (payload) => {
+  let conn;
+  try {
+    conn = await mariadb.getConnection();
+    await conn.beginTransaction();
 
-const findAllOrderSearchResult = async (orderInfo) => {
-  const insertData = [
-    orderInfo ?? null,
-  ];
-  let list = await mariadb.query("selectOrdersearchResult", insertData);
-  return list;
+    // 1 마지막 plan_no 조회
+    const rows = await conn.query(`
+      SELECT plan_no
+        FROM production_plan
+       ORDER BY plan_no DESC
+       LIMIT 1
+    `);
+
+    const lastPlanNo = rows?.[0]?.plan_no || null;
+    let masterPlanId;
+
+    if (lastPlanNo) {
+      const numPart = parseInt(lastPlanNo.split("-")[1], 10);
+      masterPlanId = `PNO${new Date()
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, "")}-${String(numPart + 1).padStart(5, "0")}`;
+    } else {
+      masterPlanId = `PNO${new Date()
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, "")}-00001`;
+    }
+    console.log("생성될 마스터 plan_no:", masterPlanId);
+
+    // 2 마스터 insert
+    await conn.query(sqlList.insertMasterPlan, [
+      masterPlanId,
+      payload.planType,
+      payload.planDate,
+      payload.planStartDate,
+      payload.planEndDate,
+      payload.dueDate,
+      payload.director,
+    ]);
+
+    // 3 디테일 insert 반복
+    for (const detail of payload.products) {
+      const {
+        productCode,
+        productname,
+        productType,
+        specification,
+        unit,
+        lineId,
+        productPlanQty,
+        plannedQty,
+      } = detail;
+
+      await conn.query(sqlList.insertDetailPlan, [
+        productCode,
+        productname,
+        productType,
+        specification,
+        unit,
+        lineId,
+        productPlanQty,
+        plannedQty,
+        masterPlanId, // 🔑 FK로 마스터 plan_no 전달
+      ]);
+    }
+
+    await conn.commit();
+    console.log("마스터 + 디테일 등록 완료");
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("등록 실패 :", err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
 };
+
+const fetchPlanList = async () => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const list = await conn.query(sqlList.fetchPlanList);
+    console.log("생산계획 목록 조회 결과:", list);
+    return list;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+// const insertPlan = async (payload) =>{
+//    let conn;
+//   try {
+//     conn = await getConnection();
+//     // 트랜잭션 시작
+//     await conn.beginTransaction();
+//     const masterVal = [
+//       payload.planType,
+//       payload.planDate,
+//       payload.planStartDate,
+//       payload.planEndDate,
+//       payload.dueDate,
+//       payload.director,
+//     ];
+//     const resultmaser = await conn.query(sqlList.insertMasterPlan, masterVal);
+//     let masterPlanId = resultmaser.plan_no;
+//     console.log('만들어진 생산계획 번호 : ',resultmaser);
+//     for (const detail of payload.products) {
+//       const {
+//         productCode,
+//         productname,
+//         productType,
+//         specification,
+//         unit,
+//         lineId,
+//         productPlanQty,
+//         plannedQty,
+//       } = detail;
+
+//       // 여기서 `sqlList.resultdetail` 쿼리에 필요한 값들을 순서대로 전달합니다.
+//       // 쿼리에 물음표 갯수마다 [? , ?] 전달
+//      await conn.query(sqlList.insertDetailPlan, [
+//         productCode,
+//         productname,
+//         productType,
+//         specification,
+//         unit,
+//         lineId,
+//         productPlanQty,
+//         plannedQty,
+//         masterPlanId
+//       ]);
+//     }
+
+//     if (resultmaser) {
+//       console.log("계획 등록에 성공하였습니다.");
+//       await conn.commit();
+//     } else {
+//       console.log("계획 등록에 실패하였습니다.", resultmaser.data);
+//     }
+//   } catch (error) {
+//     if (conn) await conn.rollback();
+//     throw error;
+//   } finally {
+//     if (conn) conn.release();
+//   }
+// };
+
 module.exports = {
   findAllOrder,
   startWork,
@@ -320,6 +541,10 @@ module.exports = {
   checkWoStatus,
   bomRequestInsert,
   productionOrderList,
-  findAllOrderSearch,
-  findAllOrderSearchResult
+  selectProcessList,
+  selectProcessNotSearchList,
+  filterPerformance,
+  productListModal,
+  insertPlan,
+  fetchPlanList,
 };

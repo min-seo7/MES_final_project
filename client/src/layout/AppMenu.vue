@@ -5,10 +5,6 @@ import AppMenuItem from './AppMenuItem.vue';
 
 const model = ref([
     {
-        label: 'Home',
-        items: [{ label: '대시보드', icon: 'pi pi-fw pi-home', to: '/' }]
-    },
-    {
         label: '부서',
         items: [
             {
@@ -161,7 +157,7 @@ const model = ref([
                         to: '/production/productOrderSearch'
                     },
                     {
-                        label: '공정조회',
+                        label: '실적조회',
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/production/processSearch'
                     },
@@ -223,7 +219,6 @@ const model = ref([
                         icon: 'pi pi-fw pi-bookmark',
                         items: [
                             { label: '설비정보조회', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInfoSearch' },
-                            { label: '안전검사기준/작동매뉴얼', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInfoMenual' },
                             { label: '설비정보등록/수정', icon: 'pi pi-fw pi-bookmark', to: '/equipment/equipInfoRegistModify' }
                         ]
                     },
@@ -253,138 +248,12 @@ const model = ref([
         ]
     },
     {
-        label: '마이페이지',
+        label: '계정',
         items: [
             {
                 label: '로그아웃',
                 icon: 'pi pi-fw pi-book',
-                to: '/documentation'
-            },
-            {
-                label: '계정관리',
-                icon: 'pi pi-fw pi-github',
-                url: 'https://github.com/primefaces/sakai-vue',
-                target: '_blank'
-            }
-        ]
-    },
-    {
-        label: '확인',
-        items: [
-            {
-                label: 'ButtonDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/button'
-            },
-            {
-                label: 'ChartDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/charts'
-            },
-            {
-                label: 'FileDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/file'
-            },
-            {
-                label: 'FormLayout.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/formlayout'
-            },
-            {
-                label: 'InputDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/input'
-            },
-            {
-                label: 'ListDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/list'
-            },
-            {
-                label: 'MediaDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/media'
-            },
-            {
-                label: 'MenuDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/menu'
-            },
-            {
-                label: 'MessagesDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/message'
-            },
-            {
-                label: 'MiscDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/misc'
-            },
-            {
-                label: 'OverlayDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/overlay'
-            },
-            {
-                label: 'PanelsDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/panel'
-            },
-            {
-                label: 'TableDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/table'
-            },
-            {
-                label: 'TimelineDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/timeline'
-            },
-            {
-                label: 'TreeDoc.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/uikit/tree'
-            },
-            {
-                label: 'Access.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/auth/access'
-            },
-            {
-                label: 'Error.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/auth/error'
-            },
-            {
-                label: 'Login.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/auth/login'
-            },
-            {
-                label: 'Crud.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/pages/crud'
-            },
-            {
-                label: 'Documentation.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/documentation'
-            },
-            {
-                label: 'Empty.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/pages/empty'
-            },
-            {
-                label: 'Landing.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/landing'
-            },
-            {
-                label: 'NotFound.vue',
-                icon: 'pi pi-fw pi-github',
-                to: '/pages/notfound'
+                to: '/'
             }
         ]
     }

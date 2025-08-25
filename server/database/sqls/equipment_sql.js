@@ -66,6 +66,7 @@ ORDER BY inspection_date DESC
 LIMIT ? OFFSET ?
 `;
 
+
 const distinctInspCode = `
   SELECT DISTINCT inspection_id
   FROM equipment_inspection
@@ -234,6 +235,7 @@ const updateEquipment = `
    WHERE equipment_id   = ?
 `;
 
+/* 전체 목록 */
 const selectEquipmentInfoPage = `
 SELECT
   equipment_id   AS eq_id,
@@ -249,13 +251,54 @@ FROM equipment
 ORDER BY equipment_id
 LIMIT ? OFFSET ?
 `;
+
 const countEquipmentInfoAll = `
 SELECT COUNT(*) AS total
 FROM equipment
 `;
 
-const selectEquipmentInfoSearchOr = `
-SELECT
+// const selectEquipmentInfoSearchOr = `
+// SELECT
+//   equipment_id   AS eq_id,
+//   equipment_type AS eq_type,
+//   equipment_name AS eq_name,
+//   manufacturer   AS maker,
+//   serial_no      AS serial,
+//   purchase_date  AS in_date,
+//   start_date     AS start_date,
+//   location       AS loc,
+//   status         AS status
+// FROM equipment
+// WHERE (
+//       (? IS NOT NULL AND TRIM(equipment_id)   = TRIM(?))
+//    OR (? IS NOT NULL AND TRIM(equipment_type) = TRIM(?))
+//    OR (? IS NOT NULL AND TRIM(equipment_name) = TRIM(?))
+//    OR (? IS NOT NULL AND TRIM(location)       = TRIM(?))
+//    OR ( ? IS NULL AND ? IS NULL AND ? IS NULL AND ? IS NULL )
+   
+// )
+// AND (? IS NULL OR TRIM(status) = TRIM(?))
+// ORDER BY equipment_id
+// LIMIT ? OFFSET ?
+// `;
+
+
+// const countEquipmentInfoSearchOr = `
+// SELECT COUNT(*) AS total
+// FROM equipment
+// WHERE (
+//       (? IS NOT NULL AND TRIM(equipment_id)   = TRIM(?))
+//    OR (? IS NOT NULL AND TRIM(equipment_type) = TRIM(?))
+//    OR (? IS NOT NULL AND TRIM(equipment_name) = TRIM(?))
+//    OR (? IS NOT NULL AND TRIM(location)       = TRIM(?))
+//    OR ( ? IS NULL AND ? IS NULL AND ? IS NULL AND ? IS NULL )
+// )
+// AND (? IS NULL OR TRIM(status) = TRIM(?))
+// `;
+
+// 함수이름 and인데 or조건임
+const selectEquipmentInfoSearchAnd = `
+SELECT 
   equipment_id   AS eq_id,
   equipment_type AS eq_type,
   equipment_name AS eq_name,
@@ -266,69 +309,76 @@ SELECT
   location       AS loc,
   status         AS status
 FROM equipment
-WHERE (
-      (? IS NOT NULL AND TRIM(equipment_id)   = TRIM(?))
-   OR (? IS NOT NULL AND TRIM(equipment_type) = TRIM(?))
-   OR (? IS NOT NULL AND TRIM(equipment_name) = TRIM(?))
-   OR (? IS NOT NULL AND TRIM(location)       = TRIM(?))
-)
-AND (? IS NULL OR TRIM(status) = TRIM(?))
+WHERE 1=1
+  AND (
+       (? IS NOT NULL AND equipment_id   LIKE CONCAT('%', ?, '%'))
+    OR (? IS NOT NULL AND equipment_type LIKE CONCAT('%', ?, '%'))
+    OR (? IS NOT NULL AND equipment_name LIKE CONCAT('%', ?, '%'))
+    OR (? IS NOT NULL AND location       LIKE CONCAT('%', ?, '%'))
+    OR (? IS NOT NULL AND status         LIKE CONCAT('%', ?, '%'))
+  )
 ORDER BY equipment_id
-LIMIT ? OFFSET ?
-`;
-const countEquipmentInfoSearchOr = `
-SELECT COUNT(*) AS total
-FROM equipment
-WHERE (
-      (? IS NOT NULL AND TRIM(equipment_id)   = TRIM(?))
-   OR (? IS NOT NULL AND TRIM(equipment_type) = TRIM(?))
-   OR (? IS NOT NULL AND TRIM(equipment_name) = TRIM(?))
-   OR (? IS NOT NULL AND TRIM(location)       = TRIM(?))
-)
-AND (? IS NULL OR TRIM(status) = TRIM(?))
+LIMIT ? OFFSET ?;
 `;
 
-const selectEquipmentInfoSearchAnd = `
-SELECT
-  equipment_id   AS eq_id,
-  equipment_type AS eq_type,
-  equipment_name AS eq_name,
-  manufacturer   AS maker,
-  serial_no      AS serial,
-  purchase_date  AS in_date,
-  start_date     AS start_date,
-  location       AS loc,
-  status         AS status
-FROM equipment
-WHERE (? IS NULL OR equipment_id   = ?)
-  AND (? IS NULL OR equipment_type = ?)
-  AND (? IS NULL OR equipment_name = ?)
-  AND (? IS NULL OR location       = ?)
-  AND (? IS NULL OR status         = ?)
-ORDER BY equipment_id
-LIMIT ? OFFSET ?
-`;
+// 함수이름 and인데 or조건임
 const countEquipmentInfoSearchAnd = `
 SELECT COUNT(*) AS total
 FROM equipment
-WHERE (? IS NULL OR equipment_id   = ?)
-  AND (? IS NULL OR equipment_type = ?)
-  AND (? IS NULL OR equipment_name = ?)
-  AND (? IS NULL OR location       = ?)
-  AND (? IS NULL OR status         = ?)
+WHERE (? IS NULL OR TRIM(equipment_id)   LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR TRIM(equipment_type) LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR TRIM(equipment_name) LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR TRIM(location)       LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR TRIM(status)         LIKE CONCAT('%', ?, '%'))
 `;
 
-const distinctEqId2 = `SELECT DISTINCT equipment_id   FROM equipment ORDER BY equipment_id   LIMIT ? OFFSET ?`;
-const distinctEqType2 = `SELECT DISTINCT equipment_type FROM equipment ORDER BY equipment_type LIMIT ? OFFSET ?`;
-const distinctEqName2 = `SELECT DISTINCT equipment_name FROM equipment ORDER BY equipment_name LIMIT ? OFFSET ?`;
-const distinctLoc2 = `SELECT DISTINCT location       FROM equipment ORDER BY location       LIMIT ? OFFSET ?`;
-const distinctStatus2 = `SELECT DISTINCT status         FROM equipment ORDER BY status         LIMIT ? OFFSET ?`;
 
-const countDistinctEqId2 = `SELECT COUNT(DISTINCT equipment_id)   AS total FROM equipment`;
+/* DISTINCT (모달) */
+const distinctEqId2 = `
+  SELECT DISTINCT equipment_id 
+  FROM equipment 
+  ORDER BY equipment_id 
+  LIMIT ? OFFSET ?
+`;
+const countDistinctEqId2 = `SELECT COUNT(DISTINCT equipment_id) AS total FROM equipment`;
+
+
+const distinctEqType2 = `
+  SELECT DISTINCT equipment_type 
+  FROM equipment 
+  ORDER BY equipment_type 
+  LIMIT ? OFFSET ?
+`;
 const countDistinctEqType2 = `SELECT COUNT(DISTINCT equipment_type) AS total FROM equipment`;
+
+const distinctEqName2 = `
+  SELECT DISTINCT equipment_name 
+  FROM equipment 
+  ORDER BY equipment_name 
+  LIMIT ? OFFSET ?
+`;
 const countDistinctEqName2 = `SELECT COUNT(DISTINCT equipment_name) AS total FROM equipment`;
-const countDistinctLoc2 = `SELECT COUNT(DISTINCT location)       AS total FROM equipment`;
-const countDistinctStatus2 = `SELECT COUNT(DISTINCT status)         AS total FROM equipment`;
+
+const distinctLoc2 = `
+  SELECT DISTINCT COALESCE(NULLIF(TRIM(location), ''), '-') AS location
+  FROM equipment 
+  ORDER BY location 
+  LIMIT ? OFFSET ?
+`;
+const countDistinctLoc2 = `
+  SELECT COUNT(DISTINCT location) AS total 
+  FROM equipment
+`;
+
+const distinctStatus2 = `
+  SELECT DISTINCT status 
+  FROM equipment 
+  ORDER BY status 
+  LIMIT ? OFFSET ?
+`;
+const countDistinctStatus2 = `SELECT COUNT(DISTINCT status) AS total FROM equipment`;
+
+
 
 const selectEquipmentOne = `
 SELECT
@@ -448,14 +498,23 @@ WHERE (? IS NULL OR d.equipment_id = ?)
 ORDER BY d.fault_dtime DESC
 LIMIT ?, ?;
 `;
-/* ===== 전체 건수 ===== */
+
 const countDowntimeList = `
 SELECT COUNT(*) AS cnt
 FROM equipment_downtime d
 WHERE (? IS NULL OR d.equipment_id = ?)
 `;
 
-// 비가동
+
+
+/* ===== 전체 건수 ===== */
+// const countDowntimeList = `
+// SELECT COUNT(*) AS cnt
+// FROM equipment_downtime d
+// WHERE (? IS NULL OR d.equipment_id = ?)
+// `;
+
+
 
 // 설비코드 목록
 const selectCodeList = `
@@ -524,7 +583,7 @@ ORDER BY r.repair_id DESC
 LIMIT ? OFFSET ?;
 `;
 
-/* 조건검색 */
+/* 설비수리 목록/검색 */
 const searchRepairList = `
 SELECT
     r.repair_id,
@@ -535,9 +594,9 @@ SELECT
     r.end_date          AS end_dtime,
     r.repairer,
     r.reason,
-    rd.repair_item      AS item,
-    rd.repair_result    AS result,
-    rd.corrective_action AS action
+    GROUP_CONCAT(rd.repair_item SEPARATOR ', ')       AS item,
+    GROUP_CONCAT(rd.repair_result SEPARATOR ', ')     AS result,
+    GROUP_CONCAT(rd.corrective_action SEPARATOR ', ') AS action
 FROM equipment_repair r
 LEFT JOIN equipment_downtime d 
        ON r.repair_id = d.repair_id
@@ -549,29 +608,12 @@ WHERE 1=1
   AND (? IS NULL OR r.status = ?)
   AND (? IS NULL OR DATE(r.start_date) >= ?)
   AND (? IS NULL OR DATE(r.end_date) <= ?)
+GROUP BY r.repair_id
 ORDER BY r.repair_id DESC
 LIMIT ? OFFSET ?;
-`;
+`
 
-/* ===== DISTINCT (모달용) ===== */
-const distinctRepair = `
-  SELECT DISTINCT repair_id
-  FROM equipment_repair
-  ORDER BY repair_id DESC
-  LIMIT ? OFFSET ?;
-`;
-
-/* COUNT (단순조회용) */
-const countRepairList = `
-SELECT COUNT(*) AS total
-FROM equipment_repair r
-LEFT JOIN equipment_downtime d ON r.repair_id = d.repair_id
-LEFT JOIN equipment_repair_detail rd ON r.repair_id = rd.repair_id
-WHERE (? IS NULL OR r.repair_id = ?)
-  AND (? IS NULL OR r.equipment_id = ?)
-`;
-
-/* ===== 설비수리 COUNT (조건검색 포함) ===== */
+/* COUNT */
 const countRepairListWithFilter = `
 SELECT COUNT(DISTINCT r.repair_id) AS total
 FROM equipment_repair r
@@ -585,7 +627,166 @@ WHERE 1=1
   AND (? IS NULL OR r.status = ?)
   AND (? IS NULL OR DATE(r.start_date) >= ?)
   AND (? IS NULL OR DATE(r.end_date) <= ?);
+`
+
+/* ===== DISTINCT (모달용) ===== */
+/* DISTINCT */
+// const distinctRepair = `
+//   SELECT DISTINCT repair_id
+//   FROM equipment_repair
+//   ORDER BY repair_id DESC
+//   LIMIT ? OFFSET ?;
+// `
+
+const distinctRepair = `
+  SELECT repair_id
+  FROM equipment_repair
+  GROUP BY repair_id
+  ORDER BY repair_id DESC
+  LIMIT ? OFFSET ?;
 `;
+
+
+// 수리코드 5 페이지네이션
+const countDistinctRepair = `
+  SELECT COUNT(DISTINCT repair_id) AS total
+  FROM equipment_repair;
+`;
+
+
+
+
+// 설비수리 등록/수정 페이지
+
+// 마지막 수리코드 조회 (R001 ~ R999)
+const selectMaxRepairId = `
+  SELECT MAX(repair_id) AS max_repair_id
+  FROM equipment_repair
+  FOR UPDATE;
+`;
+
+// 수리 등록 (마스터)
+const insertRepair = `
+  INSERT INTO equipment_repair
+    (repair_id, equipment_id, fault_dtime, start_date, end_date, repairer, reason, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+`;
+
+// 수리 등록 (디테일)
+const insertRepairDetail = `
+  INSERT INTO equipment_repair_detail
+    (repair_id, repair_item, repair_result, corrective_action)
+  VALUES (?, ?, ?, ?);
+`;
+
+/* ===== 설비수리 단건 조회 (마스터) ===== */
+const selectRepairOne = `
+SELECT
+  r.repair_id      AS repairCode,
+  r.equipment_id   AS equipmentCode,
+  e.equipment_name AS equipmentName,
+  r.fault_dtime    AS faultDate,
+  d.restart_dtime  AS restartDate,      -- downtime에 연결되어 있으면 매핑
+  r.start_date     AS repairStartDate,
+  r.end_date       AS repairEndDate,
+  r.repairer       AS manager,
+  r.reason         AS repairReason,
+  r.status         AS status
+FROM equipment_repair r
+LEFT JOIN equipment e
+       ON r.equipment_id = e.equipment_id
+LEFT JOIN equipment_downtime d
+       ON d.repair_id = r.repair_id
+WHERE r.repair_id = ?
+LIMIT 1;
+`
+
+/* ===== 설비수리 디테일 조회 ===== */
+const selectRepairDetails = `
+SELECT
+  rd.repair_item       AS item,
+  rd.repair_result     AS result,
+  rd.corrective_action AS action
+FROM equipment_repair_detail rd
+WHERE rd.repair_id = ?
+ORDER BY rd.id ASC;
+`
+
+/* ===== 설비수리 마스터 수정 ===== */
+const updateRepairMaster = `
+UPDATE equipment_repair
+   SET equipment_id = ?,
+       fault_dtime = ?,
+       start_date  = ?,
+       end_date    = ?,
+       repairer    = ?,
+       reason      = ?,
+       status      = ?
+ WHERE repair_id   = ?;
+`
+
+/* ===== 설비수리 디테일 전체 삭제 ===== */
+const deleteRepairDetails = `
+DELETE FROM equipment_repair_detail
+ WHERE repair_id = ?;
+`
+
+/* ===== (선택) downtime 재가동일시 업데이트(있을 때만) ===== */
+const updateDowntimeRestartByRepair = `
+UPDATE equipment_downtime
+   SET restart_dtime = ?
+ WHERE repair_id = ?;
+`
+
+
+// 메뉴얼 페이지
+
+const selectEquipmentManualPage = `
+SELECT
+  equipment_id      AS equipment_id,
+  equipment_type    AS equipment_type,
+  equipment_name    AS equipment_name,
+  safety_standard   AS safety_standard,
+  operation_manual  AS operation_manual,
+  status            AS status
+FROM equipment
+ORDER BY equipment_id
+LIMIT ? OFFSET ?
+`;
+
+const countEquipmentManual = `
+SELECT COUNT(*) AS total
+FROM equipment
+`;
+
+const searchEquipmentManualOr = `
+SELECT
+  equipment_id,
+  equipment_type,
+  equipment_name,
+  safety_standard,
+  operation_manual,
+  status
+FROM equipment
+WHERE ( ? IS NULL OR equipment_id      LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR equipment_type    LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR equipment_name    LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR location          LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR status            LIKE CONCAT('%', ?, '%') )
+ORDER BY equipment_id
+LIMIT ? OFFSET ?
+`;
+
+const countEquipmentManualOr = `
+SELECT COUNT(*) AS total
+FROM equipment
+WHERE ( ? IS NULL OR equipment_id      LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR equipment_type    LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR equipment_name    LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR location          LIKE CONCAT('%', ?, '%') )
+  AND ( ? IS NULL OR status            LIKE CONCAT('%', ?, '%') )
+`;
+
 
 module.exports = {
   /* 설비점검 목록/검색/Distinct (기존) */
@@ -624,8 +825,6 @@ module.exports = {
   countEquipment,
   selectEquipmentInfoPage,
   countEquipmentInfoAll,
-  selectEquipmentInfoSearchOr,
-  countEquipmentInfoSearchOr,
   selectEquipmentInfoSearchAnd,
   countEquipmentInfoSearchAnd,
   distinctEqId2,
@@ -641,6 +840,13 @@ module.exports = {
   selectEquipmentOne,
   getInspectionById,
   selectMaxEqId,
+  selectEquipmentManualPage,
+  searchEquipmentManualOr,
+  countEquipmentManualOr,
+  countEquipmentManual,
+
+
+
   /* 비가동 */
   selectDowntimeList,
   countDowntimeList,
@@ -648,10 +854,24 @@ module.exports = {
   insertDowntime,
   countEquipment2,
   updateDowntime,
+
+
+
   // 설비수리
   searchRepairList,
   distinctRepair,
   selectRepairList,
-  countRepairList,
   countRepairListWithFilter,
+  selectMaxRepairId,//등록수정
+  insertRepair,
+  insertRepairDetail,
+  countDistinctRepair,
+  selectRepairOne,
+  selectRepairDetails,
+  updateRepairMaster,
+  deleteRepairDetails,
+  updateDowntimeRestartByRepair,
+
+
+
 };

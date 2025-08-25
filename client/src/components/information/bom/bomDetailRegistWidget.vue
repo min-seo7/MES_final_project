@@ -108,6 +108,15 @@ const addBOMdetail = () => {
         return;
     }
     emits('bomDetail', form.value);
+    form.value = {
+    materialId: '',
+    materialName: '',
+    materialType: '',
+    unit: '',
+    mixRatio: '',
+    requiredQty: '',
+    totalQty: '',
+    status: ''}
 }
 </script>
 

@@ -78,10 +78,14 @@ const handleSelect = (row) => {
 };
 
 const handleResetForm = () => {
-    lineSelectedData.value = {}; // 초기화
-    lineDetailData.value = {}
+    lineSelectedData.value = {};
+    lineDetailData.value = []; // 빈 객체에서 빈 배열로 수정
 };
 
+// lineDetailData를 빈 배열로 초기화
+const handleResetDetail = () => {
+    lineDetailData.value = [];
+};
 
 onUnmounted(() => {
     console.log('line.vue unmounted!');
@@ -100,7 +104,7 @@ onUnmounted(() => {
         
         <div class="md:w-1/2 flex flex-col h-full">
             <div class="flex flex-col">
-                <lineRegistWidget :detailData="lineDetailData" :items="lineSelectedData" />
+                <lineRegistWidget :detailData="lineDetailData" :items="lineSelectedData" @resetLine="handleResetDetail"/>
                 <lineDetailRegistWidget @lineDetail="handleLineDetail" />
             </div>
         </div>

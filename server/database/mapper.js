@@ -16,7 +16,7 @@ const connectionPool = mariadb.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   connectionLimit: process.env.DB_LIMIT,
-  connectTimeout: 5000,
+  connectTimeout: 15000,
   //추가옵션
   insertIdAsNumber: true, //자동으로 넘버타입으로 넘어오지x
   bigIntAsNumber: true, //카운터함수로 실행하면 bigInt데이터타입이라 자바스크립트의 자동매핑되는 타입x 넘버로 자동 변환
@@ -26,12 +26,12 @@ const connectionPool = mariadb.createPool({
     error: console.log,
   },
 });
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_PORT:", process.env.DB_PORT);
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
-console.log("DB_NAME:", process.env.DB_NAME);
-console.log("DB_LIMIT:", process.env.DB_LIMIT);
+// console.log("DB_HOST:", process.env.DB_HOST);
+// console.log("DB_PORT:", process.env.DB_PORT);
+// console.log("DB_USER:", process.env.DB_USER);
+// console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
+// console.log("DB_NAME:", process.env.DB_NAME);
+// console.log("DB_LIMIT:", process.env.DB_LIMIT);
 //단건실행이라 오토커밋이라 롤백이랑 커밋등이 필요x 콜백x 프로미스 방식
 const query = async (alias, values) => {
   let conn = null;
