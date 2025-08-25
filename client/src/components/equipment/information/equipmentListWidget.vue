@@ -11,7 +11,6 @@ const rows = ref([]);
 const page = ref(1);
 const size = ref(10);
 const total = ref(0);
-
 const totalPages = computed(() => Math.max(1, Math.ceil(Number(total.value || 0) / Number(size.value || 10))));
 
 function fmt(d) {

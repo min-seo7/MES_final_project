@@ -157,7 +157,7 @@ const model = ref([
                         to: '/production/productOrderSearch'
                     },
                     {
-                        label: '공정조회',
+                        label: '실적조회',
                         icon: 'pi pi-fw pi-bookmark',
                         to: '/production/processSearch'
                     },

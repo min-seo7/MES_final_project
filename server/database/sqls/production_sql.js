@@ -15,7 +15,7 @@ const insertPrdOrderDetail = `
              prd_form,
              product_id
           ) VALUES (
-              CONCAT('wo', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(NEXT VALUE FOR prd_wo_no_seq, 3, '0')),
+              CONCAT('wo', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR prd_wo_no_seq, 5, '0')),
               ?,
               ?,
               ?,
@@ -29,15 +29,6 @@ const insertPrdOrderDetail = `
               ?
           );
       `;
-// const insertRequestBom = `
-// INSERT INTO tbl_mat_req (material_id, req_qty , wo_no)
-// SELECT DISTINCT bd.material_id, bd.required_qty * ? AS req_qty, pod.wo_no
-// FROM bom_detail bd
-// JOIN prd_order_detail pod
-// ON SUBSTR(pod.ord_no, 4, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
-// JOIN production_order po
-// ON po.ord_no = pod.ord_no
-// WHERE bd.bom_id IN (?);`;
 const insertRequestBom = `
 INSERT INTO tbl_mat_req (material_id, req_qty, wo_no)
 SELECT DISTINCT
@@ -53,70 +44,6 @@ JOIN
 WHERE
     bd.bom_id = ?;`;
 
-// const startWork = `START TRANSACTION;
-//  SET @master_ord_no = CONCAT(
-//         'ord',
-//         DATE_FORMAT(NOW(), '%Y%m%d'),
-//         '-',
-//         LPAD(NEXT VALUE FOR ord_no_seq, 3, '0')
-// )
-// insert into production_order(ord_no , director)
-// values( @master_ord_no,'김지시')
-
-// insert into prd_order_detail(wo_no , p_st_date , p_ed_date, prd_noworder_qty , line_id , product_name , ord_no , plan_detail_no)
-// values(CONCAT('wo', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR prd_wo_no_seq, 3, '0')),
-//         ?,  ?,  ?,  ?,  ?,  @master_ord_no,  ?)
-
-// commit;`;
-// CONCAT(
-//     'ord',
-//     DATE_FORMAT(NOW(), '%Y%m%d'),
-//     '-',
-//     LPAD(NEXT VALUE FOR ord_no_seq, 3, '0')
-// )
-
-// const selectProcessList = `
-// SELECT
-//     pod.wo_no AS 'wo_no',
-//     pod.line_id AS 'line_id',
-//     pod.product_name AS 'product_name',
-//     pod.specification AS 'specification',
-//     pod.unit AS 'unit',
-//     pod.prd_form AS 'prd_form',
-//     fd.use_order AS 'use_order',
-//     fd.process_id AS 'process_id',
-//     prc.process_name AS 'process_name',
-//     eq.equipment_name AS 'equipment_name',
-//     eq.equipment_id AS 'equipment_id',
-//     pod.prd_noworder_qty AS 'prd_noworder_qty'
-// FROM
-//     prd_order_detail pod
-// JOIN
-//     flowchart_detail fd
-//       ON pod.product_name = (select product_name
-//                              from flowchart_detail
-//                              group by product_name)
-// JOIN
-//     line_detail ld
-//      ON fd.process_id = ld.process_id
-//      AND pod.line_id = ld.line_id
-// JOIN process prc
-// ON fd.process_id = prc.process_id
-// JOIN equipment eq
-// ON ld.equipment_id = eq.equipment_id
-// WHERE status = 1
-// `;
-// const insertPrdFlow = `
-// INSERT INTO prd_flow(wo_no,use_order , process_id , equipment_id, prd_noworder_qty , in_qty , def_qty , qty , status)
-// SELECT pod.wo_no, ld.use_order, ld.process_id, ld.equipment_id, pod.prd_noworder_qty, 0, 0, 0, 1
-// FROM line_detail ld JOIN prd_order_detail pod
-// ON ld.line_id = pod.line_id
-// WHERE
-//     pod.wo_no IN (
-//         SELECT wo_no FROM prd_order_detail
-//         WHERE ord_no = ? -- 방금 삽입된 ord_no 지시가 생성될떄 newOrderId를 그대로 들고와서 넣는거라 의문
-//     );
-// `;
 const insertPrdFlow = `
 INSERT INTO prd_flow(wo_no, use_order, process_id, equipment_id, prd_noworder_qty,
                      in_qty, def_qty, qty, status
@@ -133,7 +60,7 @@ WHERE
 `;
 const insertPerform = `
 insert into performance(wo_no, pf_code, e_name , process_id , in_qty , line_id, product_id , prd_name, specification , unit , eq_code,w_st_date,status)
-values(?,CONCAT('PF', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR pf_code_seq, 3, '0')),?,?,?,?,?,?,?,?,?,?,2);
+values(?,CONCAT('PF', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR pf_code_seq, 5, '0')),?,?,?,?,?,?,?,?,?,?,2);
 `;
 const selectOrderList = `
 SELECT wo_no, product_name, specification, unit, prd_noworder_qty, line_id , ord_no
@@ -195,7 +122,7 @@ FROM performance
 WHERE wo_no = ?`;
 
 const selectAllOrder = `
-SELECT ord_no, director, DATE_FORMAT(order_date, '%Y-%m-%d') as order_date, status
+SELECT ord_no, director, order_date, status
 FROM production_order`;
 
 const productionOrderList = `
@@ -222,50 +149,186 @@ ON pod.ord_no = po.ord_no
 ORDER BY pod.p_st_date DESC;
 `;
 
-const selectOrdersearch = `SELECT
-    pod.wo_no AS "wo_no",
-    pod.product_id AS "product_id",
-    pod.p_st_date AS "p_st_date",
-    pod.p_ed_date AS "p_ed_date",
-    pod.prd_noworder_qty AS "prd_noworder_qty",
-    pod.line_id AS "line_id",
-    pod.product_name AS "product_name"
-FROM
-    prd_order_detail pod
-WHERE
-    pod.ord_no = ?
-ORDER BY
-    pod.wo_no ASC;`
+const selectProcessingList = `
+SELECT prc.process_id AS process_id,
+       prc.process_name AS process_name,
+       ld.use_order AS use_order,
+       ld.line_id AS line_id,
+       l.line_name AS line_name
+FROM process prc
+JOIN line_detail ld
+JOIN line l
+ON ld.line_id = l.line_id
+ON prc.process_id = ld.process_id;
+`;
 
-const selectOrdersearchResult = `SELECT
-    ld.use_order AS "use_order",
-    ld.process_id AS "process", 
-    prc.process_name AS "process_name",
-    pf.w_st_date AS "startDate",
-    pf.w_ed_date AS "endDate", 
-    pf.in_qty AS "in_qty",
-    pf.d_qty AS "def_qty",
-    pf.qty AS qty,
-    CASE
-        WHEN pf.status IS NULL OR pf.status = 1 THEN '대기'
-        WHEN pf.status = 2 THEN '진행'
-        WHEN pf.status = 3 THEN '완료'
-        ELSE pf.status
-    END AS status
-FROM
-    line_detail ld
-JOIN
-    prd_flow flow ON ld.process_id = flow.process_id
-JOIN
-    prd_order_detail pod ON ld.line_id = pod.line_id AND pod.wo_no = flow.wo_no
-LEFT JOIN
-    performance pf ON pf.wo_no = pod.wo_no AND pf.line_id = pod.line_id AND pf.process_id = flow.process_id
-JOIN
-    process prc ON ld.process_id = prc.process_id
-WHERE
-    pod.wo_no = ?
-ORDER BY
-    ld.use_order`
+const selectProcessNotSearchList = `
+SELECT  pfm.process_id AS "product_id",
+        pfm.process_id AS "process_id",
+		p.process_name AS "process_name",
+        prd.product_name AS "product_name",
+        prd.product_type AS "product_type",
+        prd.product_form AS "product_form",
+        prd.specification AS "specification",
+        prd.unit AS "unit",
+        pfm.line_id AS "line_id",
+        pfm.e_name AS "lastname",
+        pfm.w_ed_date AS "endDate",
+        pfm.eq_code AS "equipment_id",
+        eq.equipment_name AS "equipment_name",
+        pfm.qty AS "qty"
+FROM performance pfm
+JOIN process p
+ON pfm.process_id = p.process_id
+JOIN product prd
+ON prd.product_id = pfm.product_id
+JOIN equipment eq
+ON pfm.eq_code = eq.equipment_id
+ORDER BY pfm.w_ed_date DESC;
+`;
+
+const filterPerformance = `
+SELECT  pfm.product_id AS "product_id",
+        pfm.process_id AS "process_id",
+        p.process_name AS "process_name",  
+        prd.product_name AS "product_name",
+        prd.product_type AS "product_type",
+        prd.product_form AS "product_form",
+        prd.specification AS "specification",
+        prd.unit AS "unit",
+        pfm.line_id AS "line_id",
+        pfm.e_name AS "lastname",
+        pfm.w_ed_date AS "endDate",
+        pfm.eq_code AS "equipment_id",
+        eq.equipment_name AS "equipment_name",
+        pfm.qty AS "qty"
+FROM performance pfm
+JOIN process p
+ON pfm.process_id = p.process_id
+JOIN product prd
+ON prd.product_id = pfm.product_id
+JOIN equipment eq
+ON pfm.eq_code = eq.equipment_id
+WHERE   ((DATE(pfm.w_ed_date) >= STR_TO_DATE(?,'%Y-%m-%d') AND DATE(pfm.w_ed_date) < STR_TO_DATE(?,'%Y-%m-%d')) OR ? IS NULL)
+AND    (pfm.process_id = ? OR ? IS NULL)
+AND    (pfm.line_id = ? OR ? IS NULL)
+AND    (pfm.e_name = ? OR ? IS NULL)
+AND    (prd.product_type = ? OR ? IS NULL)
+AND    (prd.product_form = ? OR ? IS NULL)
+ORDER BY pfm.w_ed_date DESC;
+`;
+
+const productListModal = `
+SELECT DISTINCT p.product_id AS "product_id",
+       p.product_name AS "product_name",
+        p.product_type AS "product_type",
+       p.specification AS "specification",
+       p.unit AS "unit",
+       l.line_id AS "line_id",
+       l.line_name AS "line_name"
+FROM product p
+JOIN line l
+ON p.product_cate_id = l.product_id;
+
+`;
+
+// const insertMasterPlan = `
+// INSERT INTO production_plan
+// (
+//   plan_no,
+//   pf_code,
+//   pl_in_date,
+//   pl_st_date,
+//   pl_ed_date,
+//   due_date,
+//   director
+// )
+// VALUES (
+//   CONCAT('PNO', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR plan_no_seq, 5, '0')),
+//   ?, ?, ?, ?, ?, ?
+// )
+// RETURNING plan_no;
+// `;
+
+const insertMasterPlan = `
+INSERT INTO production_plan
+(
+plan_no,
+pf_code,
+pl_in_date,
+pl_st_date,
+pl_ed_date,
+due_date,
+director
+)
+VALUES(? ,? , ? , ? , ? , ? , ?);
+`;
+
+// const insertDetailPlan = `
+// INSERT INTO plan_detail
+// (
+// plan_detail_no,
+// product_id,
+// product_name,
+// p_type,
+// specification,
+// unit,
+// line_id,
+// pl_qty,
+// planned_qty,
+// plan_no
+// )
+// VALUES(CONCAT('PDNO', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR plan_detail_no_seq, 5, '0')),
+// ?, ?, ?, ?, ?, ?, ?, ? , ?);
+// `;
+
+const insertDetailPlan = `
+INSERT INTO plan_detail
+(
+plan_detail_no,
+product_id,
+product_name,
+p_type,
+specification,
+unit,
+line_id,
+pl_qty,
+planned_qty,
+plan_no
+)
+VALUES(CONCAT('PDNO', DATE_FORMAT(NOW(), '%Y%m%d'),'-',LPAD(NEXT VALUE FOR plan_detail_no_seq, 5, '0')),
+?, ?, ?, ?, ?, ?, ?, ? , ?);
+`;
+
+// wo_no >> 날짜가 변하면 일련번호 초기화 과정
+// 시퀀스 증가
+
+const checkPlanNo = ` SELECT COUNT(*) AS count
+      FROM production_plan
+      WHERE plan_no LIKE CONCAT('PNO', DATE_FORMAT(NOW(), '%Y%m%d'), '%')`;
+
+// 생산계획 목록(모달)
+const fetchPlanList = `
+       SELECT pd.plan_detail_no AS "planDetailNo",
+       pp.plan_no AS "plan_no",
+       pp.pl_st_date AS "startDate",
+       pp.pl_ed_date AS "endDate",
+       pd.product_name AS "product_name",
+       pd.p_type AS "p_type",
+       pd.planned_qty AS "planned_qty",
+       pd.product_id AS "product_id",
+       p.product_form AS "product_form",
+       pd.specification AS "specification",
+       pd.unit AS "unit",
+       pd.line_id AS "line_id",
+       l.line_name AS "line_name"
+FROM  production_plan pp
+JOIN plan_detail pd
+ON pp.plan_no = pd.plan_no
+JOIN product p
+ON pd.product_id = p.product_id
+JOIN line l
+ON pd.line_id = l.line_id;`;
 
 module.exports = {
   selectAllOrder,
@@ -283,6 +346,12 @@ module.exports = {
   selectStatusCheck,
   insertRequestBom,
   productionOrderList,
-  selectOrdersearch,
-  selectOrdersearchResult
+  selectProcessingList,
+  selectProcessNotSearchList,
+  filterPerformance,
+  productListModal,
+  insertMasterPlan,
+  insertDetailPlan,
+  checkPlanNo,
+  fetchPlanList,
 };
