@@ -18,7 +18,7 @@ const onRowClick = (event) => {
 };
 
 // 페이지당 표시할 행 수
-const rowsPerPage = 10;
+const rowsPerPage = 9;
 
 // 현재 페이지 (PrimeVue paginator는 0부터 시작)
 const currentPage = ref(1);

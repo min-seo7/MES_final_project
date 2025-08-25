@@ -54,18 +54,51 @@ watch(
 const registProduct = async () => {
     try {
         const res = await axios.post('/api/information/product', form.value);
-        alert(res.data.message);
+        form.value = {
+            productType: '',
+            productId: '',
+            productForm: '',
+            productName: '',
+            specification: '',
+            unit: '',
+            safetyStock: '',
+            safetyStockUnit: '',
+            expiration: '',
+            expirationUnit: '',
+            status: '',
+            productCategory: '',
+            storageCondition: ''
+        };
+        alert('등록이 완료되었습니다.');
+        return res;
     } catch (err) {
-        console.log('제품등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 
 const modifyProduct = async () => {
     try {
         const res = await axios.post('/api/information/product/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+            productType: '',
+            productId: '',
+            productForm: '',
+            productName: '',
+            specification: '',
+            unit: '',
+            safetyStock: '',
+            safetyStockUnit: '',
+            expiration: '',
+            expirationUnit: '',
+            status: '',
+            productCategory: '',
+            storageCondition: ''
+        };
+
+        alert('수정이 완료되었습니다.');
+        return res;
     } catch (err) {
-        console.log('제품수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 

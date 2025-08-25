@@ -36,39 +36,49 @@ const confirmSelection = () => {
     close();
 };
 
-const paddedItems = computed(() => {
-    const currentItems = props.items || [];
-    const emptyRowsCount = rowsPerPage - (currentItems.length % rowsPerPage);
-
-    // 전체 데이터 수가 10개 미만이면 패딩을 추가하지 않음
-    if (currentItems.length < rowsPerPage) {
-        return currentItems;
-    }
-
-    if (emptyRowsCount > 0 && emptyRowsCount !== rowsPerPage) {
-        const emptyRows = Array.from({ length: emptyRowsCount }, () => ({ empty: true }));
-        return [...currentItems, ...emptyRows];
-    }
-    return currentItems;
+// 컬럼 수에 따라 모달 너비 동적 계산
+const dynamicWidth = computed(() => {
+    const baseWidth = 40; // 기본 너비 (vw)
+    const columnWidth = 5; // 컬럼당 추가되는 너비 (vw)
+    const numColumns = props.columns?.length || 0;
+    const calculatedWidth = baseWidth + Math.max(0, numColumns - 4) * columnWidth;
+    return `${Math.min(70, Math.max(baseWidth, calculatedWidth))}vw`;
 });
 
-const isEmptyRow = (row) => row.empty;
+// modalType에 따라 모달 제목 동적 설정
+const modalTitle = computed(() => {
+    const titles = {
+        employeeId: '사원코드 선택',
+        productId: '제품코드 선택',
+        department: '부서 선택',
+        processId: '공정코드 선택',
+        equipmentId: '설비코드 선택',
+        productName: '제품명 선택',
+        processName: '공정명 선택',
+        materialId: '자재코드 선택',
+        materialName: '자재명 선택',
+        partnerName: '거래처명 선택',
+        flowName: '흐름도명 선택',
+        lineName: '라인명 선택',
+        warehouse: '창고 선택',
+        location: '위치 선택',
+        warehouseType: '창고유형 선택'
+
+
+
+
+        // 다른 모달 타입에 대한 제목을 여기에 추가
+    };
+    return titles[props.modalType] || props.modalType;
+});
 </script>
 
 <template>
     <Dialog
         :visible="props.visible"
         modal
-        :header="
-            {
-                employeeId: '사원번호',
-                employeeName: '사원명',
-                department: '부서명',
-                auth: '권한',
-                status: '상태'
-            }[props.modalType]
-        "
-        :style="{ width: '40vw' }"
+        :header="modalTitle"
+        :style="{ width: dynamicWidth }"
         @update:visible="emits('update:visible', $event)"
     >
         <div v-if="props.showFilter" class="mt-5 mb-4 space-x-2 flex justify-center">
@@ -80,19 +90,18 @@ const isEmptyRow = (row) => row.empty;
             <Button label="초기화" />
         </div>
 
-        <DataTable :value="paddedItems" tableStyle="min-width: 20rem;" class="mb-3" paginator :rows="rowsPerPage" dataKey="num">
+        <DataTable :value="props.items" tableStyle="min-width: 20rem;" class="mb-3" paginator :rows="rowsPerPage" dataKey="num">
             <Column header="">
                 <template #body="slotProps">
-                    <div v-if="!isEmptyRow(slotProps.data)">
+                    <div>
                         <RadioButton :inputId="'select' + slotProps.index" name="modalSelect" :value="slotProps.data" :modelValue="props.selectedItem" @update:modelValue="onSelect(slotProps.data)" />
                     </div>
-                    <div v-else style="height: 40px"></div>
                 </template>
             </Column>
 
             <Column v-for="col in props.columns" :key="col.field" :field="col.field" :header="col.header">
                 <template #body="slotProps">
-                    <span v-if="!isEmptyRow(slotProps.data)">{{ slotProps.data[col.field] }}</span>
+                    <span>{{ slotProps.data[col.field] }}</span>
                 </template>
             </Column>
         </DataTable>
@@ -129,7 +138,6 @@ const isEmptyRow = (row) => row.empty;
 /* --- 데이터 테이블 스타일 --- */
 :deep(.p-datatable .p-datatable-tbody) {
     min-height: 400px;
-    /* 10개 행 * 40px/행 = 400px */
 }
 
 /* [수정] 스크립트에서 추가하는 빈 행(empty row)을 화면에 보이지 않게 처리하여
@@ -174,10 +182,6 @@ const isEmptyRow = (row) => row.empty;
 }
 
 /* --- 기존 스타일 수정 --- */
-.p-datatable .p-datatable-tbody {
-    /* [수정] min-height 속성을 제거하여 테이블 높이가 내용에 따라 유동적으로 변하게 합니다. */
-}
-
 .p-datatable .p-datatable-tbody > tr {
     height: 40px !important;
     display: table;

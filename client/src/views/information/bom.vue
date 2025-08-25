@@ -71,25 +71,30 @@ const handleResetForm = () => {
     bomSelectedData.value = {}; // 초기화
 };
 
+// bomDetailData를 빈 배열로 초기화
+const handleResetDetail = () => {
+    bomDetailData.value = [];
+}
+
 onUnmounted(() => {
     console.log('employee.vue unmounted!');
 });
 </script>
 
 <template>
-        <BomSearchWidget @bomFilterSearch="handleSearch" @resetForm="handleResetForm"/>
-        <BomListWidget :items="bomSearchData" @bomSelected="handleSelect" class="mb-4" />
+    <BomSearchWidget @bomFilterSearch="handleSearch" @resetForm="handleResetForm"/>
+    <BomListWidget :items="bomSearchData" @bomSelected="handleSelect" class="mb-4" />
+    
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="md:w-1/2 flex flex-col h-full">
+            <BomDetailWidget :detailData="bomDetailData" :items="bomSelectedData" />
+        </div>
         
-        <div class="flex flex-col md:flex-row gap-8">
-            <div class="md:w-1/2 flex flex-col h-full">
-                <BomDetailWidget :detailData="bomDetailData" :items="bomSelectedData" />
-            </div>
-            
-            <div class="md:w-1/2 flex flex-col h-full">
-                <div class="flex flex-col">
-                    <BomRegistWidget :detailData="bomDetailData" :items="bomSelectedData" />
-                    <BomDetailRegistWidget @bomDetail="handleBomDetail" />
-                </div>
+        <div class="md:w-1/2 flex flex-col h-full">
+            <div class="flex flex-col">
+                <BomRegistWidget @resetBomDetail="handleResetDetail" :detailData="bomDetailData" :items="bomSelectedData" />
+                <BomDetailRegistWidget @bomDetail="handleBomDetail" />
             </div>
         </div>
+    </div>
 </template>

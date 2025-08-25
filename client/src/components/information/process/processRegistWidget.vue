@@ -19,9 +19,15 @@ const form = ref({
 const modifyProcess = async () => {
     try {
         const res = await axios.post('/api/information/process/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+                processId: '',
+                processName: '',
+                isInspection: '',
+                status: ''
+            };
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('공정수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 
@@ -61,9 +67,16 @@ watch(
 const registProcess = async () => {
     try {
         const res = await axios.post('/api/information/process', form.value);
-        alert(res.data.message);
+        form.value = {
+                processId: '',
+                processName: '',
+                isInspection: '',
+                status: ''
+            };
+        
+        alert('등록이 완료되었습니다.');
     } catch (err) {
-        console.log('공정등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 </script>
