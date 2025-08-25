@@ -35,16 +35,16 @@ const startWork = async (director, plan_detail_no, details) => {
     // 3. 시퀀스를 사용하지 않고 고유코드생성
     let newOrderId;
     if (lastOrderRow && lastOrderRow.max_ord_no) {
-      // 'ord20250813-001' -> '001' -> 1 -> 2 -> '002' -> 'ord20250813-002'
+      // 'ord20250813-00001' -> '00001' -> 1 -> 2 -> '00002' -> 'ord20250813-00002'
       const lastNum = parseInt(lastOrderRow.max_ord_no.split("-")[1], 10);
       const newNum = lastNum + 1;
-      const formattedNum = String(newNum).padStart(3, "0");
+      const formattedNum = String(newNum).padStart(5, "0");
       const today = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // '20250813'
       newOrderId = `ord${today}-${formattedNum}`;
     } else {
       // 주문이 없을 경우 'ordYYYYMMDD-001'로 시작
       const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      newOrderId = `ord${today}-001`;
+      newOrderId = `ord${today}-00001`;
     }
 
     // 4. 마스터 테이블인 production_order 테이블에 데이터 삽입
