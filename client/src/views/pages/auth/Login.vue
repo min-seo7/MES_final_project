@@ -20,7 +20,7 @@ import biryong from './img/biryong.png';
 const userLogin = async () => {
     try {
         console.log('1. 요청 데이터:', loginInfo.value);
-        const result = await axios.post('/modal/login', loginInfo.value);
+        const result = await axios.post('/api/modal/login', loginInfo.value);
         const loginRes = result.data;
         console.log('2. 서버 응답 결과:', result.status, loginRes);
         console.log(loginRes.name);
