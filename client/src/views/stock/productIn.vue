@@ -127,8 +127,8 @@ export default {
                 p_prdType: '',
                 p_prdCode: '',
                 p_prdName: '',
-                p_testPassQty: 0,
-                p_receiptQty: 0,
+                p_testPassQty: '',
+                p_receiptQty: '',
                 p_unit: '',
                 p_exp: '',
                 p_warehouse: '',
@@ -188,6 +188,7 @@ export default {
             } catch (error) {
                 console.lof('취소실패', error);
             }
+            alert('입고취소처리 되었습니다.');
             this.getprdLotLIst();
             this.selectPandingPrds = [];
         },
@@ -391,12 +392,12 @@ export default {
     </div>
 
     <!--제품모달-->
-    <commModal v-model="productModal" header="제품목록" style="width: 40rem">
+    <commModal v-model="productModal" header="제품목록" style="width: 30rem">
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
-            <Column field="prdType" header="제품유형" headerStyle="width: 10em"></Column>
-            <Column field="prdName" header="제품명" headerStyle="width: 10em"></Column>
+            <Column field="prdCode" header="제품코드" headerStyle="width: 6rem"></Column>
+            <Column field="prdType" header="제품유형" headerStyle="width: 6em"></Column>
+            <Column field="prdName" header="제품명" headerStyle="width: 12em"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->
@@ -407,11 +408,11 @@ export default {
         </template>
     </commModal>
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 30rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12em"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
         </DataTable>
 

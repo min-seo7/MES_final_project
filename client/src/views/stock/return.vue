@@ -53,7 +53,7 @@ export default {
 
                 const res = await axios.post('/api/stock/searchReturnList', filters);
                 //조회결과
-               this.returnList = res.data.map((item) => ({
+                this.returnList = res.data.map((item) => ({
                     id: item.id, // 행식별 위한 인덱스용,
                     dueDate: item.return_date,
                     outNo: item.prd_out_no,
@@ -94,10 +94,20 @@ export default {
         },
         //입고등록===========================================
         async postInreturn() {
-            // if (!this.selectedReturnList.length) {
-            //     alert('확정할 항목을 선택하세요.');
-            //     return;
-            // }
+            if (!this.selectedReturnList.length) {
+                alert('반품등록 제품을 선택해주세요.');
+                return;
+            }
+
+            // 필수값 체크
+            let checkNull = this.selectedReturnList.find((row) => {
+                return !row.receiptQty || !row.location;
+            });
+
+            if (checkNull) {
+                alert(' 입고수량, 창고 입력해주세요.');
+                return;
+            }
             try {
                 let returnInfo = this.selectedReturnList.map((row) => ({
                     id: row.id,
@@ -232,7 +242,7 @@ export default {
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <Column field="dueDate" header="반품등록일" style="width: 12rem" />
                 <Column field="outNo" header="출고번호" style="width: 15rem" />
-                <Column field="prdCode" header="제품코드" style="width: 10rem"/>
+                <Column field="prdCode" header="제품코드" style="width: 10rem" />
                 <Column field="prdName" header="제품명" style="width: 15rem" />
                 <Column field="retunQty" header="반품수량" style="width: 8rem" />
 
@@ -246,7 +256,7 @@ export default {
                 <!-- 보관위치 -->
                 <Column header="보관위치" style="width: 10rem">
                     <template #body="slotProps">
-                        <InputText v-model="slotProps.data.location"  @click="openWarehouseeModal(slotProps.index)" :disabled="slotProps.data.status === '확정'" />
+                        <InputText v-model="slotProps.data.location" @click="openWarehouseeModal(slotProps.index)" :disabled="slotProps.data.status === '확정'" />
                     </template>
                 </Column>
 
@@ -261,12 +271,12 @@ export default {
     </div>
 
     <!--제품모달-->
-    <commModal v-model="productModal" header="제품목록" style="width: 40rem">
+    <commModal v-model="productModal" header="제품목록" style="width: 30rem">
         <DataTable v-model:selection="selectPrd" :value="products" dataKey="prdCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="prdCode" header="제품코드" headerStyle="width: 10rem"></Column>
-            <Column field="prdType" header="제품유형" headerStyle="width: 10em"></Column>
-            <Column field="prdName" header="제품명" headerStyle="width: 10em"></Column>
+            <Column field="prdCode" header="제품코드" headerStyle="width: 6rem"></Column>
+            <Column field="prdType" header="제품유형" headerStyle="width: 6em"></Column>
+            <Column field="prdName" header="제품명" headerStyle="width: 12em"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->
@@ -277,11 +287,11 @@ export default {
         </template>
     </commModal>
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 30rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12em"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
         </DataTable>
 

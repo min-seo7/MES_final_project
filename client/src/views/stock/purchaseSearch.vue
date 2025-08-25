@@ -193,17 +193,17 @@ export default {
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <!--행식별용-->
             <Column field="id" header="-" style="display: none"></Column>
-            <Column field="reDate" header="등록일" sortable></Column>
-            <Column field="purNo" header="발주번호" ></Column>
-            <Column field="matCode" header="자재코드" ></Column>
-            <Column field="matName" header="자재명" sortable></Column>
-            <Column field="purQty" header="발주량" ></Column>
-            <Column field="unit" header="단위"></Column>
-            <Column field="supPatner" header="공급처" ></Column>
-            <Column field="eName" header="담당자" ></Column>
-            <Column field="dueDate" header="납기요청일" sortable></Column>
+            <Column field="reDate" header="등록일" sortable headerStyle="width: 8rem"></Column>
+            <Column field="purNo" header="발주번호" headerStyle="width: 15rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 8rem"></Column>
+            <Column field="matName" header="자재명" sortable headerStyle="width: 15rem"></Column>
+            <Column field="purQty" header="발주량" headerStyle="width: 8rem"></Column>
+            <Column field="unit" header="단위" headerStyle="width: 5rem"></Column>
+            <Column field="supPatner" header="공급처"></Column>
+            <Column field="eName" header="담당자" headerStyle="width: 6rem"></Column>
+            <Column field="dueDate" header="납기요청일" sortable headerStyle="width: 8rem"></Column>
             <Column field="status" header="진행상태" sortable></Column>
-            <Column field="memo" header="비고" ></Column>
+            <Column field="memo" header="비고"></Column>
         </DataTable>
     </div>
 
@@ -211,7 +211,7 @@ export default {
     <commModal v-model="materialModal" header="자재목록" style="width: 30rem">
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 8rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 6rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 

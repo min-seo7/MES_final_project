@@ -4,7 +4,7 @@ let matListQuery = `SELECT material_id,
 	                         material_type,
                                 unit       
                     FROM material
-                    WHERE status = '사용'
+                    WHERE status = '활성'
                     AND material_id NOT IN ('MAT010')
                     AND material_type = '원자재'`;
 
@@ -20,7 +20,7 @@ let productListQuery = `SELECT product_id,
                                product_type,
                                product_name
                         FROM product
-                        WHERE status = '사용'`;
+                        WHERE status = '활성'`;
 
 //보관창고 (모달)
 let warehouseListQuery = `SELECT warehouse_id,
@@ -151,7 +151,7 @@ let MatInPandingSearchQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS du
                           ON t.material_code = m.material_id
                           JOIN partner pa
                           ON p.partner_id = pa.partner_id
-                          WHERE 1=1`
+                          WHERE 1=1`;
 
 //자재입고처리
 let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?, ?)`;
@@ -260,7 +260,6 @@ let SearchMatReqListQuery = `SELECT DATE_FORMAT(mr.req_date, '%Y-%m-%d') AS req_
                      JOIN material m
                      ON mr.material_id = m.material_id
                      WHERE 1=1`;
-
 
 //자재재고조회(출고과정중)
 let checkMatStockQuery = `SELECT ml.material_id,
@@ -594,7 +593,7 @@ module.exports = {
   SearchMatReqListQuery,
   searchReturnListQuery,
   MatInPandingSearchQuery,
- prdOutCancelQuery,
- searchPrdPandingListQuery,
- matOutCancelQuery 
+  prdOutCancelQuery,
+  searchPrdPandingListQuery,
+  matOutCancelQuery,
 };

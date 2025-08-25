@@ -39,8 +39,8 @@ export default {
             outWaitgCol: [
                 { field: 'w_dueDate', header: '출고요청일', headerStyle: 'width: 20rem' },
                 { field: 'w_purNo', header: '지시번호', headerStyle: 'width: 18rem' },
-                { field: 'w_matCode', header: '자재코드', headerStyle: 'width: 20rem' },
-                { field: 'w_matName', header: '자재명', headerStyle: 'width: 13rem', inputTextWM: true, onClick: this.rowOpenMatModal },
+                { field: 'w_matCode', header: '자재코드', headerStyle: 'width: 13rem' },
+                { field: 'w_matName', header: '자재명', headerStyle: 'width: 20rem', inputTextWM: true, onClick: this.rowOpenMatModal },
                 { field: 'w_reqQty', header: '요청수량', headerStyle: 'width: 15rem' },
                 { field: 'w_receiptQty', header: '출고수량', headerStyle: 'width: 15rem', inputNumber: true },
                 { field: 'w_unit', header: '단위', headerStyle: 'width: 13rem' },
@@ -50,8 +50,8 @@ export default {
             outCol: [
                 { field: 'outDate', header: '출고일', headerStyle: 'width: 20rem' },
                 { field: 'woNo', header: '지시번호', headerStyle: 'width: 18rem' },
-                { field: 'matCode', header: '자재코드', headerStyle: 'width: 20rem' },
-                { field: 'matName', header: '자재명', headerStyle: 'width: 13rem' },
+                { field: 'matCode', header: '자재코드', headerStyle: 'width: 13rem' },
+                { field: 'matName', header: '자재명', headerStyle: 'width: 20rem' },
                 { field: 'outQty', header: '출고수량', headerStyle: 'width: 15rem' },
                 { field: 'unit', header: '단위', headerStyle: 'width: 13rem' },
                 { field: 'eName', header: '담당자', headerStyle: 'width: 15rem' },
@@ -106,7 +106,7 @@ export default {
                 w_matCode: '',
                 w_matName: '',
                 w_reqQty: '',
-                w_receiptQty: 0,
+                w_receiptQty: '',
                 w_unit: '',
                 w_memo: ''
             };
@@ -166,10 +166,19 @@ export default {
         //자재출고등록
         async postMatOut() {
             try {
-                // if (!this.dueDate || !this.partnerId || !this.empName) {
-                //     alert('필수정보입력');
-                //     return;
+                if (!this.selectOutWaitMats.length) {
+                    alert('출고처리할 자재를 선택해주세요.');
+                    return;
+                }
+                // 필수값 체크
+                let checkNull = this.selectOutWaitMats.find((row) => {
+                    return !row.w_matCode || !row.w_receiptQty;
+                });
 
+                if (checkNull) {
+                    alert('자재, 출고수량을 입력해주세요.');
+                    return;
+                }
                 //재고체크
                 let checkStock = this.selectOutWaitMats.map((row) => row.w_matCode);
                 let matStotalStock = await axios.post('/api/stock/checkMatStock', { MatIds: checkStock });
@@ -194,7 +203,6 @@ export default {
                     return; // 출고 등록 중단
                 }
 
-
                 //출고등록
                 let matOutInfo = this.selectOutWaitMats.map((row) => ({
                     req_id: row.w_reId || null,
@@ -205,7 +213,6 @@ export default {
                 }));
                 console.log(matOutInfo);
                 await axios.post('/api/stock/reMatOut', matOutInfo);
-                alert('등록 되었습니다.');
             } catch (error) {
                 console.error('등록 실패', error);
             }
@@ -225,11 +232,10 @@ export default {
                     mat_out_no: row.matOutNo
                 }));
                 await axios.post('/api/stock/matOutCancel', cancelInfo);
-                alert('출고취소 되었습니다.');
             } catch (error) {
                 console.log('취소실패', error);
             }
-
+            alert('출고취소 되었습니다.');
             this.getOutMats();
             this.selectOutgMats = [];
         },
@@ -356,10 +362,10 @@ export default {
     </div>
 
     <!--자재모달-->
-    <commModal v-model="materialModal"  header="자재목록" style="width: 40rem">
+    <commModal v-model="materialModal" header="자재목록" style="width: 30rem">
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 6rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 
