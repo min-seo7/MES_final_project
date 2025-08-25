@@ -27,38 +27,38 @@ EX) 홍길동 / README.md 작성 / 202X0XXX
 
 ## 개발 환경
 - Language
-JavaScript
-TypeScript
+  - JavaScript
+  - TypeScript
 
 - IDE
-Visual Studio Code
+  - Visual Studio Code
 
 - Front-End
   - Vue.js 3.5.13
-Vite
-Bootstrap
-PrimVue
-Pinia
-Axios
+  - Vite
+  - Bootstrap
+  - PrimVue
+  - Pinia
+  - Axios
 
 - Back-End
-Node.js
-Express
-PM2
-NGINX
+  - Node.js
+  - Express 
+  - PM2
+  - NGINX
 
 - Database
-MariaDB
+  - MariaDB
 
 - Server
-Naver Cloud Platform
+  - Naver Cloud Platform
 
 - Communication & Tools
-GitHub
-Discord
-Google Workspace (Chat / Docs / Slides / Sheets)
-ERD Cloud
+  - GitHub
+  - Discord
+  - Google Workspace (Chat / Docs / Slides / Sheets)
+  - ERD Cloud
 
 - OS
-Windows 10/11
-Ubuntu 24.04 LTS
+  - Windows 10/11
+  - Ubuntu 24.04 LTS
