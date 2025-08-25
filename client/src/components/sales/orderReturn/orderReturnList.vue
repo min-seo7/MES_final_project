@@ -19,6 +19,15 @@ const ship = ref(null);
 const returnDateRange = ref({ startDate: null, endDate: null });
 const searchInput = ref({ orderId: '', partId: '', partName: '', manager: '' });
 
+// 검색 필터 상태
+const searchFilters = ref({
+    orderId: '',
+    orderStatus: '', // 라디오 버튼
+    productName: '', // 제품명
+    partnerId: '',
+    delDate: null
+});
+
 // 화면에 표시할 데이터
 const customers2 = ref([]);
 
@@ -174,6 +183,7 @@ const openOrdersModal = async () => {
 // "선택 완료" 버튼 클릭 시
 const selectOrderAndClose = () => {
     if (selectedOrdersFromDialog.value) {
+        searchInput.value.orderId = selectedOrdersFromDialog.value.orderId;
         searchFilters.value.orderId = selectedOrdersFromDialog.value.orderId;
     }
     showOrdersModal.value = false;
@@ -204,7 +214,7 @@ onMounted(searchOrders);
                         <label class="font-semibold text-sm mb-1">주문번호</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText v-model="searchInput.orderId" placeholder="ORD001" @keyup.enter="searchOrders" readonly style="background-color: lightgrey" />
+                                <InputText v-model="searchInput.orderId" placeholder="ORD001" @keyup.enter="searchOrders" readonly />
                                 <InputIcon class="pi pi-search" @click="openOrdersModal" />
                             </IconField>
                         </InputGroup>
@@ -215,7 +225,7 @@ onMounted(searchOrders);
                         <label class="font-semibold text-sm mb-1">거래처코드</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText v-model="searchInput.partId" placeholder="SUP002" readonly style="background-color: lightgrey" />
+                                <InputText v-model="searchInput.partId" placeholder="SUP002" readonly />
                                 <InputIcon class="pi pi-search" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
@@ -279,7 +289,7 @@ onMounted(searchOrders);
         <!-- 거래처 모달 -->
         <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog">
+                <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="partnerId" header="거래처코드" />
                     <Column field="partnerName" header="거래처명" />
@@ -297,7 +307,7 @@ onMounted(searchOrders);
         </Dialog>
         <Dialog v-model:visible="showOrdersModal" modal header="주문서 목록" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <DataTable :value="ordersList" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrdersFromDialog">
+                <DataTable :value="ordersList" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrdersFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="orderId" header="주문번호"></Column>
                     <Column field="orderDate" header="주문일자"></Column>

@@ -94,10 +94,10 @@ const openSupplierModal = async () => {
     showSupplierDialog.value = true;
 };
 
-// 거래처 검색 필터링 로직
-const searchSuppliers = async () => {
-    await fetchSuppliers();
-};
+// // 거래처 검색 필터링 로직
+// const searchSuppliers = async () => {
+//     await fetchSuppliers();
+// };
 
 // "선택 완료" 버튼 클릭 시
 const selectSupplierAndClose = () => {
@@ -179,17 +179,17 @@ const selectProductAndClose = () => {
 };
 
 // 동적 품목 및 규격 데이터
-const productList = ['분말형', '과립형', '액상형'];
-const productSpecs = {
-    분말형: ['20KG', '40KG'],
-    과립형: ['20KG', '40KG'],
-    액상형: ['5L', '10L', '20L']
-};
+// const productList = ['분말형', '과립형', '액상형'];
+// const productSpecs = {
+//     분말형: ['20KG', '40KG'],
+//     과립형: ['20KG', '40KG'],
+//     액상형: ['5L', '10L', '20L']
+// };
 
-// 품명에 따라 동적으로 변하는 규격 옵션
-const specOptions = computed(() => {
-    return productSpecs[search.value.productName] || [];
-});
+// // 품명에 따라 동적으로 변하는 규격 옵션
+// const specOptions = computed(() => {
+//     return productSpecs[search.value.productName] || [];
+// });
 
 // 주문 데이터
 const orders = ref([]);
@@ -401,7 +401,7 @@ onMounted(() => {
                         <label for="partCode" class="font-semibold text-sm mb-1">거래처코드</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText id="partCode" type="text" class="w-60" placeholder="거래처코드" v-model="search.partCode" readonly style="background-color: lightgrey" />
+                                <InputText id="partCode" type="text" class="w-60" placeholder="거래처코드" v-model="search.partCode" readonly />
                                 <InputIcon class="pi pi-search" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
@@ -410,7 +410,7 @@ onMounted(() => {
                         <label for="prodCode" class="font-semibold text-sm mb-1">제품코드</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText id="prodCode" type="text" class="w-60" placeholder="제품코드" v-model="search.prodCode" readonly style="background-color: lightgrey" />
+                                <InputText id="prodCode" type="text" class="w-60" placeholder="제품코드" v-model="search.prodCode" readonly />
                                 <InputIcon class="pi pi-search" @click="openProductModal" />
                             </IconField>
                         </InputGroup>
@@ -492,7 +492,7 @@ onMounted(() => {
         </div>
         <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog">
+                <DataTable :value="filteredSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="partnerId" header="거래처코드"></Column>
                     <Column field="partnerName" header="거래처명"></Column>
@@ -511,7 +511,7 @@ onMounted(() => {
 
         <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <DataTable :value="filteredProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog">
+                <DataTable :value="filteredProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="productType" header="제품유형"></Column>
                     <Column field="productId" header="제품코드"></Column>

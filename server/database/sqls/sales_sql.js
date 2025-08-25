@@ -22,7 +22,7 @@ const selectOrderProduct = `
 const selectOrdersModal = `
 SELECT  
     order_id,  
-    order_date,  
+    DATE_FORMAT(order_date, '%Y-%m-%d') AS order_date,
     order_manager,  
     delivery_addr,  
     manager,  
@@ -252,6 +252,7 @@ SELECT  s.shipment_id,
         i.product_id,
         i.product_name,
         o.partner_name,
+        o.partner_id,
         i.quantity,
         o.order_date,
         o.manager,
@@ -355,7 +356,7 @@ FROM
 JOIN
   partner p ON o.partner_id = p.partner_id
 LEFT JOIN
-  employee e ON o.order_manager = e.employee_id
+  employee e ON o.order_manager = e.name
 LEFT JOIN
   order_items i ON o.order_id = i.order_id
 WHERE
@@ -368,6 +369,10 @@ GROUP BY
 ORDER BY
   o.order_id desc
 `;
+
+// //pdf 저장
+// const insertPdf = `
+// `;
 
 //주문서목록 클릭 호출되는 상세 정보
 const selectOrderDetailsByOrderId = `
@@ -431,6 +436,21 @@ SELECT    s.shipment_id,
     AND (? IS NULL OR DATE(r.return_date) <= ?)
     ORDER by r.return_id desc
   `;
+// LOT 단위 재고 조회 (출하용, FOR UPDATE)
+const selectPrdLotForOutbound = `
+SELECT prd_lot_no AS lot_no, curr_qty
+FROM tbl_prd_lot
+WHERE product_id = ? AND curr_qty > 0
+ORDER BY open_date ASC
+FOR UPDATE
+`;
+
+// // LOT 단위 재고 차감
+// const updatePrdLotQty = `
+//   UPDATE tbl_prd_lot
+//   SET curr_qty = curr_qty - ?
+//   WHERE prd_lot_no = ?
+// `;
 
 //반품등록
 const returnRegist = `
@@ -567,4 +587,6 @@ module.exports = {
   selectOrderDetailsByOrderId,
   selcetOrderdelDetail,
   selectOrdersModal,
+  selectPrdLotForOutbound,
+  // updatePrdLotQty,
 };

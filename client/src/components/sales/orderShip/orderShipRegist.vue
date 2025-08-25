@@ -7,11 +7,30 @@ import Calendar from 'primevue/calendar';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
-import InputNumber from 'primevue/inputnumber';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import Tag from 'primevue/tag';
 import axios from 'axios';
+
+// 상태코드(int) → 출하상태명 매핑
+const shipStateMap = {
+    1: '출하대기',
+    2: '출하중',
+    3: '출하완료'
+};
+const shipStateMapReverse = computed(() => Object.fromEntries(Object.entries(shipStateMap).map(([k, v]) => [v, k])));
+const getShipSeverity = (status) => {
+    switch (status) {
+        case '출하대기':
+            return 'contrast';
+        case '출하중':
+            return 'warning';
+        case '출하완료':
+            return 'success';
+        default:
+            return null;
+    }
+};
 
 // 상태코드(int) → 상태명 매핑
 const orderStateMap = {
@@ -30,7 +49,8 @@ const searchForm = ref({
     productId: '',
     productName: '',
     startDate: null,
-    endDate: null
+    endDate: null,
+    searchForm: ''
 });
 
 // 조회된 주문서 목록 (상단 테이블)
@@ -167,8 +187,10 @@ const loadOrderDetails = async (event) => {
                 quantity: item.quantity,
                 shippedQuantity: item.shipped_qty || 0,
                 curr_qty: item.curr_qty || 0,
-                shipmentId: item.shipment_id || null
+                shipmentId: item.shipment_id || null,
+                shipState: item.ship_state != null ? (shipStateMap[Number(item.ship_state)] ?? '알수없음') : '알수없음'
             })) || [];
+        console.log(response.data.list.map((item) => ({ shipmentId: item.shipment_id, ship_state: item.ship_state })));
 
         tableKey.value++;
     } catch (error) {
@@ -323,7 +345,7 @@ onMounted(() => {
                     <div class="flex gap-2">
                         <InputGroup>
                             <IconField iconPosition="right">
-                                <InputText v-model="searchForm.partnerId" placeholder="거래처코드" readonly style="background-color: lightgrey" />
+                                <InputText v-model="searchForm.partnerId" placeholder="거래처코드" readonly />
                                 <InputIcon class="pi pi-search cursor-pointer" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
@@ -335,7 +357,7 @@ onMounted(() => {
                     <div class="flex gap-2">
                         <InputGroup>
                             <IconField iconPosition="right">
-                                <InputText v-model="searchForm.productId" placeholder="제품코드" readonly style="background-color: lightgrey" />
+                                <InputText v-model="searchForm.productId" placeholder="제품코드" readonly />
                                 <InputIcon class="pi pi-search cursor-pointer" @click="openProductModal" />
                             </IconField>
                         </InputGroup>
@@ -353,14 +375,14 @@ onMounted(() => {
         </div>
 
         <DataTable :value="filteredShipmentOrders" scrollable scrollHeight="200px" selectionMode="single" v-model:selection="selectedOrder" @row-select="loadOrderDetails" class="mt-4">
-            <Column field="orderId" header="주문번호" style="min-width: 120px" />
-            <Column field="partnerId" header="거래처번호" style="min-width: 120px" />
-            <Column field="partnerName" header="거래처명" style="min-width: 120px" />
-            <Column field="manager" header="거래담당자" style="min-width: 120px" />
+            <Column field="orderId" header="주문번호" style="min-width: 100px" />
+            <Column field="partnerId" header="거래처번호" style="min-width: 100px" />
+            <Column field="partnerName" header="거래처명" style="min-width: 100px" />
+            <Column field="manager" header="거래처담당자" style="min-width: 100px" />
             <Column field="totalQty" header="총수량" style="min-width: 80px" />
             <Column field="deliveryAddr" header="배송지" style="min-width: 100px" />
             <Column field="orderDate" header="등록일자" style="min-width: 100px" />
-            <Column field="ordState" header="주문상태" style="min-width: 120px">
+            <Column field="ordState" header="주문상태" style="min-width: 100px">
                 <template #body="slotProps">
                     <Tag :value="slotProps.data.ordState" :severity="getSeverity(slotProps.data.ordState)" :rounded="true" class="px-3 py-1 text-sm" />
                 </template>
@@ -369,7 +391,7 @@ onMounted(() => {
         </DataTable>
 
         <div class="font-semibold text-xl mb-4 mt-8 flex justify-between items-center">
-            <span>출하등록</span>
+            <h1 class="text-2xl font-bold">출하등록</h1>
             <div class="space-x-2">
                 <Button label="저장" rounded @click="saveShipment" :disabled="isSaving" />
                 <Button label="초기화" severity="info" rounded @click="resetShipmentForm" />
@@ -415,9 +437,9 @@ onMounted(() => {
                 <Column field="delivery_addr" header="배송지" style="min-width: 100px" />
                 <Column field="order_date" header="등록일자" style="min-width: 100px" />
                 <Column field="del_date" header="납기일자" style="min-width: 100px" />
-                <Column field="ord_status" header="주문상태" style="min-width: 120px">
+                <Column field="shipState" header="출하상태" style="min-width: 100px">
                     <template #body="slotProps">
-                        <Tag :value="getStatusText(slotProps.data.ord_status)" :severity="getSeverity(getStatusText(slotProps.data.ord_status))" :rounded="true" class="px-3 py-1 text-sm" />
+                        <Tag :value="slotProps.data.shipState" :severity="getShipSeverity(slotProps.data.shipState)" :rounded="true" class="px-3 py-1 text-sm" />
                     </template>
                 </Column>
                 <Column field="curr_qty" header="재고" style="min-width: 100px" />
@@ -425,7 +447,7 @@ onMounted(() => {
         </div>
 
         <Dialog v-model:visible="showSupplierDialog" modal header="거래처 목록" :style="{ width: '50vw' }" class="centered-dialog">
-            <DataTable :value="allSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog">
+            <DataTable :value="allSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
                 <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                 <Column field="partnerId" header="거래처코드"></Column>
                 <Column field="partnerName" header="거래처명"></Column>
@@ -441,7 +463,7 @@ onMounted(() => {
         </Dialog>
 
         <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
-            <DataTable :value="allProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog">
+            <DataTable :value="allProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="5">
                 <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                 <Column field="productType" header="제품유형"></Column>
                 <Column field="productId" header="제품코드"></Column>

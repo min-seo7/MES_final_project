@@ -247,7 +247,7 @@ onMounted(() => {
                     <div class="flex flex-col">
                         <label for="orderId" class="font-semibold text-sm mb-1">주문번호</label>
                         <IconField iconPosition="left" class="w-full">
-                            <InputText id="orderId" type="text" class="w-60" v-model="searchFilters.orderId" readonly style="background-color: lightgrey" />
+                            <InputText id="orderId" type="text" class="w-60" placeholder="주문번호" v-model="searchFilters.orderId" readonly />
                             <InputIcon class="pi pi-search" @click="openOrdersModal" />
                         </IconField>
                     </div>
@@ -255,7 +255,7 @@ onMounted(() => {
                         <label for="partnerId" class="font-semibold text-sm mb-1">거래처코드</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText id="partnerId" type="text" class="w-60" placeholder="거래처코드" v-model="searchFilters.partnerId" readonly style="background-color: lightgrey" />
+                                <InputText id="partnerId" type="text" class="w-60" placeholder="거래처코드" v-model="searchFilters.partnerId" readonly />
                                 <InputIcon class="pi pi-search" @click="openSupplierModal" />
                             </IconField>
                         </InputGroup>
@@ -265,7 +265,7 @@ onMounted(() => {
                         <label for="productName" class="font-semibold text-sm mb-1">제품명</label>
                         <InputGroup>
                             <IconField iconPosition="left">
-                                <InputText id="productName" type="text" class="w-60" placeholder="제품명" v-model="searchFilters.productName" readonly style="background-color: lightgrey" />
+                                <InputText id="productName" type="text" class="w-60" placeholder="제품명" v-model="searchFilters.productName" readonly />
                                 <InputIcon class="pi pi-search" @click="openProductModal" />
                             </IconField>
                         </InputGroup>
@@ -311,7 +311,7 @@ onMounted(() => {
 
         <!-- 거래처 모달 -->
         <Dialog v-model:visible="showSupplierDialog" modal header="거래처 목록" :style="{ width: '50vw' }" class="centered-dialog">
-            <DataTable :value="allSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog">
+            <DataTable :value="allSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
                 <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                 <Column field="partnerId" header="거래처코드"></Column>
                 <Column field="partnerName" header="거래처명"></Column>
@@ -328,7 +328,7 @@ onMounted(() => {
 
         <!-- 제품 모달 -->
         <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
-            <DataTable :value="allProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog">
+            <DataTable :value="allProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="5">
                 <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                 <Column field="productType" header="제품유형"></Column>
                 <Column field="productId" header="제품코드"></Column>
@@ -344,7 +344,7 @@ onMounted(() => {
         </Dialog>
         <Dialog v-model:visible="showOrdersModal" modal header="주문서 목록" :style="{ width: '50vw' }" class="centered-dialog">
             <div class="p-4">
-                <DataTable :value="ordersList" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrdersFromDialog">
+                <DataTable :value="ordersList" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrdersFromDialog" :rowHover="true" :paginator="true" :rows="5">
                     <Column selectionMode="single" headerStyle="width: 3rem"></Column>
                     <Column field="orderId" header="주문번호"></Column>
                     <Column field="orderDate" header="주문일자"></Column>
