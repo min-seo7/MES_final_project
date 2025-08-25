@@ -25,6 +25,26 @@ const search = ref({
     status: ''
 });
 
+// 선택필터초기화
+const resetSearch = () => {
+    search.value.flowId = '';
+    search.value.flowName = '';
+    search.value.productId = '';
+    search.value.productName = '';
+    search.value.status = '';
+
+    // 모달 선택값 초기화
+    Object.keys(selectedItems.value).forEach((key) => {
+        selectedItems.value[key] = null;
+    });
+
+    selectSearch();
+    onReset();
+};
+const onReset = () => {
+    emits('resetForm');
+};
+
 // 모달 열기
 const openModal = async (type) => {
     modalType.value = type;
@@ -37,13 +57,21 @@ const openModal = async (type) => {
             flowName: item.flow_name
         }));
         columns.value = [{ field: 'flowName', header: '흐름도명' }];
-    } else if (type === 'productId') {
-        const res = await axios.get('/api/information/flowchart/getProductId');
+    }    else if (type === 'productId') {
+        const res = await axios.get('/api/information//flowchart/getProductId');
         items.value = res.data.map((item, index) => ({
             num: index + 1,
-            productId: item.product_id
+            productId: item.product_id,
+            productName: item.product_name,
+            productType: item.product_type,
+            productForm: item.product_form
         }));
-        columns.value = [{ field: 'productId', header: '제품코드' }];
+        columns.value = [
+            { field: 'productId', header: '제품코드' },
+            { field: 'productName', header: '제품명' },
+            { field: 'productType', header: '제품유형' },
+            { field: 'productForm', header: '제품형태' }
+        ];
     } else if (type === 'productName') {
         const res = await axios.get('/api/information/flowchart/getProductName');
         items.value = res.data.map((item, index) => ({
@@ -73,21 +101,7 @@ const selectModalValue = () => {
     showModal.value = false;
 };
 
-// 선택 필터 초기화
-const resetSearch = () => {
-    search.value.flowId = '';
-    search.value.flowName = '';
-    search.value.productId = '';
-    search.value.productName = '';
-    search.value.status = '';
 
-    // 모달 선택값 초기화
-    Object.keys(selectedItems.value).forEach((key) => {
-        selectedItems.value[key] = null;
-    });
-
-    selectSearch();
-};
 
 // 검색
 const selectSearch = async () => {

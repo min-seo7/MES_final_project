@@ -150,6 +150,10 @@ const selectOrdRegistModal = () => {
   return query("selectOrdPartnerModal");
 };
 
+const selectOrderListModal = () => {
+  return query("selectOrdersModal");
+};
+
 // 주문등록 상세_완제품 제품 조회 모달창
 const selectOrderProductModal = () => {
   return query("selectOrderProduct");
@@ -246,11 +250,63 @@ const selectFilteredShips = (filters) => {
 };
 
 // 출하 등록
+// const insertShipment = async (shipmentItems) => {
+//   const conn = await getConnection();
+//   let createdCount = 0;
+//   try {
+//     await conn.beginTransaction();
+//     const [lastShipmentRow] = await conn.query(sqlList.SelectMaxShipId);
+//     let lastNum = 0;
+//     if (lastShipmentRow && lastShipmentRow.max_shipment_id) {
+//       lastNum = parseInt(
+//         lastShipmentRow.max_shipment_id.replace("SHIP", ""),
+//         10
+//       );
+//     }
+//     for (const item of shipmentItems) {
+//       lastNum += 1;
+//       const newShipmentId = `SHIP${String(lastNum).padStart(3, "0")}`;
+//       const params = [
+//         newShipmentId,
+//         item.item_seq,
+//         item.product_code,
+//         item.shipment_qty,
+//         item.shipment_date,
+//         item.ship_status,
+//         item.order_manager,
+//         item.product_name,
+//         item.order_detail_id,
+//       ];
+//       await conn.query(sqlList["insertShip"], params);
+//       createdCount++;
+//     }
+//     await conn.commit();
+//     return { success: true, createdCount };
+//   } catch (err) {
+//     await conn.rollback();
+//     if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
+//       console.error("Duplicate entry detected. (order_detail_id)");
+//       return {
+//         success: false,
+//         error: "선택된 항목 중 이미 출하 등록된 내역이 있습니다.",
+//       };
+//     } else {
+//       console.error("InsertShipment Error:", err);
+//       return { success: false, error: err.message };
+//     }
+//   } finally {
+//     conn.release();
+//   }
+// };
+// sales_service.js 내부
 const insertShipment = async (shipmentItems) => {
   const conn = await getConnection();
   let createdCount = 0;
+
   try {
     await conn.beginTransaction();
+
+    // 마지막 출하번호 조회
     const [lastShipmentRow] = await conn.query(sqlList.SelectMaxShipId);
     let lastNum = 0;
     if (lastShipmentRow && lastShipmentRow.max_shipment_id) {
@@ -259,9 +315,35 @@ const insertShipment = async (shipmentItems) => {
         10
       );
     }
+
     for (const item of shipmentItems) {
+      // 필수값 체크
+      const requiredFields = [
+        "item_seq",
+        "product_code",
+        "shipment_qty",
+        "shipment_date",
+        "ship_status",
+        "order_manager",
+        "product_name",
+        "order_detail_id",
+      ];
+
+      for (const field of requiredFields) {
+        if (item[field] === undefined || item[field] === null) {
+          throw new Error(`shipmentItems 항목에 필수값 누락: ${field}`);
+        }
+      }
+
+      // 재고 차감 부분 제거
+      // let remainingQty = item.shipment_qty;
+      // const lots = await conn.query(sqlList.selectPrdLotForOutbound, [item.product_code]);
+      // for (const lot of lots) { ... }
+
+      // 출하 등록
       lastNum += 1;
       const newShipmentId = `SHIP${String(lastNum).padStart(3, "0")}`;
+
       const params = [
         newShipmentId,
         item.item_seq,
@@ -273,23 +355,23 @@ const insertShipment = async (shipmentItems) => {
         item.product_name,
         item.order_detail_id,
       ];
-      await conn.query(sqlList["insertShip"], params);
+
+      await conn.query(sqlList.insertShip, params);
       createdCount++;
     }
+
     await conn.commit();
     return { success: true, createdCount };
   } catch (err) {
     await conn.rollback();
+
     if (err.code === "ER_DUP_ENTRY" || err.sqlState === "23000") {
-      console.error("Duplicate entry detected. (order_detail_id)");
-      return {
-        success: false,
-        error: "선택된 항목 중 이미 출하 등록된 내역이 있습니다.",
-      };
-    } else {
-      console.error("InsertShipment Error:", err);
-      return { success: false, error: err.message };
+      console.error("Duplicate entry detected (order_detail_id)");
+      return { success: false, error: "이미 출하 등록된 항목이 있습니다." };
     }
+
+    console.error("InsertShipment Error:", err);
+    return { success: false, error: err.message };
   } finally {
     conn.release();
   }
@@ -389,6 +471,25 @@ const returnList = (filter) => {
   return list;
 };
 
+// 반품 내역 조회
+const returndelList = (filter) => {
+  const params = [
+    filter.orderId,
+    filter.orderId,
+    filter.orderId,
+    filter.reStatus,
+    filter.reStatus,
+    filter.reStatus,
+    filter.partnerId,
+    filter.partnerId,
+    filter.partnerId,
+    filter.delDate,
+    filter.delDate,
+  ];
+  let list = query("returnList", params);
+  return list;
+};
+
 // 반품 등록 전 조회
 const selectFiltereReturns = (filter) => {
   const params = [
@@ -426,8 +527,11 @@ const selectFilterInfoEmail = (filter) => {
     filter.partnerId,
     filter.partnerId,
     filter.partnerId,
-    filter.orderDate,
-    filter.orderDate,
+    filter.productName,
+    filter.productName,
+    filter.productName,
+    filter.delDate,
+    filter.delDate,
   ];
   return query("mailPdfOrderList", params);
 };
@@ -606,4 +710,6 @@ module.exports = {
   selectFiltereReturns,
   generatePdfAndDownload,
   generatePdfAndSendEmail,
+  returndelList,
+  selectOrderListModal,
 };

@@ -122,12 +122,12 @@ updateTableData();
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-1">
         <h2 class="text-xl font-bold">BOM 상세</h2>
     </div>
-    <div class="card mt-4 p-4 border rounded" style="height: 300px">
-        <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="tableData.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-            <Column field="num" header="" style="width: 50px" />
+    <div class="card mt-1 p-4 border rounded bom-detail-table-container">      
+          <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="tableData.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
+            <Column field="num" header="No" style="width: 50px" />
             <Column field="materialId" header="자재코드" />
             <Column field="materialName" header="자재명" />
             <Column field="unit" header="단위" />
@@ -140,17 +140,17 @@ updateTableData();
 </template>
 
 <style scoped>
-.p-datatable .p-datatable-tbody > tr {
-    height: 50px !important;
+.bom-detail-table-container {
+    height: 370px; /* 원하는 고정 높이 값으로 변경하세요 */
+    overflow: hidden; /* 스크롤바를 숨깁니다 */
 }
-.p-datatable .p-datatable-thead > tr {
-    height: 50px !important;
+
+.p-datatable-wrapper {
+    height: 100%; /* 부모 높이를 채우도록 설정 */
 }
-.p-datatable .p-datatable-tbody > tr > td {
-    padding: 0 10px !important;
-    line-height: 50px !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+.p-datatable-scrollable-body {
+    overflow: auto !important; /* 필요하다면 tbody에 내부 스크롤 허용 */
+    max-height: none !important; /* 높이 제한 제거 */
 }
 </style>

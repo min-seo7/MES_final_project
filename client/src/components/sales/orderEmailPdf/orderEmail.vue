@@ -6,13 +6,14 @@ import InputText from 'primevue/inputtext';
 import Calendar from 'primevue/calendar';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import RadioButton from 'primevue/radiobutton';
+// import RadioButton from 'primevue/radiobutton';
 import Panel from 'primevue/panel';
 import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
 import Toolbar from 'primevue/toolbar';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
+import Dialog from 'primevue/dialog';
 
 // --- 상태 및 옵션 ---
 const orderStateMap = { 1: '주문서등록', 2: '생산대기', 3: '생산중', 4: '품질검수완료', 5: '제품입고' };
@@ -21,11 +22,123 @@ const orders = ref([]);
 const selectedOrders = ref([]); // 다중 선택으로 변경
 const isLoading = ref(false);
 
-const productList = ['분말형', '과립형', '액상형'];
-const productSpecs = { 분말형: ['20KG', '40KG'], 과립형: ['20KG', '40KG'], 액상형: ['5L', '10L', '20L'] };
-const specOptions = computed(() => productSpecs[search.value.productName] || []);
+const totalRecords = ref(0);
+const first = ref(0);
+const rows = ref(10);
+
+// const productList = ['분말형', '과립형', '액상형'];
+// const productSpecs = { 분말형: ['20KG', '40KG'], 과립형: ['20KG', '40KG'], 액상형: ['5L', '10L', '20L'] };
+// const specOptions = computed(() => productSpecs[search.value.productName] || []);
 
 const toast = useToast();
+
+// --- 거래처 모달 관련 ---
+const showSupplierDialog = ref(false);
+const allSuppliers = ref([]);
+const selectedSupplierFromDialog = ref(null);
+
+const fetchSuppliers = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordPaModalList');
+        allSuppliers.value = response.data.list.map((item) => ({
+            partnerId: item.partner_id,
+            partnerName: item.partner_name,
+            ceo: item.manager,
+            address: item.address,
+            manager: item.manager,
+            mainTel: item.main_tel
+        }));
+    } catch (error) {
+        console.error('거래처 데이터 로드 실패:', error);
+        allSuppliers.value = [];
+    }
+};
+
+const openSupplierModal = async () => {
+    selectedSupplierFromDialog.value = null;
+    await fetchSuppliers();
+    showSupplierDialog.value = true;
+};
+
+const selectSupplierAndClose = () => {
+    if (selectedSupplierFromDialog.value) {
+        search.value.partnerId = selectedSupplierFromDialog.value.partnerId;
+    }
+    showSupplierDialog.value = false;
+};
+
+// --- 제품 모달 관련 ---
+const showProductDialog = ref(false);
+const allProducts = ref([]);
+const selectedProductFromDialog = ref(null);
+
+const fetchProducts = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordModalPrdList');
+        allProducts.value = response.data.list.map((item) => ({
+            productId: item.product_id,
+            productType: item.product_type,
+            productName: item.product_name,
+            specification: item.specification,
+            productPrice: item.product_price,
+            unit: item.unit,
+            price: item.price
+        }));
+    } catch (error) {
+        console.error('제품 데이터 로드 실패:', error);
+        allProducts.value = [];
+    }
+};
+
+const openProductModal = async () => {
+    selectedProductFromDialog.value = null;
+    await fetchProducts();
+    showProductDialog.value = true;
+};
+
+const selectProductAndClose = () => {
+    if (selectedProductFromDialog.value) {
+        search.value.productName = selectedProductFromDialog.value.productName;
+        search.value.spec = selectedProductFromDialog.value.specification; // 제품 선택 시 규격도 함께 설정
+    }
+    showProductDialog.value = false;
+};
+// 주문 모달 관련
+const showOrdersModal = ref(false);
+const ordersList = ref([]);
+const selectedOrdersFromDialog = ref(null);
+
+// 주문 데이터 로드
+const fetchOrdersList = async () => {
+    try {
+        const response = await axios.get('/api/sales/ordsListModal');
+        ordersList.value = response.data.list.map((item) => ({
+            orderId: item.order_id,
+            orderDate: item.order_date,
+            orderManager: item.order_manager,
+            deliveryAddr: item.delivery_addr,
+            manager: item.manager,
+            partnerName: item.partner_name
+        }));
+    } catch (error) {
+        console.error('주문서 데이터 로드 실패:', error);
+    }
+};
+
+// 주문 모달 열기
+const openOrdersModal = async () => {
+    await fetchOrdersList();
+    selectedOrdersFromDialog.value = null;
+    showOrdersModal.value = true;
+};
+
+// "선택 완료" 버튼 클릭 시
+const selectOrderAndClose = () => {
+    if (selectedOrdersFromDialog.value) {
+        search.value.orderId = selectedOrdersFromDialog.value.orderId;
+    }
+    showOrdersModal.value = false;
+};
 
 // --- 주문 조회 ---
 const fetchOrders = async () => {
@@ -37,9 +150,12 @@ const fetchOrders = async () => {
             partnerId: search.value.partnerId || null,
             productName: search.value.productName || null,
             spec: search.value.spec || null,
-            delDate: formattedDelDate
+            delDate: formattedDelDate,
+            page: Math.floor(first.value / rows.value),
+            rows: rows.value
         };
         const response = await axios.get('/api/sales/pdfEmail', { params: queryParams });
+
         if (response.data?.list && Array.isArray(response.data.list)) {
             orders.value = response.data.list.map((item) => ({
                 ...item,
@@ -58,8 +174,10 @@ const fetchOrders = async () => {
                 orderManagerEmail: item.order_manager_email,
                 ordState: orderStateMap[item.ord_status] || '알수없음'
             }));
+            totalRecords.value = response.data.totalCount || 0;
         } else {
             orders.value = [];
+            totalRecords.value = 0;
         }
     } catch (error) {
         console.error('데이터 로드 실패:', error);
@@ -67,10 +185,20 @@ const fetchOrders = async () => {
     }
 };
 
+// --- Pagination event handler ---
+const onPage = (event) => {
+    first.value = event.first;
+    rows.value = event.rows;
+    fetchOrders();
+};
+
 // --- Reset ---
 const resetFilters = () => {
     search.value = { partnerId: '', productName: '', spec: '', deliveryDate: null };
     selectedOrders.value = [];
+    first.value = 0; // 초기화 시 첫 페이지로 이동
+    rows.value = 10;
+    fetchOrders();
 };
 
 // --- Computed Forms (selectedOrders의 첫 번째 항목 사용) ---
@@ -131,30 +259,30 @@ const savePdf = async () => {
 };
 
 // --- 다중 PDF 다운로드 ---
-const savePdfMultiple = async () => {
-    if (!selectedOrders.value.length) {
-        toast.add({ severity: 'warn', summary: '알림', detail: '주문 내역이 선택되지 않았습니다.', life: 3000 });
-        return;
-    }
-    isLoading.value = true;
-    try {
-        const orderIds = selectedOrders.value.map((order) => order.orderId);
-        const response = await axios.post('/api/sales/pdf/download-multiple', { orders: orderIds }, { responseType: 'blob' });
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `Orders_${Date.now()}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        toast.add({ severity: 'success', summary: '완료', detail: '다중 PDF 다운로드 성공', life: 3000 });
-    } catch (error) {
-        console.error('다중 PDF 다운로드 실패:', error);
-        toast.add({ severity: 'error', summary: '실패', detail: '다중 PDF 다운로드 실패', life: 3000 });
-    } finally {
-        isLoading.value = false;
-    }
-};
+// const savePdfMultiple = async () => {
+//     if (!selectedOrders.value.length) {
+//         toast.add({ severity: 'warn', summary: '알림', detail: '주문 내역이 선택되지 않았습니다.', life: 3000 });
+//         return;
+//     }
+//     isLoading.value = true;
+//     try {
+//         const orderIds = selectedOrders.value.map((order) => order.orderId);
+//         const response = await axios.post('/api/sales/pdf/download-multiple', { orders: orderIds }, { responseType: 'blob' });
+//         const url = window.URL.createObjectURL(new Blob([response.data]));
+//         const link = document.createElement('a');
+//         link.href = url;
+//         link.setAttribute('download', `Orders_${Date.now()}.pdf`);
+//         document.body.appendChild(link);
+//         link.click();
+//         link.remove();
+//         toast.add({ severity: 'success', summary: '완료', detail: '다중 PDF 다운로드 성공', life: 3000 });
+//     } catch (error) {
+//         console.error('다중 PDF 다운로드 실패:', error);
+//         toast.add({ severity: 'error', summary: '실패', detail: '다중 PDF 다운로드 실패', life: 3000 });
+//     } finally {
+//         isLoading.value = false;
+//     }
+// };
 
 // --- 단일 이메일 전송 ---
 const sendEmail = async () => {
@@ -182,20 +310,20 @@ const sendEmail = async () => {
 };
 
 // --- 다중 이메일 전송 ---
-const sendEmailMultiple = async () => {
-    if (!selectedOrders.value.length) {
-        toast.add({ severity: 'warn', summary: '알림', detail: '주문 내역이 선택되지 않았습니다.', life: 3000 });
-        return;
-    }
-    try {
-        const payload = { orders: selectedOrders.value, emailDetails: { subject: `[주문서] ${new Date().toISOString().slice(0, 10)}_통합주문서`, body: `첨부된 PDF 파일을 확인해주세요.` } };
-        await axios.post('/api/sales/email/send-multiple', payload);
-        toast.add({ severity: 'success', summary: '완료', detail: '다중 이메일 전송 성공', life: 3000 });
-    } catch (error) {
-        console.error('다중 이메일 전송 실패:', error);
-        toast.add({ severity: 'error', summary: '실패', detail: '다중 이메일 전송 실패', life: 3000 });
-    }
-};
+// const sendEmailMultiple = async () => {
+//     if (!selectedOrders.value.length) {
+//         toast.add({ severity: 'warn', summary: '알림', detail: '주문 내역이 선택되지 않았습니다.', life: 3000 });
+//         return;
+//     }
+//     try {
+//         const payload = { orders: selectedOrders.value, emailDetails: { subject: `[주문서] ${new Date().toISOString().slice(0, 10)}_통합주문서`, body: `첨부된 PDF 파일을 확인해주세요.` } };
+//         await axios.post('/api/sales/email/send-multiple', payload);
+//         toast.add({ severity: 'success', summary: '완료', detail: '다중 이메일 전송 성공', life: 3000 });
+//     } catch (error) {
+//         console.error('다중 이메일 전송 실패:', error);
+//         toast.add({ severity: 'error', summary: '실패', detail: '다중 이메일 전송 실패', life: 3000 });
+//     }
+// };
 
 onMounted(() => fetchOrders());
 </script>
@@ -215,29 +343,27 @@ onMounted(() => fetchOrders());
             <template #center>
                 <div class="flex flex-wrap gap-6 p-4">
                     <div class="flex flex-col">
+                        <label for="orderId" class="font-semibold text-sm mb-1">주문번호</label>
+                        <InputGroup>
+                            <IconField iconPosition="left">
+                                <InputText id="orderId" type="text" class="w-60" v-model="search.orderId" readonly />
+                                <InputIcon class="pi pi-search" @click="openOrdersModal" />
+                            </IconField>
+                        </InputGroup>
+                    </div>
+                    <div class="flex flex-col">
                         <label class="font-semibold text-sm mb-1">거래처코드</label>
                         <IconField iconPosition="left" class="w-full">
                             <InputText v-model="search.partnerId" readonly class="w-60" />
-                            <InputIcon class="pi pi-search" @click.stop="fetchOrders" />
+                            <InputIcon class="pi pi-search" @click.stop="openSupplierModal" />
                         </IconField>
                     </div>
-                    <div class="flex flex-col space-y-1">
-                        <label class="font-semibold text-sm">품명</label>
-                        <div class="flex space-x-4">
-                            <div v-for="product in productList" :key="product" class="flex items-center">
-                                <RadioButton v-model="search.productName" :inputId="product" :value="product" name="productName" class="mr-2" />
-                                <label :for="product">{{ product }}</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col space-y-1">
-                        <label class="font-semibold text-sm">규격</label>
-                        <div class="flex space-x-4">
-                            <div v-for="spec in specOptions" :key="spec" class="flex items-center">
-                                <RadioButton v-model="search.spec" :inputId="spec" :value="spec" name="spec" class="mr-2" />
-                                <label :for="spec">{{ spec }}</label>
-                            </div>
-                        </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold text-sm mb-1">제품명</label>
+                        <IconField iconPosition="left" class="w-full">
+                            <InputText v-model="search.productName" readonly class="w-60" />
+                            <InputIcon class="pi pi-search" @click.stop="openProductModal" />
+                        </IconField>
                     </div>
                     <div class="flex flex-col space-y-1">
                         <label class="font-semibold text-sm">납기</label>
@@ -247,14 +373,13 @@ onMounted(() => fetchOrders());
             </template>
         </Toolbar>
 
-        <DataTable :value="orders" selectionMode="multiple" dataKey="orderId" v-model:selection="selectedOrders" :rowHover="true">
+        <DataTable :value="orders" selectionMode="multiple" dataKey="orderId" v-model:selection="selectedOrders" :rowHover="true" paginator :rows="5" :first="first" :totalRecords="totalRecords" @page="onPage">
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <Column field="orderId" header="주문번호" frozen class="font-bold" />
             <Column field="productId" header="제품코드" />
             <Column field="partnerEmail" header="거래처이메일" />
             <Column field="productName" header="제품명" />
             <Column field="partnerName" header="거래처명" />
-            <Column field="spec" header="규격" />
             <Column field="totalQty" header="수량" />
             <Column field="deliveryAddr" header="배송지" />
             <Column field="orderDate" header="등록일자" />
@@ -264,7 +389,7 @@ onMounted(() => fetchOrders());
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <Panel header="이메일">
-                <div v-if="selectedOrders.length" class="flex flex-col space-y-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">거래처이메일</label>
                         <InputText v-model="emailForm.partnerEmail" readonly class="flex-grow" />
@@ -277,26 +402,25 @@ onMounted(() => fetchOrders());
                         <label class="font-semibold text-sm w-32">제목</label>
                         <InputText v-model="emailForm.subject" class="flex-grow" />
                     </div>
-                    <div class="flex items-start space-x-2">
-                        <label class="font-semibold text-sm w-32 pt-2">본문</label>
-                        <Textarea v-model="emailForm.body" rows="5" class="flex-grow" />
-                    </div>
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">주문서 파일</label>
                         <InputText v-model="pdfForm.fileName" readonly class="flex-grow" />
+                    </div>
+                    <div class="col-span-2 flex items-start space-x-2">
+                        <label class="font-semibold text-sm w-32 pt-2">본문</label>
+                        <Textarea v-model="emailForm.body" rows="5" class="flex-grow" />
                     </div>
                 </div>
                 <template #footer>
                     <div class="flex justify-end space-x-2">
                         <Button label="전송" rounded @click="sendEmail" :disabled="selectedOrders.length === 0 || selectedOrders.length > 1" />
-                        <!-- <Button label="다중 전송" rounded severity="success" @click="sendEmailMultiple" :disabled="!selectedOrders.length" /> -->
                         <Button label="초기화" rounded severity="secondary" @click="resetFilters" />
                     </div>
                 </template>
             </Panel>
 
             <Panel header="PDF">
-                <div v-if="selectedOrders.length" class="flex flex-col space-y-4">
+                <div class="flex flex-col space-y-4">
                     <div class="flex items-center space-x-2">
                         <label class="font-semibold text-sm w-32">파일이름</label>
                         <InputText v-model="pdfForm.fileName" readonly class="flex-grow" />
@@ -322,6 +446,60 @@ onMounted(() => fetchOrders());
                 </template>
             </Panel>
         </div>
+
+        <Dialog v-model:visible="showSupplierDialog" modal header="거래처 검색" :style="{ width: '50vw' }" class="centered-dialog">
+            <div class="p-4">
+                <DataTable :value="allSuppliers" selectionMode="single" dataKey="partnerId" v-model:selection="selectedSupplierFromDialog" :rowHover="true" :paginator="true" :rows="5">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="partnerId" header="거래처코드"></Column>
+                    <Column field="partnerName" header="거래처명"></Column>
+                    <Column field="ceo" header="대표자"></Column>
+                    <Column field="address" header="주소"></Column>
+                    <Column field="manager" header="담당자"></Column>
+                    <Column field="mainTel" header="전화번호"></Column>
+                </DataTable>
+            </div>
+            <template #footer>
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectSupplierAndClose" />
+                </div>
+            </template>
+        </Dialog>
+
+        <Dialog v-model:visible="showProductDialog" modal header="제품 목록" :style="{ width: '50vw' }" class="centered-dialog">
+            <div class="p-4">
+                <DataTable :value="allProducts" selectionMode="single" dataKey="productId" v-model:selection="selectedProductFromDialog" :rowHover="true" :paginator="true" :rows="5">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="productType" header="제품유형"></Column>
+                    <Column field="productId" header="제품코드"></Column>
+                    <Column field="productName" header="제품명"></Column>
+                    <Column field="specification" header="규격"></Column>
+                    <Column field="unit" header="단위"></Column>
+                </DataTable>
+            </div>
+            <template #footer>
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectProductAndClose" />
+                </div>
+            </template>
+        </Dialog>
+        <Dialog v-model:visible="showOrdersModal" modal header="주문서 목록" :style="{ width: '50vw' }" class="centered-dialog">
+            <div class="p-4">
+                <DataTable :value="ordersList" selectionMode="single" dataKey="orderId" v-model:selection="selectedOrdersFromDialog" :rowHover="true" :paginator="true" :rows="5">
+                    <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                    <Column field="orderId" header="주문번호"></Column>
+                    <Column field="orderDate" header="주문일자"></Column>
+                    <Column field="partnerName" header="거래처명"></Column>
+                    <Column field="orderManager" header="담당자"></Column>
+                    <Column field="deliveryAddr" header="배송지"></Column>
+                </DataTable>
+            </div>
+            <template #footer>
+                <div class="w-full flex justify-center">
+                    <Button label="선택 완료" @click="selectOrderAndClose" />
+                </div>
+            </template>
+        </Dialog>
     </div>
 </template>
 
@@ -334,5 +512,23 @@ onMounted(() => fetchOrders());
 :deep(.p-datatable .p-datatable-tbody > tr:hover) {
     background-color: #e8eaf6 !important;
     cursor: pointer;
+}
+:deep(.centered-dialog .p-dialog) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    z-index: 1000;
+}
+:deep(.p-dialog-mask) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 어두운 배경 */
+    z-index: 999; /* 모달보다 낮은 z-index */
+    overflow: hidden; /* 스크롤 방지 */
 }
 </style>

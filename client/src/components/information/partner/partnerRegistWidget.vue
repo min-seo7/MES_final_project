@@ -2,6 +2,11 @@
 import { ref, defineProps, watch } from 'vue';
 import axios from 'axios';
 import CommonModal from '@/components/common/modal.vue';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import RadioButton from 'primevue/radiobutton';
 
 const item = ref([]);
 const columns = ref([]);
@@ -31,10 +36,28 @@ const form = ref({
 
 const modifyPartner = async () => {
     try {
+        // 수정 시 이메일 도메인 합치기
+        if (form.value.emailDomain) {
+            form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
+        }
+
         const res = await axios.post('/api/information/partner/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+                partnerType: '',
+                partnerId: '',
+                partnerName: '',
+                businessNo: '',
+                manager: '',
+                address: '',
+                email: '',
+                emailDomain: '',
+                mainTel: '',
+                status: ''
+            };
+        
+        alert('수정이 완료되었습니다.');
     } catch (err) {
-        console.log('거래처 수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 
@@ -113,14 +136,27 @@ const emailDomains = ['naver.com', 'gmail.com', 'daum.net', 'hanmail.net', 'nate
 
 const registPartner = async () => {
     try {
-        // 도메인을 선택했으면 합쳐서 email 완성
+        // 등록 시 이메일 도메인 합치기
         if (form.value.emailDomain) {
             form.value.email = form.value.email.split('@')[0] + '@' + form.value.emailDomain;
         }
+        
         const res = await axios.post('/api/information/partner', form.value);
-        alert(res.data.message);
+        form.value = {
+                partnerType: '',
+                partnerId: '',
+                partnerName: '',
+                businessNo: '',
+                manager: '',
+                address: '',
+                email: '',
+                emailDomain: '',
+                mainTel: '',
+                status: ''
+            };
+        alert('등록이 완료되었습니다.');
     } catch (err) {
-        console.log('거래처 등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 
@@ -207,10 +243,10 @@ const onBusinessNoInput = (e) => {
                 <div>
                     <label class="block mb-1">상태</label>
                     <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2">비활성</label>
+                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">사용</label>
+                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
+                        <label for="status2" class="ml-2">미사용</label>
                     </div>
                 </div>
             </div>

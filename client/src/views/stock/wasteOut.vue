@@ -183,21 +183,21 @@ export default {
         <DataTable :value="matLotList" sortMode="multiple" tableStyle="min-width: 50rem" crollable scrollHeight="400px">
             <Column field="id" header="-" style="display: none"></Column>
             <Column field="reDate" header="등록일" sortable></Column>
-            <Column field="matNo" header="자재LOT번호" sortable></Column>
-            <Column field="matCode" header="자재코드" sortable></Column>
-            <Column field="matName" header="자재명" sortable></Column>
+            <Column field="matNo" header="자재LOT번호" sortable headerStyle="width: 15rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matName" header="자재명" sortable headerStyle="width: 20rem"></Column>
             <Column field="matQty" header="재고수량" sortable></Column>
             <Column field="unit" header="단위"></Column>
-            <Column field="warehouse" header="보관위치" sortable></Column>
+            <Column field="warehouse" header="보관위치"></Column>
             <Column field="status" header="상태" sortable></Column>
         </DataTable>
     </div>
 
     <!--자재모달-->
-    <commModal v-model="materialModal" header="자재목록" style="width: 40rem">
+    <commModal v-model="materialModal" header="자재목록" style="width: 30rem">
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 6rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 
@@ -209,11 +209,11 @@ export default {
         </template>
     </commModal>
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 30rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12em"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
         </DataTable>
 

@@ -42,9 +42,11 @@ async function fetchSearch(p, s) {
 watch(
     () => props.params,
     (p) => {
-        const has = ['equipment_id', 'equipment_type', 'equipment_name', 'location', 'status'].some((k) => p && p[k]);
+        const has = ['equipment_id', 'equipment_type', 'equipment_name', 'location', 'status'].some((k) => p && p[k] != null && String(p[k]).trim() !== '');
+
         const pNo = Number(p?.page || 1);
         const sNo = Number(p?.size || 10);
+
         if (has) fetchSearch(pNo, sNo);
         else fetchSimple(pNo, sNo);
     },

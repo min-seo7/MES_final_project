@@ -23,9 +23,21 @@ const form = ref({
 const modifyWarehouse = async () => {
     try {
         const res = await axios.post('/api/information/warehouse/modify', form.value);
-        alert(res.data.message);
+        form.value = {
+            warehouseId: '',
+            warehouse: '',
+            zone: '',
+            subZone: '',
+            floor: '',
+            location: '',
+            warehouseType: '',
+            status: ''
+        };
+
+        alert('수정이 완료되었습니다.');
+        return res;
     } catch (err) {
-        console.log('창고수정실패');
+        alert('수정할 수 없습니다.');
     }
 };
 
@@ -74,9 +86,21 @@ watch(
 const registWarehouse = async () => {
     try {
         const res = await axios.post('/api/information/warehouse', form.value);
-        alert(res.data.message);
+
+        form.value = {
+            warehouseId: '',
+            warehouse: '',
+            zone: '',
+            subZone: '',
+            floor: '',
+            location: '',
+            warehouseType: '',
+            status: ''
+        };
+        alert('등록이 완료되었습니다.');
+        return res;
     } catch (err) {
-        console.log('창고등록실패');
+        alert('등록할 수 없습니다.');
     }
 };
 </script>
@@ -131,11 +155,11 @@ const registWarehouse = async () => {
                 <div>
                     <label class="block mb-1">상태</label>
                     <label class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="활성" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">활성</label>
+                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
+                        <label for="status1" class="ml-2 mr-4">사용</label>
 
-                        <RadioButton id="status2" name="status" value="비활성" v-model="form.status" />
-                        <label for="status2" class="ml-2">비활성</label>
+                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
+                        <label for="status2" class="ml-2">미사용</label>
                     </label>
                 </div>
             </div>

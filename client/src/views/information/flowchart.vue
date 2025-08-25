@@ -72,6 +72,16 @@ const handleSelect = (row) => {
     console.log(flowchartSelectedData);
 };
 
+const handleResetForm = () => {
+    flowchartSelectedData.value = {}; // 초기화
+};
+
+// flowchartDetailData를 빈 배열로 초기화
+const handleResetDetail = () => {
+    flowchartDetailData.value = [];
+};
+
+
 onUnmounted(() => {
     console.log('flow.vue unmounted!');
 });
@@ -79,16 +89,15 @@ onUnmounted(() => {
 
 <template>
     <section class="flow-container">
-        <flowSearchWidget @flowchartFilterSearch="handleSearch" />
-
+        <flowSearchWidget @flowchartFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <flowListWidget :items="flowchartSearchData" @flowchartSelected="handleSelect" />
         <div class="mt-2"></div>
         <div class="flex flex-col md:flex-row gap-8">
-            <div class="md:w-1/2">
+            <div class="md:w-1/2 flex flex-col h-full">
                 <flowDetailWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />
             </div>
-            <div class="md:w-1/2">
-                <flowRegistWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" />
+            <div class="md:w-1/2 flex flex-col h-full">
+                <flowRegistWidget :detailData="flowchartDetailData" :items="flowchartSelectedData" @resetFlow="handleResetDetail" />
                 <flowDetailRegistWidget @flowchartDetail="handleFlowchartDetail" />
             </div>
         </div>

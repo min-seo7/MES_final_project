@@ -2,9 +2,10 @@
 let matListQuery = `SELECT material_id, 
 	                         material_name,
 	                         material_type,
-                           unit       
+                                unit       
                     FROM material
                     WHERE status = '활성'
+                    AND material_id NOT IN ('MAT010')
                     AND material_type = '원자재'`;
 
 //거래처 모달
@@ -12,7 +13,7 @@ let partnerListQuery = `SELECT partner_type,
                                   partner_id, 
                                   partner_name
                             FROM partner
-                            WHERE status = '활성'`;
+                            WHERE status = '사용'`;
 
 //제품(모달용)
 let productListQuery = `SELECT product_id, 
@@ -26,7 +27,7 @@ let warehouseListQuery = `SELECT warehouse_id,
 	                              warehouse,
                                 warehouse_type
                          FROM warehouse
-                         WHERE status = '활성'`;
+                         WHERE status = '사용'`;
 
 //발주등록=====================================================
 //마스터T 기본정보
@@ -40,6 +41,7 @@ let lessMatListQuery = `SELECT ml.material_id,
                        FROM tbl_mat_lot ml
                        JOIN material m ON ml.material_id = m.material_id
                        WHERE ml.pro_status NOT IN ('입고취소', '종료')
+                       AND ml.material_id NOT IN ('MAT010')
                        GROUP BY ml.material_id, 
                                m.material_name, 
                                m.safety_stock,
@@ -71,7 +73,11 @@ let purchaseListQuery = `SELECT DATE_FORMAT(m.re_date, '%Y-%m-%d') AS re_date,
                           JOIN partner p
                           ON m.partner_id = p.partner_id
                           WHERE s.pro_status NOT IN ('취소')
-                          ORDER BY m.re_date DESC`;
+                         ORDER BY CASE pro_status
+                             when '입고대기' then 1
+                             when '입고완료' then 2
+                             when '반품' then 3 end asc,
+                                m.re_date DESC`;
 
 //발주취소[발주번호 기준, 해당자재코드]
 let purchaseCancelQuery = `UPDATE tbl_purchase_detail
@@ -125,11 +131,34 @@ let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_dat
                           AND t.lot_pro NOT IN ('생성', '반품')
                           ORDER BY p.due_date DESC`;
 
+//자재입고조회
+let MatInPandingSearchQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_date,
+                                  d.pur_no,
+                                  t.material_code,
+                                  m.material_name,
+                                  t.result, 
+                                  t.qty,
+                                  m.unit,
+                                  pa.partner_name,
+                                  t.materialOrder_num,
+                                  d.purch_id
+                          FROM material_Inspection t
+                          JOIN tbl_purchase_detail d
+                          ON t.purch_id = d.purch_id
+                          JOIN tbl_purchase p
+                          ON p.pur_no = d.pur_no
+                          JOIN material m
+                          ON t.material_code = m.material_id
+                          JOIN partner pa
+                          ON p.partner_id = pa.partner_id
+                          WHERE 1=1`;
+
 //자재입고처리
 let matInsertQuery = `CALL insert_mat_lot(?, ?, ?, ?, ?, ?, ?)`;
 
 //자재LOT목록(입고)
 let matLotListQuery = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
+                             l.seq,
                              l.lot_no, 
                              l.material_id, 
                              m.material_name,
@@ -142,7 +171,7 @@ let matLotListQuery = `SELECT DATE_FORMAT(l.open_date, '%Y-%m-%d') AS open_date,
                       JOIN material m
                       ON l.material_id = m.material_id
                       WHERE l.pro_status = '등록'
-                      ORDER BY l.open_date DESC`;
+                      ORDER BY  l.seq DESC`;
 //자재반품
 let matReturnQuery = `CALL mat_return(?, ?, ?)`;
 
@@ -154,22 +183,31 @@ let matLotCancelQuery = ` UPDATE  tbl_mat_lot
 //제품
 //제품입고===========================================================================
 //제품입고대기목록
-// 테이블 다시 진행해야함!!!!!!!!!
-let prdPendigListQuery = `select DATE_FORMAT(zt.inspection_date, '%Y-%m-%d') AS inspection_date,
-zt.inspection_id,
-p.product_type,
-zt.product_id,
-p.product_name,
-zt.qty,
-p.unit
-from ztestprdresult zt
-JOIN product p
-ON zt.product_id = p.product_id
-WHERE zt.judgment = '합격'
-AND zt.pro_status ='미생성'`;
-// //쿼리 만들어진걸로 수정해야 함.
-// -> 입고처리완료 상태값 필요함 목록출력제어위해서..
-
+let prdPendigListQuery = `SELECT DATE_FORMAT(pi.createdAt, '%Y-%m-%d') AS inspection_date,
+                                          pi.pf_code,
+                                          p.product_type,
+                                          pi.product_id,
+                                          p.product_name,
+                                          pi.qty,
+                                          p.unit
+                                     FROM product_inspection pi
+                                     JOIN product p
+                                     ON pi.product_id = p.product_id
+                                     WHERE pi.result = '합격'
+                                     AND pi.pro_status ='미생성'
+                                     ORDER BY pi.createdAt DESC`;
+//제품입고대기조회
+let searchPrdPandingListQuery = `SELECT DATE_FORMAT(pi.createdAt, '%Y-%m-%d') AS inspection_date,
+                                          pi.pf_code,
+                                          p.product_type,
+                                          pi.product_id,
+                                          p.product_name,
+                                          pi.qty,
+                                          p.unit
+                                     FROM product_inspection pi
+                                     JOIN product p
+                                     ON pi.product_id = p.product_id
+                                     WHERE 1=1`;
 //제품입고처리
 let prdInsertQuery = `CALL insert_prd_lot(?, ?, ?, ?, ?, ?)`;
 //제품입고완료목록
@@ -207,25 +245,52 @@ let matReqListQuery = `SELECT DATE_FORMAT(mr.req_date, '%Y-%m-%d') AS req_date,
                      JOIN material m
                      ON mr.material_id = m.material_id
                      WHERE pro_status = '출고대기'
+                     AND mr.material_id NOT IN ('MAT010')
                      ORDER BY mr.req_date DESC`;
 
-let matOutReQuery = `CALL mat_outbound(?, ?, ?, ?, ?)`;
+//자재출고요청조회
+let SearchMatReqListQuery = `SELECT DATE_FORMAT(mr.req_date, '%Y-%m-%d') AS req_date,
+                             mr.wo_no,
+                             mr.material_id,
+                             m.material_name,
+                             mr.req_qty,
+                             m.unit,
+                             mr.req_id
+                     FROM tbl_mat_req mr
+                     JOIN material m
+                     ON mr.material_id = m.material_id
+                     WHERE 1=1`;
 
-let matOutListQuery = `SELECT DATE_FORMAT(mo.out_date, '%Y-%m-%d') AS out_date,
+//자재재고조회(출고과정중)
+let checkMatStockQuery = `SELECT ml.material_id,
+                                 m.material_name,
+                                SUM(ml.curr_qty) AS total_qty
+                          FROM tbl_mat_lot ml
+                          JOIN material m
+                          ON ml.material_id = m.material_id
+                          WHERE 1=1`;
+//자재출고
+let matOutReQuery = `CALL mat_outbound(?, ?, ?, ?, ?)`;
+//자재출고완료목록
+let matOutListQuery = ` SELECT DATE_FORMAT(mo.out_date, '%Y-%m-%d') AS out_date,
+                              mo.mat_out_id,
 		                mr.wo_no,
                               mo.material_id,
                               m.material_name,
                               mo.out_qty,
                               m.unit,
                               mo.comm, 
-                              mo.e_name
+                              mo.e_name,
+                              mo.mat_out_no
                        from tbl_mat_out mo
                        LEFT JOIN tbl_mat_req mr
                        ON mo.req_id = mr.req_id
                        LEFT JOIN material m
                        ON mo.material_id = m.material_id
-                       ORDER BY out_date DESC`;
-
+                       WHERE mo.pro_status = '출고완료'
+                       ORDER BY mo.mat_out_id DESC`;
+//자재출고취소
+let matOutCancelQuery = `CALL cancel_mat_out(?)`;
 //제품출고======================================================
 //제품출고대기목록
 let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS shipment_date,
@@ -246,7 +311,7 @@ let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS 
                             ON o.partner_id = pt.partner_id
                             WHERE sh.ship_status = 1
                             ORDER BY sh.shipment_date DESC`;
-//제품제고확인
+//제품재고확인
 let checkStockQuery = `SELECT pl.product_id,
                          p.product_name,
                          SUM(pl.curr_qty) AS total_qty
@@ -258,6 +323,7 @@ let checkStockQuery = `SELECT pl.product_id,
 let prdOutRQuery = `CALL prd_outbound(?, ?, ?, ?, ?, ?, ?)`;
 //제품출고목록
 let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date,
+                                    po.prd_id,
                                     po.prd_out_no,
                                     p.product_type,
                                     po.product_id,
@@ -266,7 +332,8 @@ let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date
                                     po.e_name,
                                     o.partner_name,
                                     po.ship_partner,
-                                    po.comm
+                                    po.comm,
+                                    po.shipment_id
                           FROM tbl_prd_out po
                           LEFT JOIN shipment s
                           ON po.shipment_id = s.shipment_id
@@ -276,7 +343,10 @@ let prdOutListQuery = `SELECT DATE_FORMAT(po.ship_date, '%Y-%m-%d') AS ship_date
                           ON s.order_detail_id = oi.order_detail_id
 			     LEFT JOIN orders o
 			     ON oi.order_id = o.order_id
-                          ORDER BY ship_date DESC`;
+                          WHERE po.pro_status = '출고완료'
+                          ORDER BY po.prd_id DESC`;
+//제품출고취소
+let prdOutCancelQuery = `CALL cancel_prd_out(?)`;
 
 //조회
 let prdShipWaitSearchQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS shipment_date,
@@ -344,14 +414,34 @@ let returnListQurey = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_
                             re.in_qty,
                             re.in_comm
                        FROM returns re
-                       JOIN tbl_prd_out po
+                       LEFT JOIN tbl_prd_out po
                        ON re.shipment_id = po.shipment_id
-                       JOIN product p
+                       LEFT JOIN product p
                        ON re.product_id = p.product_id
                        ORDER BY case inbound_pro 
                        when '대기' then 1
                        when '확정' then 2 end asc,
                             return_date DESC `;
+
+//반품조회
+let searchReturnListQuery = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_date,
+                            re.id,
+                            po.prd_out_no,
+                            p.product_type,
+                            re.product_id,
+                            p.product_name,
+                            re.quantity,
+                            p.unit,
+                            re.inbound_pro,
+				re.warehouse_name,
+                            re.in_qty,
+                            re.in_comm
+                       FROM returns re
+                       LEFT JOIN tbl_prd_out po
+                       ON re.shipment_id = po.shipment_id
+                       LEFT JOIN product p
+                       ON re.product_id = p.product_id
+                       WHERE 1=1 `;
 
 let updateReturn = `UPDATE returns
                     SET inbound_pro = '대기',
@@ -385,6 +475,7 @@ let searchMatListQuery = `SELECT DATE_FORMAT(ml.open_date, '%Y-%m-%d') AS open_d
                         JOIN material m
                         ON ml.material_id = m.material_id
                         WHERE ml.pro_status NOT IN ('입고취소', '종료')
+                        AND ml.material_id NOT IN ('MAT010')
                         ORDER BY case ml.pro_status 
                             when '사용중' then 1
                             when '등록' then 2 end asc,
@@ -498,4 +589,11 @@ module.exports = {
   wasteUpdate,
   checkStockQuery,
   updateReturn,
+  checkMatStockQuery,
+  SearchMatReqListQuery,
+  searchReturnListQuery,
+  MatInPandingSearchQuery,
+  prdOutCancelQuery,
+  searchPrdPandingListQuery,
+  matOutCancelQuery,
 };
