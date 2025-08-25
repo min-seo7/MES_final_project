@@ -28,6 +28,7 @@ declare module 'vue' {
     CheckStockList: typeof import('./src/components/product/checkStockList.vue')['default']
     ColorPicker: typeof import('primevue/colorpicker')['default']
     Column: typeof import('primevue/column')['default']
+    Datatable: typeof import('primevue/datatable')['default']
     ConfirmPopup: typeof import('primevue/confirmpopup')['default']
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
