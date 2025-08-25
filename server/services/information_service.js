@@ -108,12 +108,12 @@ const insertProduct = async (productInfo) => {
       }
     }
 
-    if (productInfo.productForm === '분말형') {
-      productInfo.productCategory = 'CAT001';
-    } else if (productInfo.productForm === '과립형') {
-      productInfo.productCategory = 'CAT002';
-    } else if (productInfo.productForm === '액상형') {
-      productInfo.productCategory = 'CAT003';
+    if (productInfo.productForm === "분말형") {
+      productInfo.productCategory = "CAT001";
+    } else if (productInfo.productForm === "과립형") {
+      productInfo.productCategory = "CAT002";
+    } else if (productInfo.productForm === "액상형") {
+      productInfo.productCategory = "CAT003";
     }
     // 3. INSERT 실행
     const insertData = [
@@ -149,12 +149,12 @@ const insertProduct = async (productInfo) => {
 
 // 제품 수정
 const updateProduct = async (productInfo) => {
-  if (productInfo.productForm === '분말형') {
-    productInfo.productCategory = 'CAT001';
-  } else if (productInfo.productForm === '과립형') {
-    productInfo.productCategory = 'CAT002';
-  } else if (productInfo.productForm === '액상형') {
-    productInfo.productCategory = 'CAT003';
+  if (productInfo.productForm === "분말형") {
+    productInfo.productCategory = "CAT001";
+  } else if (productInfo.productForm === "과립형") {
+    productInfo.productCategory = "CAT002";
+  } else if (productInfo.productForm === "액상형") {
+    productInfo.productCategory = "CAT003";
   }
   const insertData = convertToArray(productInfo, [
     "productType",
@@ -556,7 +556,10 @@ const insertAllLine = async (lineInfo, lineDetails) => {
   try {
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
-    const fId = await conn.query(sqlList.selectFlowIdByProductId, lineInfo.productId);
+    const fId = await conn.query(
+      sqlList.selectFlowIdByProductId,
+      lineInfo.productId
+    );
     const flowId = fId?.[0]?.flow_id || null;
     // 1. 마지막 line_id 조회 (락)
     const rows = await conn.query(sqlList.selectMaxLineId);
@@ -580,7 +583,7 @@ const insertAllLine = async (lineInfo, lineDetails) => {
       lineInfo.status,
       flowId,
     ]);
-    
+
     // [추가] INSERT 성공 여부 로그 확인
     console.log("Insert Line Result:", insertLineResult);
 
@@ -598,13 +601,13 @@ const insertAllLine = async (lineInfo, lineDetails) => {
     // 5. 커밋
     await conn.commit();
     console.log("Transaction committed successfully."); // [추가] 커밋 성공 로그
-    
+
     return { success: true, newLineId };
   } catch (err) {
     if (conn) await conn.rollback();
     console.error("insertAllLine Error:", err);
     console.log("Transaction rolled back."); // [추가] 롤백 로그
-    
+
     // [수정] 오류가 발생하면, err.message를 정확히 반환하여 프론트엔드에서 알 수 있게 합니다.
     return { success: false, error: err.message };
   } finally {
@@ -896,7 +899,7 @@ const insertEmployee = async (employeeInfo) => {
 
     const hireDate = formatDateToYMD(employeeInfo.hireDate);
     const leaveDate = formatDateToYMD(employeeInfo.leaveDate);
-    const pwchange = '0';
+    const pwchange = "0";
     // 4. INSERT 실행 (alias 그대로 사용)
     const insertData = [
       newEmpId,

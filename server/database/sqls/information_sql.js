@@ -623,9 +623,6 @@ const selectMaxEmpId = `
   FOR UPDATE
 `;
 
-
-
-
 module.exports = {
   selectFlowIdByProductId,
   selectMaxMaterialId,
