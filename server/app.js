@@ -60,6 +60,21 @@ app.use("/api/modal", modalRouter);
 // app.get("/", function (req, res, next) { ... });
 // app.use((req, res) => { ... });
 
+// 5. 정적 파일 서빙 추가 (public 폴더 내의 정적 파일)
+const publicPath = path.join(__dirname, "public");
+app.use(express.static(publicPath));
+
+// 6. Vue 라우팅 와일드카드 추가 (Nginx 사용 시 충돌 가능성 있음)
+// API 라우터 외의 모든 요청을 index.html로 리디렉션하여 Vue Router가 처리하게 합니다.
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"), (err) => {
+    if (err) {
+      console.error("Failed to send index.html:", err);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+});
+
 // 7. 서버 실행
 app.listen(3000, () => {
   console.log("server start");
