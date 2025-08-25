@@ -18,7 +18,7 @@ const onRowClick = (event) => {
 };
 
 // 페이지당 표시할 행 수
-const rowsPerPage = 5;
+const rowsPerPage = 10;
 
 // 현재 페이지 (PrimeVue paginator는 0부터 시작)
 const currentPage = ref(1);
@@ -55,7 +55,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="processId" header="공정코드" style="width: 150px" />
         <Column field="processName" header="공정명" style="width: 150px" />
         <Column field="isInspection" header="검사유무" style="width: 150px" />

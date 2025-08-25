@@ -23,8 +23,6 @@ export default {
             orderNumber: '',
             materialCode: '',
             materialName: '',
-            MatInDate: '',
-            MatLotNo: '',
             //모달
             materialModal: false,
             WarehouseModal: false,
@@ -77,15 +75,43 @@ export default {
         };
     },
     methods: {
-        //조회버튼
         //초기화버튼
         onReset() {
             this.dueDate = '';
             this.orderNumber = '';
             this.materialCode = '';
             this.materialName = '';
-            this.MatInDate = '';
-            this.MatLotNo = '';
+            this.getMatPandigList();
+        },
+        //조회
+        async onSearch() {
+            try {
+                // 검색조건 객체 생성
+                const filters = {
+                    due_date: this.dueDate || null,
+                    test_no: this.orderNumber || null,
+                    mat_Id: this.materialCode || null,
+                    mat_Name: this.materialName || null
+                };
+
+                const res = await axios.post('/api/stock/searchMatPandingList', filters);
+                //조회결과
+                this.MatReceiptPanding = res.data.map((item) => ({
+                    id: `${item.pur_no}-${item.material_code}`,
+                    p_dueDate: item.due_date,
+                    p_purNo: item.pur_no,
+                    p_matCode: item.material_code,
+                    p_matName: item.material_name,
+                    p_testResult: item.result,
+                    p_testPassQty: item.qty,
+                    p_unit: item.unit,
+                    p_partnerName: item.partner_name,
+                    p_testNo: item.materialOrder_num,
+                    p_purchId: item.purch_id //발주서브T고유번호
+                }));
+            } catch (error) {
+                console.error('조회 실패:', error);
+            }
         },
         //행삭제버튼
         removeRow() {
@@ -107,8 +133,8 @@ export default {
                 p_matCode: '',
                 p_matName: '',
                 p_testResult: '',
-                p_testPassQty: 0,
-                p_receiptQty: 0,
+                p_testPassQty: '',
+                p_receiptQty: '',
                 p_unit: '',
                 p_partnerName: '',
                 p_warehouse: '',
@@ -154,7 +180,7 @@ export default {
             });
 
             if (checkNull) {
-                alert('자재, 입고수량, 창고는 필수입니다.');
+                alert('자재, 입고수량, 창고를 입력해주세요.');
                 return;
             }
 
@@ -167,7 +193,7 @@ export default {
                     comm: row.p_memo || null,
                     materialOrder_num: row.p_testNo || null,
                     purch_id: row.p_purchId || null,
-                    eName: this.userInfo.user.name || null
+                    eName: this.empName || null
                 }));
                 console.log(purInfo);
                 await axios.post('/api/stock/reMatLot', purInfo);
@@ -201,7 +227,7 @@ export default {
         },
         //반품
         async postReject() {
-            if (!this.selectPandingMats) {
+            if (!this.selectPandingMats.length) {
                 alert('입고대기중인 자재만 반품가능합니다.');
                 return;
             }
@@ -215,6 +241,7 @@ export default {
             } catch (error) {
                 console.log('반품실패', error);
             }
+            alert('반품처리 되었습니다.');
             this.getMatPandigList();
             this.selectPandingMats = [];
         },
@@ -229,6 +256,7 @@ export default {
                     lot_no: row.matLotNo
                 }));
                 await axios.post('/api/stock/matLotCancel', cancelLotInfo);
+                alert('취소처리 되었습니다.');
             } catch (error) {
                 console.log('취소실패', error);
             }
@@ -388,10 +416,10 @@ export default {
     </div>
 
     <!--자재모달-->
-    <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 40rem">
+    <commModal v-model="materialModal" :value="materials" header="자재목록" style="width: 30rem">
         <DataTable v-model:selection="selectMat" :value="materials" dataKey="matCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="matCode" header="자재코드" headerStyle="width: 10rem"></Column>
+            <Column field="matCode" header="자재코드" headerStyle="width: 6rem"></Column>
             <Column field="matName" header="자재명" headerStyle="width: 10em"></Column>
         </DataTable>
 
@@ -404,11 +432,11 @@ export default {
     </commModal>
 
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 30rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 10rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 10em"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12em"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10em"></Column>
         </DataTable>
 

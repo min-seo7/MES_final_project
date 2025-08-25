@@ -92,6 +92,10 @@ const handleSelect = (row) => {
     console.log(employeeSelectedData);
 };
 
+const handleResetForm = () => {
+    employeeSelectedData.value = {}; // 초기화
+};
+
 onUnmounted(() => {
     console.log('employee.vue unmounted!');
 });
@@ -99,7 +103,7 @@ onUnmounted(() => {
 
 <template>
     <section class="employee-container">
-        <EmployeeSearchWidget @employeeFilterSearch="handleSearch" />
+        <EmployeeSearchWidget @employeeFilterSearch="handleSearch" @resetForm="handleResetForm"/>
         <EmployeeListWidget :items="employeeSearchData" @employeeSelected="handleSelect" />
         <div class="mt-2"></div>
         <EmployeeRegistWidget :items="employeeSelectedData" />

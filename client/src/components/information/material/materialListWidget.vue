@@ -59,7 +59,7 @@ const tableData = computed(() => {
 
 <template>
     <DataTable v-if="tableData.length" :value="tableData" :rows="rowsPerPage" :paginator="true" :totalRecords="props.items.length" showGridlines @row-click="onRowClick" @page="onPage" selection-mode="single" responsiveLayout="scroll">
-        <Column field="num" header="" style="width: 50px" />
+        <Column field="num" header="No" style="width: 50px" />
         <Column field="materialId" header="자재코드" style="width: 150px" />
         <Column field="materialName" header="자재명" style="width: 150px" />
         <Column field="materialType" header="자재유형" style="width: 150px" />

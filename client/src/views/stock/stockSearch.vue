@@ -268,13 +268,13 @@ export default {
     </div>
 
     <!--거래처-->
-    <commModal v-model="partnerModal" header="거래처목록">
-        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 30rem">
+    <commModal v-model="partnerModal" header="거래처목록" style="width: 33rem">
+        <!--v-model:selection는 선택행을 selectPartner 변수에 넣어줌.-->
+        <DataTable v-model:selection="selectPartner" :value="partners" dataKey="partnerId" tableStyle="min-width: 23rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="partnerType" header="거래처유형" headerStyle="width: 10rem"></Column>
-            <Column field="partnerId" header="거래처코드" headerStyle="width: 10rem"></Column>
-            <Column field="partnerName" header="거래처명" headerStyle="width: 15rem"></Column>
-            <Column field="memo" header="비고"></Column>
+            <Column field="partnerType" header="거래처유형" Style="width: 6rem"></Column>
+            <Column field="partnerId" header="거래처코드" Style="width: 6rem"></Column>
+            <Column field="partnerName" header="거래처명" Style="width: 15rem"></Column>
         </DataTable>
 
         <!-- footer 슬롯 -->
@@ -285,11 +285,11 @@ export default {
         </template>
     </commModal>
     <!--보관장소 모달-->
-    <commModal v-model="WarehouseModal" header="창고목록" style="width: 43rem">
+    <commModal v-model="WarehouseModal" header="창고목록" style="width: 33rem">
         <DataTable v-model:selection="selectWare" :value="warehouses" dataKey="wareCode" tableStyle="min-width: 20rem">
             <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-            <Column field="wareCode" header="창고코드" headerStyle="width: 5rem"></Column>
-            <Column field="warerName" header="창고명" headerStyle="width: 7rem"></Column>
+            <Column field="wareCode" header="창고코드" headerStyle="width: 8rem"></Column>
+            <Column field="warerName" header="창고명" headerStyle="width: 12rem"></Column>
             <Column field="warerType" header="창고유형" headerStyle="width: 10rem"></Column>
         </DataTable>
 
