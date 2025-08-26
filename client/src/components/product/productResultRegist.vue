@@ -51,9 +51,13 @@ const columns = ref([
 ]);
 const items = ref([]);
 const selectedRow = ref({});
+
 const onRowSelect = async (event) => {
     let selectedData = event.data;
     console.log('선택된 데이터:', selectedData);
+    console.log('선택된 데이터:', selectedData.startDate);
+    console.log('선택된 데이터:', selectedData.endDate);
+    console.log('performanceInsStartDate.value : ', performanceInsStartDate.value);
     in_qty.value = selectedData.in_qty ? selectedData.in_qty : 0; // 투입량 초기화
     def_qty.value = selectedData.def_qty ? selectedData.def_qty : 0; // 불량량 초기화
     // const rowIdx = selectedData.use_order-2 > 0 ? selectedData.use_order-2 : 0; // use_order가 1부터 시작하므로 -2
@@ -82,6 +86,8 @@ const onRowSelect = async (event) => {
             unit.value = selectedData.unit;
             equipmentCode.value = selectedData.equipment_id;
             status.value = selectedData.status;
+            performanceInsStartDate.value = selectedData.startDate ? formatDate(selectedData.startDate) : '';
+            performanceInsEndDate.value = selectedData.endtDate ? formatDate(selectedData.endtDate) : '';
         } else {
             console.error('작업자를 등록하지 않았거나 조회를 실패하였습니다.');
             wo_no.value = selectedData.wo_no;
@@ -284,7 +290,7 @@ const registEndPerformance = async () => {
     } else {
         performanceInsEndDate.value = new Date();
         console.log('def_qty:', def_qty.value);
-
+        console.log('in_qty:', in_qty.value);
         const setData = {
             wo_no: wo_no.value,
             qty: in_qty.value - def_qty.value, // 투입량에서 불량량을 제외한 생산량
@@ -319,6 +325,7 @@ const resetData = () => {
     status.value = '';
     performanceInsStartDate.value = '';
     performanceInsEndDate.value = '';
+    worker.value = '';
 };
 </script>
 <template>

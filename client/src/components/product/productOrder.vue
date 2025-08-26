@@ -10,7 +10,8 @@ import Dialog from 'primevue/dialog';
 import { useUserStore } from '@/store/index';
 
 let userInfo = useUserStore(); // user session information
-console.log('session joined user name : ', userInfo.lastname);
+console.log('session joined user name : ', userInfo.user.name);
+console.log('session joined user : ', userInfo);
 //const dateValue = ref({});
 const search = ref({
     productPlanCode: ''
@@ -69,7 +70,7 @@ const closeModal = () => {
 const fetchPrdOrders = async () => {
     try {
         const response = await axios.get('/api/production/productionOrder');
-        console.log(response.data.list);
+        console.log('response data list : ', response.data.list);
         // API 응답 데이터를 prdOrderList에 할당
         if (Array.isArray(response.data.list)) {
             // 2. 배열이면 prdOrderList에 할당
@@ -85,7 +86,7 @@ const fetchPrdOrders = async () => {
                 specification: item.specification,
                 unit: item.unit,
                 prd_form: item.prd_form,
-                lastname: userInfo.lastname || '김지시'
+                lastname: item.lastname || '김지시'
             }));
         } else {
             // 3. 배열이 아니면 빈 배열로 초기화
@@ -110,6 +111,7 @@ const fetchPlanList = async () => {
                 // endDate: formatDate(item.endDate),
                 startDate: item.startDate,
                 endDate: item.endDate,
+                totalPlanQty: item.pl_qty,
                 planned_qty: item.planned_qty,
                 line_id: item.line_id,
                 line_name: item.line_name,
@@ -155,6 +157,12 @@ const fetchPlanList = async () => {
 //     }
 //     showModal.value = false;
 // };
+let userName = '';
+if (userInfo.user) {
+    userName = userInfo.user.name;
+} else {
+    alert('로그인 상태를 유지해주세요!');
+}
 const selectModalValue = (value) => {
     // 생산계획코드 모달 처리
     if (modalType.value === 'productPlanCode') {
@@ -166,16 +174,16 @@ const selectModalValue = (value) => {
             endDatetime: value.endDate,
             productId: value.product_id,
             productname: value.productname,
-            productPlanQty: value.planned_qty,
-            productType: value.p_type, // API 응답 필드명에 맞게 수정
+            productPlanQty: value.totalPlanQty,
+            productType: value.product_type, // API 응답 필드명에 맞게 수정
             specification: value.specification,
             unit: value.unit,
             prd_form: value.productForm,
-            undefinedQty: value.planned_qty, // 미지시수량을 계획수량과 동일하게 설정
+            undefinedQty: value.totalPlanQty, // 미지시수량을 계획수량과 동일하게 설정
             currentQty: 0, // 현지시수량은 0으로 시작
             line_id: value.line_id,
             line_name: value.line_name,
-            lastname: userInfo.lastname || '김관리'
+            lastname: userName
         };
 
         // 새로운 행을 products 배열에 추가
@@ -339,7 +347,31 @@ const formatDate = (value) => {
     // 문자열일 경우 (서버에서 넘어온 경우)
     return new Date(value).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' });
 };
+const formatForDB = (date) => {
+    console.log(date); // date 값 확인
+    console.log(typeof date); // object 여야 함
+    console.log(date instanceof Date); // true 여야 함
+    // if ((!date) instanceof Date) {
+    //     return null;
+    // }
+    // const year = date.getFullYear();
+    // const month = String(date.getMonth() + 1).padStart(2, '0');
+    // const day = String(date.getDate()).padStart(2, '0');
+    // const hours = String(date.getHours()).padStart(2, '0');
+    // const minutes = String(date.getMinutes()).padStart(2, '0');
+    // const seconds = String(date.getSeconds()).padStart(2, '0');
+    // return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    const dateObj = new Date(date); // dateStr → date로 수정
+    const pad = (num) => num.toString().padStart(2, '0');
 
+    const year = dateObj.getFullYear();
+    const month = pad(dateObj.getMonth() + 1); // 0~11
+    const day = pad(dateObj.getDate());
+    const hours = pad(dateObj.getHours());
+    const minutes = pad(dateObj.getMinutes());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 const startProduction = async () => {
     //선택된 행을 하나하나 넣어서 들어간다
     //console.log('현재 선택된 행들:', selectedProducts.value);
@@ -353,18 +385,7 @@ const startProduction = async () => {
     //     details: selectedProducts.value
     // };
     //
-    const formatForDB = (date) => {
-        if ((!date) instanceof Date) {
-            return null;
-        }
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
+
     // console.log('sdt: ',selectedProducts.value.startDatetime);
     // console.log('edt: ',selectedProducts.value.endDatetime);
     const mappedDetails = selectedProducts.value.map((product) => {
@@ -388,7 +409,7 @@ const startProduction = async () => {
     console.log('p_st_date:', mappedDetails.p_st_date);
     // console.log('맵핑된 제품들:', mappedDetails);
     const payload = {
-        director: userInfo.lastname || '김지시',
+        director: userInfo.user.name || '김지시',
         plan_detail_no: search.value.productPlanCode || null,
         // details: selectedProducts.value
         details: mappedDetails
@@ -410,6 +431,7 @@ const startProduction = async () => {
             hiddenProductIds.value = new Set(); // 숨겨진 행 초기화
             //prdOrderList.value = null;
         }
+        alert('지시가 성공적으로 등록되었습니다!');
     } catch (err) {
         console.log(err);
     }
@@ -521,7 +543,7 @@ const addNewRow = () => {
         currentQty: 0,
         line_id: '',
         line_name: '',
-        lastname: userInfo.lastname || '김관리'
+        lastname: userInfo.user.name || '김관리'
     };
     newProduct.undefinedQty = (newProduct.productPlanQty || 0) - (newProduct.currentQty || 0);
     products.value.push(newProduct);
@@ -559,7 +581,7 @@ onMounted(async () => {
 
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>
-            <InputText id="lastnameTxt" v-model="userInfo.lastname" type="text" readonly />
+            <InputText id="lastnameTxt" v-model="userInfo.user.name" type="text" readonly />
         </div>
     </div>
     <div class="mb-6">
@@ -569,10 +591,11 @@ onMounted(async () => {
                     <!-- <span v-if="col.field === 'startDate' || col.field === 'endDate'">
                         {{ formatDate(data[field]) }}
                     </span> -->
-                    <span v-if="col.field === 'lastname'">
-                        {{ userInfo.lastname }}
+                    <!-- <span v-if="col.field === 'lastname'">
+                        {{ userInfo.lastname || '김지시' }}
                     </span>
-                    <span v-else>{{ data[field] }}</span>
+                    <span v-else>{{ data[field] }}</span> -->
+                    <span>{{ data[field] }}</span>
                 </template>
             </Column>
         </DataTable>
@@ -696,6 +719,8 @@ onMounted(async () => {
                         </span>
                     </template>
                 </Column>
+                totalPlanQty
+                <Column field="totalPlanQty" header="계획수량"></Column>
                 <Column field="planned_qty" header="기지시수량"></Column>
                 <Column field="product_id" header="제품코드"></Column>
                 <Column field="productname" header="제품명"></Column>

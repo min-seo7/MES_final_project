@@ -31,10 +31,14 @@ const modalType = ref('');
 const openModal = (type) => {
     modalType.value = type;
     showModal.value = true;
+    if (type === 'temporaryProcess') {
+        startInterval(); // 모달 열릴 때 시작
+    }
 };
 
 const closeModal = () => {
     showModal.value = false;
+    stopInterval(); // 모달 닫을 때 정리
 };
 
 const selectModalValue = (value) => {
@@ -60,6 +64,12 @@ let intervalId = null;
 //     // Math.floor()로 소수점을 버리고 정수만 남김
 //     return Math.floor(Math.random() * (63 - 55 + 1)) + 55;
 // }
+// 랜덤 온도 생성 (60℃ ±2)
+function getRandomTemperature() {
+    const min = 65;
+    const max = 69;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 function setColorOptions() {
     const documentStyle = getComputedStyle(document.documentElement);
@@ -67,107 +77,90 @@ function setColorOptions() {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
     lineData.value = {
-        labels: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+        labels: [],
         datasets: [
             {
-                label: '발효기#1',
+                label: '발효기',
                 backgroundColor: documentStyle.getPropertyValue('--p-primary-500'),
                 borderColor: documentStyle.getPropertyValue('--p-primary-500'),
                 data: [],
-                fill: true, // 선 아래를 채웁니다.
-                tension: 0.1, // 선의 곡률을 조정합니다. 0은 직선, 1은 완전한 곡선입니다.
-                pointHoverRadius: 7, // 마우스 오버 시 데이터 포인트의 반지름
-                pointBackgroundColor: documentStyle.getPropertyValue('--p-primary-500'), // 데이터 포인트의 배경색
-                pointBorderColor: '#fff' // 데이터 포인트의 테두리 색상
+                fill: false,
+                tension: 0.3,
+                pointHoverRadius: 7,
+                pointBackgroundColor: documentStyle.getPropertyValue('--p-primary-500'),
+                pointBorderColor: '#fff'
             }
-            // {
-            //     label: 'My Second dataset',
-            //     backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
-            //     borderColor: documentStyle.getPropertyValue('--p-primary-200'),
-            //     data: [28, 48, 40, 19, 86, 27, 90]
-            // }
         ]
     };
     lineOptions.value = {
         plugins: {
             legend: {
                 labels: {
-                    fontColor: textColor
+                    color: textColor
                 }
             },
-
             datalabels: {
                 color: textColorSecondary,
                 display: true,
                 align: 'top',
                 formatter: (value) => {
-                    return value + '℃'; // 데이터 라벨에 온도 단위를 추가
+                    return value + '℃';
                 }
             }
         },
         scales: {
             x: {
-                ticks: {
-                    color: textColorSecondary
-                },
-                grid: {
-                    color: surfaceBorder,
-                    drawBorder: false
-                },
-                title: {
-                    display: true,
-                    text: '생산량',
-                    color: textColor
-                }
+                ticks: { color: textColorSecondary },
+                grid: { color: surfaceBorder, drawBorder: false },
+                title: { display: true, text: '시간', color: textColor }
             },
             y: {
-                ticks: {
-                    color: textColorSecondary
-                },
-                grid: {
-                    color: surfaceBorder,
-                    drawBorder: false
-                },
-                title: {
-                    display: true,
-                    text: '온도 (℃)',
-                    color: textColor
-                },
-                min: 0, // y축 최소값
-                max: 120 // y축 최대값
+                ticks: { color: textColorSecondary },
+                grid: { color: surfaceBorder, drawBorder: false },
+                title: { display: true, text: '온도 (℃)', color: textColor },
+                min: 55,
+                max: 75
             }
         },
-        responsive: true
+        responsive: true,
+        animation: false,
+        maintainAspectRatio: false
     };
 }
 // 새로운 랜덤 온도 데이터를 추가하는 함수
-// function addRandomTemperature() {
-//     // 데이터 배열의 길이가 11(레이블 수)에 도달하면 인터벌을 중지합니다.
-//     if (lineData.value.datasets[0].data.length >= 11) {
-//         clearInterval(intervalId);
-//         console.log('생산량 1000에 도달하여 데이터 추가를 멈춥니다.');
-//         return;
-//     }
-//     const newTemperature = getRandomTemperature();
-//     // datasets 배열의 첫 번째 데이터셋에 새로운 값을 추가
-//     lineData.value.datasets[0].data.push(newTemperature);
+function addRandomTemperature() {
+    if (!lineData.value) return;
+    const now = new Date().toLocaleTimeString();
+    const newTemp = getRandomTemperature();
 
-//     // 이 시점에서 차트 컴포넌트는 새로운 데이터를 감지하고 갱신되어야 합니다.
-//     // Vue의 경우 ref나 reactive로 감싸져 있으면 자동으로 갱신됩니다.
-//     console.log('새로운 데이터가 추가되었습니다:', newTemperature);
-// }
+    const labels = [...lineData.value.labels];
+    const data = [...lineData.value.datasets[0].data];
 
-// const currentPage = ref(1);
-// const pageSize = 5;
-// eslint-disable-next-line no-undef
-// const totalPages = computed(() => Math.ceil(productPlanCodeList.value.length / pageSize));
+    if (labels.length > 20) {
+        labels.shift();
+        data.shift();
+    }
 
-// // eslint-disable-next-line no-undef
-// const pagedProductPlanCodes = computed(() => {
-//     const start = (currentPage.value - 1) * pageSize;
+    labels.push(now);
+    data.push(newTemp);
 
-//     return productPlanCodeList.value.slice(start, start + pageSize);
-// });
+    lineData.value = {
+        ...lineData.value,
+        labels,
+        datasets: [{ ...lineData.value.datasets[0], data }]
+    };
+}
+// 인터벌 제어
+function startInterval() {
+    if (intervalId) return;
+    intervalId = setInterval(addRandomTemperature, 3000);
+}
+
+function stopInterval() {
+    clearInterval(intervalId);
+    intervalId = null;
+}
+
 const columns = ref([
     { field: 'processId', header: '공정코드' },
     { field: 'processName', header: '공정' },
@@ -360,7 +353,7 @@ onMounted(async () => {
     await processSelectList();
 });
 onUnmounted(async () => {
-    clearInterval(intervalId);
+    stopInterval();
 });
 watch(
     [getPrimary, getSurface, isDarkTheme],
@@ -491,8 +484,7 @@ watch(
         </div>
         <div v-else-if="modalType === 'temporaryProcess'">
             <div class="card">
-                <div class="font-semibold text-xl mb-2" :value="aaa">ddd</div>
-                <Chart type="line" :data="lineData" :options="lineOptions"></Chart>
+                <Chart type="line" :data="lineData" :options="lineOptions" class="h-80" />
             </div>
         </div>
     </Dialog>

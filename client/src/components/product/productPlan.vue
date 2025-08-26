@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useUserStore } from '@/store/index';
 
 let userInfo = useUserStore(); // user session information
-console.log('session joined user name : ', userInfo.lastname ? userInfo.lastname : null);
+console.log('session joined user name : ', userInfo.user.name ? userInfo.user.name : null);
 const search = ref({
     productPlanCode: '',
     planStartDate: '',
@@ -173,7 +173,7 @@ const addNewRow = () => {
         productPlanQty: 0,
         plannedQty: 1000,
         productType: '',
-        lastname: userInfo.lastname || '김관리'
+        lastname: userInfo.user.name || '김계획'
     };
     // Add the new object to the data array
     products.value.push(newProduct);
@@ -186,7 +186,7 @@ const planData = ref({
     planStartDate: null,
     planEndDate: null,
     dueDate: null,
-    director: userInfo.lastname || '김계획'
+    director: userInfo.user.name || '김계획'
 });
 
 // 계획 구분 Dropdown 옵션
@@ -211,7 +211,7 @@ const insertPlan = async () => {
             planStartDate: formatDate(planData.value.planStartDate),
             planEndDate: formatDate(planData.value.planEndDate),
             dueDate: formatDate(planData.value.dueDate),
-            director: userInfo.lastname || '김계획',
+            director: userInfo.user.name || '김계획',
             products: products.value.filter((p) => !hiddenProductIds.value.has(p.id))
         };
         console.log('payload : ', payload);
@@ -271,7 +271,7 @@ onMounted(async () => {
         </div>
         <div class="flex flex-col">
             <label for="lastname" class="mb-1">지시자</label>
-            <InputText id="lastnameTxt" type="text" v-model="userInfo.lastname" disabled />
+            <InputText id="lastnameTxt" type="text" v-model="userInfo.user.name" disabled />
         </div>
     </div>
     <div class="flex justify-end mb-4 space-x-2">
