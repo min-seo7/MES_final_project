@@ -3,6 +3,7 @@
 const mariadb = require("mariadb");
 const sqlList = require("./sqlList.js");
 const path = require("path");
+
 require("dotenv").config({
   path: path.resolve(__dirname, "sqls/.env"),
 });
