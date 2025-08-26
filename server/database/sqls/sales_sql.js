@@ -105,6 +105,7 @@ WHERE
     (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR i.ord_status = ?)
     AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
  ORDER by o.order_id desc
@@ -182,8 +183,10 @@ SELECT
     o.order_manager,
     i.order_detail_id,
     i.item_seq,
-    COALESCE(pl.curr_qty, 0) AS curr_qty,
-    COALESCE(sd.shipped_qty, 0) AS shipped_qty
+    IFNULL(pl.curr_qty, 0) AS curr_qty,       
+    IFNULL(sd.shipped_qty, 0) AS shipped_qty, 
+    s.shipment_id,
+    s.ship_status
 FROM orders o
 JOIN order_items i
     ON o.order_id = i.order_id
@@ -197,7 +200,13 @@ LEFT JOIN (
     FROM shipment
     GROUP BY order_detail_id
 ) sd ON sd.order_detail_id = i.order_detail_id
+LEFT JOIN (
+    SELECT order_detail_id, MAX(shipment_id) AS shipment_id, MAX(ship_status) AS ship_status
+    FROM shipment
+    GROUP BY order_detail_id
+) s ON s.order_detail_id = i.order_detail_id
 WHERE o.order_id = ?
+
  `;
 //출하요청등록대상(주문서)조회,(등록일의 처음과 끝을 별칭으로 구분)
 const selectShipOrders = `
@@ -234,6 +243,12 @@ INSERT INTO shipment(
     order_detail_id
 ) VALUES(?,?,?,?,?,?,?,?,?)
 `;
+// //출하상태업데이트
+// const shipStatus = `
+// UPDATE order_items
+// SET ship_status = 1
+// WHERE order_detail_id = ?
+// `;
 
 // 출하등록번호 순차적으로 증가
 const SelectMaxShipId = `
@@ -515,7 +530,7 @@ LEFT JOIN (
 WHERE
     (? IS NULL OR ? = '' OR o.order_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR i.ord_status = ?)
-    AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR ? = '' OR i.product_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR ? = '' OR o.partner_id LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR DATE(i.del_date) = ?)
 ORDER BY s.shipment_id DESC`;
@@ -588,5 +603,6 @@ module.exports = {
   selcetOrderdelDetail,
   selectOrdersModal,
   selectPrdLotForOutbound,
+  // shipStatus,
   // updatePrdLotQty,
 };

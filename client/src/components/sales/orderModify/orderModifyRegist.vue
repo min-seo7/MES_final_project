@@ -191,7 +191,7 @@ const fetchOrders = async () => {
       orderStatus: search.value.orderStatus
         ? orderStateMapReverse.value[search.value.orderStatus]
         : null,
-      productName: search.value.productName || null,
+      productId: search.value.prodCode || null,
       partnerId: search.value.partCode || null,
       delDate: formattedDelDate,
       spec: search.value.spec || null,

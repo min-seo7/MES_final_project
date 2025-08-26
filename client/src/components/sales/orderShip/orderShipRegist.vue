@@ -12,27 +12,25 @@ import InputIcon from "primevue/inputicon";
 import Tag from "primevue/tag";
 import axios from "axios";
 
-// 상태코드(int) → 출하상태명 매핑
-const shipStateMap = {
-  1: "출하대기",
-  2: "출하중",
-  3: "출하완료",
-};
-const shipStateMapReverse = computed(() =>
-  Object.fromEntries(Object.entries(shipStateMap).map(([k, v]) => [v, k]))
-);
-const getShipSeverity = (status) => {
-  switch (status) {
-    case "출하대기":
-      return "contrast";
-    case "출하중":
-      return "warning";
-    case "출하완료":
-      return "success";
-    default:
-      return null;
-  }
-};
+// // 상태코드(int) → 출하상태명 매핑
+// const shipStateMap = {
+//     1: '출하대기',
+//     2: '출하중',
+//     3: '출하완료'
+// };
+// const shipStateMapReverse = computed(() => Object.fromEntries(Object.entries(shipStateMap).map(([k, v]) => [v, k])));
+// const getShipSeverity = (status) => {
+//     switch (status) {
+//         case '출하대기':
+//             return 'contrast';
+//         case '출하중':
+//             return 'warning';
+//         case '출하완료':
+//             return 'success';
+//         default:
+//             return null;
+//     }
+// };
 
 // 상태코드(int) → 상태명 매핑
 const orderStateMap = {
@@ -197,10 +195,7 @@ const loadOrderDetails = async (event) => {
         shippedQuantity: item.shipped_qty || 0,
         curr_qty: item.curr_qty || 0,
         shipmentId: item.shipment_id || null,
-        shipState:
-          item.ship_state != null
-            ? shipStateMap[Number(item.ship_state)] ?? "알수없음"
-            : "알수없음",
+        // shipState: item.ship_state != null ? (shipStateMap[Number(item.ship_state)] ?? '알수없음') : '알수없음'
       })) || [];
     console.log(
       response.data.list.map((item) => ({
@@ -328,9 +323,10 @@ const resetShipmentForm = () => {
 };
 
 const isRowSelectable = (event) => {
-  const isShipped = !!event.data.shipmentId;
+  // const isShipped = !!event.data.shipmentId;
   const isStockSufficient = event.data.curr_qty >= event.data.quantity;
-  return !isShipped && isStockSufficient;
+  // return !isShipped && isStockSufficient;
+  return isStockSufficient;
 };
 
 // 체크박스 변경을 수동으로 처리
@@ -585,16 +581,11 @@ onMounted(() => {
         />
         <Column field="order_date" header="등록일자" style="min-width: 100px" />
         <Column field="del_date" header="납기일자" style="min-width: 100px" />
-        <Column field="shipState" header="출하상태" style="min-width: 100px">
-          <template #body="slotProps">
-            <Tag
-              :value="slotProps.data.shipState"
-              :severity="getShipSeverity(slotProps.data.shipState)"
-              :rounded="true"
-              class="px-3 py-1 text-sm"
-            />
-          </template>
-        </Column>
+        <!-- <Column field="shipState" header="출하상태" style="min-width: 100px">
+                    <template #body="slotProps">
+                        <Tag :value="slotProps.data.shipState" :severity="getShipSeverity(slotProps.data.shipState)" :rounded="true" class="px-3 py-1 text-sm" />
+                    </template>
+                </Column> -->
         <Column field="curr_qty" header="재고" style="min-width: 100px" />
       </DataTable>
     </div>

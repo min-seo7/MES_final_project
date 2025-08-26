@@ -74,6 +74,7 @@ router.get("/delDateSearch", async (req, res) => {
       orderId: req.query.orderId || null,
       orderStatus: req.query.orderStatus || null,
       productName: req.query.productName || null,
+      productId: req.query.productId || null,
       partnerId: req.query.partnerId || null,
       delDate: req.query.delDate || null,
     };
@@ -112,7 +113,7 @@ router.get("/returnRegist", async (req, res) => {
     const filter = {
       orderId: req.query.orderId || null,
       orderStatus: req.query.orderStatus || null,
-      productName: req.query.productName || null,
+      productId: req.query.productId || null,
       partnerId: req.query.partnerId || null,
       startDate: req.query.startDate || null,
       endDate: req.query.endDate || null,
