@@ -166,7 +166,7 @@ export default {
         w_prdName: "",
         w_reqQty: "",
         w_outQty: "",
-        w_unit: "",
+        w_unit: `${"EA"}`,
         w_partnerName: "",
         w_shipEnt: "",
         w_memo: "",

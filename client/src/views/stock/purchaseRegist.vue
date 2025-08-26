@@ -440,7 +440,7 @@ export default {
                   v-model="slotProps.data.purch_qty"
                   :min="0"
                   type="number"
-                  style="width: 80%"
+                  style="width: 130%"
                 />
               </template>
             </Column>

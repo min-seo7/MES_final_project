@@ -177,7 +177,7 @@ export default {
         p_prdName: "",
         p_testPassQty: "",
         p_receiptQty: "",
-        p_unit: "",
+        p_unit: `${"EA"}`,
         p_exp: "",
         p_warehouse: "",
         p_memo: "",
