@@ -52,7 +52,7 @@ function confirmSelect() {
 <template>
   <div class="space-y-2">
     <div class="flex items-center justify-between">
-      <div class="font-bold text-[18.5px]">설비수리 등록/수정</div>
+      <div class="font-bold text-[18.5px]">설비수리</div>
       <div class="flex items-center gap-2">
         <Button label="조회" rounded @click="onSubmit" />
         <Button label="초기화" severity="info" rounded @click="onClear" />
