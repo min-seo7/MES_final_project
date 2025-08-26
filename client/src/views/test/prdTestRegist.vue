@@ -68,7 +68,7 @@ const handleRowSelect = async (e) => {
             담당자: 1, // 담당자 임의 지정
             비고: '',
             측정값리스트: inspItem.map((row) => ({
-                검사항목: row.item_name,
+                검사항목: row.itemName || row.item_name,
                 허용범위: row.fixedStandard,
                 측정값: '',
                 판정: ''
@@ -118,7 +118,7 @@ const defRegister = async () => {
         remark: form.value.비고,
         inspector_id: form.value.담당자,
         측정값리스트: form.value.측정값리스트.map(({ 검사항목, 허용범위, 측정값, 판정 }) => ({
-            itemName: 검사항목,
+            item_name: 검사항목,
             fixedStandard: 허용범위,
             measuredValue: 측정값,
             judgment: 판정

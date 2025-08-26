@@ -155,10 +155,10 @@ const insertPrdInsp = async (inspInfo) => {
     for (const item of inspInfo.측정값리스트) {
       const detailData = [
         inspInfo.pf_code,
-        item.검사항목,
-        item.허용범위,
-        item.측정값,
-        item.판정,
+        item.item_name, // 검사항목
+        item.fixedStandard, // 허용범위
+        item.measuredValue, // 측정값
+        item.judgment, // 판정
       ];
       await conn.query(sqlList.insertPrdInspDetail, detailData);
     } // 3. Performance 테이블 상태 업데이트
