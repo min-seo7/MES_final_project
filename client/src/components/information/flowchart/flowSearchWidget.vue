@@ -58,7 +58,7 @@ const openModal = async (type) => {
     }));
     columns.value = [{ field: "flowName", header: "흐름도명" }];
   } else if (type === "productId") {
-    const res = await axios.get("/api/information//flowchart/getProductId");
+    const res = await axios.get("/api/information/flowchart/getProductId");
     items.value = res.data.map((item, index) => ({
       num: index + 1,
       productId: item.product_id,

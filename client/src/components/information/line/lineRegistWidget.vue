@@ -1,251 +1,297 @@
 <script setup>
-import { ref, defineProps, watch, defineEmits } from 'vue'; // defineEmits 추가
-import axios from 'axios';
-import CommonModal from '@/components/common/modal.vue';
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import RadioButton from 'primevue/radiobutton';
+import { ref, defineProps, watch, defineEmits } from "vue"; // defineEmits 추가
+import axios from "axios";
+import CommonModal from "@/components/common/modal.vue";
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
+import RadioButton from "primevue/radiobutton";
 
 const props = defineProps({
-    detailData: {
-        type: Array,
-        default: () => []
-    },
-    items: {
-        type: Array,
-        default: () => []
-    }
+  detailData: {
+    type: Array,
+    default: () => [],
+  },
+  items: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-const emits = defineEmits(['resetLine']); // emits 정의
+const emits = defineEmits(["resetLine"]); // emits 정의
 
 const form = ref({
-    lineId: '',
-    lineName: '',
-    flowId: '',
-    productId: '',
-    productName: '',
-    note: '',
-    status: ''
+  lineId: "",
+  lineName: "",
+  flowId: "",
+  productId: "",
+  productName: "",
+  note: "",
+  status: "",
 });
 
 const item = ref([]);
 const columns = ref([]);
 const showModal = ref(false);
-const modalType = ref('');
+const modalType = ref("");
 const selectedItem = ref(null);
 
 // 모달 열기
 const openModal = async (type) => {
-    modalType.value = type;
-    showModal.value = true;
-    selectedItem.value = null;
+  modalType.value = type;
+  showModal.value = true;
+  selectedItem.value = null;
 
-    if (type === 'productId') {
-        const res = await axios.get('/api/information//flowchart/getProductId');
-        item.value = res.data.map((item, index) => ({
-            num: index + 1,
-            productId: item.product_id,
-            productName: item.product_name,
-            productType: item.product_type,
-            productForm: item.product_form
-        }));
-        columns.value = [
-            { field: 'productId', header: '제품코드' },
-            { field: 'productName', header: '제품명' },
-            { field: 'productType', header: '제품유형' },
-            { field: 'productForm', header: '제품형태' }
-        ];
-    }
+  if (type === "productId") {
+    const res = await axios.get("/api/information/flowchart/getProductId");
+    item.value = res.data.map((item, index) => ({
+      num: index + 1,
+      productId: item.product_id,
+      productName: item.product_name,
+      productType: item.product_type,
+      productForm: item.product_form,
+    }));
+    columns.value = [
+      { field: "productId", header: "제품코드" },
+      { field: "productName", header: "제품명" },
+      { field: "productType", header: "제품유형" },
+      { field: "productForm", header: "제품형태" },
+    ];
+  }
 };
 
 // 모달 선택 완료
 const selectModalValue = () => {
-    if (!selectedItem.value) {
-        alert('선택된 항목이 없습니다.');
-        return;
-    }
+  if (!selectedItem.value) {
+    alert("선택된 항목이 없습니다.");
+    return;
+  }
 
-    form.value.productId = selectedItem.value.productId;
-    form.value.productName = selectedItem.value.productName;
+  form.value.productId = selectedItem.value.productId;
+  form.value.productName = selectedItem.value.productName;
 
-    showModal.value = false;
+  showModal.value = false;
 };
 
 watch(
-    () => props.items,
-    (newVal) => {
-        if (newVal && newVal.length) {
-            form.value = { ...newVal[0], lineId: newVal[0].lineId?.trim() || '' };
-        } else {
-            form.value = {
-                lineId: '',
-                lineName: '',
-                flowId: '',
-                productId: '',
-                note: '',
-                status: ''
-            };
-        }
-    },
-    { immediate: true }
+  () => props.items,
+  (newVal) => {
+    if (newVal && newVal.length) {
+      form.value = { ...newVal[0], lineId: newVal[0].lineId?.trim() || "" };
+    } else {
+      form.value = {
+        lineId: "",
+        lineName: "",
+        flowId: "",
+        productId: "",
+        note: "",
+        status: "",
+      };
+    }
+  },
+  { immediate: true }
 );
 
 const registLine = async () => {
-    if (!form.value.productId) {
-        alert('제품코드를 선택해주세요.');
-        return;
-    }
-    if (!form.value.status) {
-        alert('상태를 선택해주세요.');
-        return;
-    }
-    if (props.detailData.length === 0) {
-        alert('Line 상세 항목을 추가해주세요.');
-        return;
-    }
+  if (!form.value.productId) {
+    alert("제품코드를 선택해주세요.");
+    return;
+  }
+  if (!form.value.status) {
+    alert("상태를 선택해주세요.");
+    return;
+  }
+  if (props.detailData.length === 0) {
+    alert("Line 상세 항목을 추가해주세요.");
+    return;
+  }
 
-    try {
-        const payload = {
-            lineInfo: {
-                // 서버에서 받을 기본 정보
-                lineId: form.value.lineId,
-                lineName: form.value.lineName,
-                flowId: form.value.flowId,
-                productId: form.value.productId,
-                note: form.value.note,
-                status: form.value.status
-            },
-            lineDetails: props.detailData // 서버에서 받을 상세 리스트
-        };
+  try {
+    const payload = {
+      lineInfo: {
+        // 서버에서 받을 기본 정보
+        lineId: form.value.lineId,
+        lineName: form.value.lineName,
+        flowId: form.value.flowId,
+        productId: form.value.productId,
+        note: form.value.note,
+        status: form.value.status,
+      },
+      lineDetails: props.detailData, // 서버에서 받을 상세 리스트
+    };
 
-        const res = await axios.post('/api/information/line', payload, {
-            headers: { 'Content-Type': 'application/json' }
-        });
-        form.value = {
-            lineId: '',
-            lineName: '',
-            flowId: '',
-            productId: '',
-            productName: '',
-            note: '',
-            status: ''
-        };
-        
-        emits('resetLine'); // 부모로 초기화 이벤트 전송
-        
-        alert('등록이 완료되었습니다.');
-    } catch (err) {
-        console.error(err);
-        alert('등록할 수 없습니다.');
-    }
+    const res = await axios.post("/api/information/line", payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    form.value = {
+      lineId: "",
+      lineName: "",
+      flowId: "",
+      productId: "",
+      productName: "",
+      note: "",
+      status: "",
+    };
+
+    emits("resetLine"); // 부모로 초기화 이벤트 전송
+
+    alert("등록이 완료되었습니다.");
+  } catch (err) {
+    console.error(err);
+    alert("등록할 수 없습니다.");
+  }
 };
 
 const modifyLine = async () => {
-    try {
-        const res = await axios.post('/api/information/line/modify', form.value);
-        form.value = {
-            lineId: '',
-            lineName: '',
-            flowId: '',
-            productId: '',
-            productName: '',
-            note: '',
-            status: ''
-        };
-        
-        emits('resetLine'); // 부모로 초기화 이벤트 전송
-        
-        alert("수정이 완료되었습니다.");
-    } catch (err) {
-        alert('수정할 수 없습나다.');
-    }
+  try {
+    const res = await axios.post("/api/information/line/modify", form.value);
+    form.value = {
+      lineId: "",
+      lineName: "",
+      flowId: "",
+      productId: "",
+      productName: "",
+      note: "",
+      status: "",
+    };
+
+    emits("resetLine"); // 부모로 초기화 이벤트 전송
+
+    alert("수정이 완료되었습니다.");
+  } catch (err) {
+    alert("수정할 수 없습나다.");
+  }
 };
 
 const resetRegist = async () => {
-    if (form.value.lineId?.trim()) {
-        // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
-        if (props.items && props.items.length) {
-            form.value = { ...props.items[0], lineId: props.items[0].lineId?.trim() || '' };
-        }
-    } else {
-        // 등록 상태: 전체 필드 초기화
-        form.value = {
-            lineId: '',
-            lineName: '',
-            flowId: '',
-            productId: '',
-            productName: '',
-            note: '',
-            status: ''
-        };
+  if (form.value.lineId?.trim()) {
+    // 수정 상태: 현재 선택된 데이터를 다시 form에 반영
+    if (props.items && props.items.length) {
+      form.value = {
+        ...props.items[0],
+        lineId: props.items[0].lineId?.trim() || "",
+      };
     }
+  } else {
+    // 등록 상태: 전체 필드 초기화
+    form.value = {
+      lineId: "",
+      lineName: "",
+      flowId: "",
+      productId: "",
+      productName: "",
+      note: "",
+      status: "",
+    };
+  }
 };
 </script>
 
 <template>
-    <div class="flex items-center justify-between font-semibold text-xl mb-1">
-        <div>등록</div>
-        <div class="space-x-2">
-            <Button label=" 등록 " size="small" rounded @click="registLine()" :disabled="form.lineId?.trim() !== ''" />
-            <Button label=" 수정 " size="small" rounded :disabled="form.lineId?.trim() === ''" @click="modifyLine()" />
-            <Button label=" 초기화 " size="small" severity="info" rounded @click="resetRegist()" />
-        </div>
+  <div class="flex items-center justify-between font-semibold text-xl mb-1">
+    <div>등록</div>
+    <div class="space-x-2">
+      <Button
+        label=" 등록 "
+        size="small"
+        rounded
+        @click="registLine()"
+        :disabled="form.lineId?.trim() !== ''"
+      />
+      <Button
+        label=" 수정 "
+        size="small"
+        rounded
+        :disabled="form.lineId?.trim() === ''"
+        @click="modifyLine()"
+      />
+      <Button
+        label=" 초기화 "
+        size="small"
+        severity="info"
+        rounded
+        @click="resetRegist()"
+      />
     </div>
-    <div class="card border rounded mb-2">
-        <div class="flex flex-col md:flex-row gap-4">
-            <div class="flex flex-col gap-4 w-full">
-                <div>
-                    <label class="block mb-1">라인코드</label>
-                    <InputText v-model="form.lineId" class="w-full" readonly="true" placeholder="자동생성" style="background-color: lightgrey" />
-                </div>
-                <div>
-                    <label class="block mb-1">제품코드</label>
-                    <IconField iconPosition="left" class="w-full">
-                        <InputText v-model="form.productId" class="w-full" />
-                        <InputIcon class="pi pi-search" @click="openModal('productId')" />
-                    </IconField>
-                </div>
-                <div>
-                    <label class="block mb-1">상태</label>
-                    <div class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]">
-                        <RadioButton id="status1" name="status" value="사용" v-model="form.status" />
-                        <label for="status1" class="ml-2 mr-4">사용</label>
-                        <RadioButton id="status2" name="status" value="미사용" v-model="form.status" />
-                        <label for="status2" class="ml-2">미사용</label>
-                    </div>
-                </div>
-            </div>
+  </div>
+  <div class="card border rounded mb-2">
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex flex-col gap-4 w-full">
+        <div>
+          <label class="block mb-1">라인코드</label>
+          <InputText
+            v-model="form.lineId"
+            class="w-full"
+            readonly="true"
+            placeholder="자동생성"
+            style="background-color: lightgrey"
+          />
+        </div>
+        <div>
+          <label class="block mb-1">제품코드</label>
+          <IconField iconPosition="left" class="w-full">
+            <InputText v-model="form.productId" class="w-full" />
+            <InputIcon class="pi pi-search" @click="openModal('productId')" />
+          </IconField>
+        </div>
+        <div>
+          <label class="block mb-1">상태</label>
+          <div
+            class="flex items-center border rounded cursor-pointer hover:bg-gray-100 px-3 h-[38px]"
+          >
+            <RadioButton
+              id="status1"
+              name="status"
+              value="사용"
+              v-model="form.status"
+            />
+            <label for="status1" class="ml-2 mr-4">사용</label>
+            <RadioButton
+              id="status2"
+              name="status"
+              value="미사용"
+              v-model="form.status"
+            />
+            <label for="status2" class="ml-2">미사용</label>
+          </div>
+        </div>
+      </div>
 
-            <div class="flex flex-col gap-4 w-full">
-                <div>
-                    <label class="block mb-1">라인명</label>
-                    <div class="flex gap-2 items-center">
-                        <InputText v-model="form.lineName" class="w-full" />
-                    </div>
-                </div>
-                <div>
-                    <label class="block mb-1">제품명</label>
-                    <div class="flex gap-2 items-center">
-                        <InputText v-model="form.productName" class="w-full" />
-                    </div>
-                </div>
-                <div class="flex-1">
-                    <label class="block mb-1">비고</label>
-                    <div class="flex gap-2 items-center">
-                        <InputText v-model="form.note" class="w-full" />
-                    </div>
-                </div>
-            </div>
+      <div class="flex flex-col gap-4 w-full">
+        <div>
+          <label class="block mb-1">라인명</label>
+          <div class="flex gap-2 items-center">
+            <InputText v-model="form.lineName" class="w-full" />
+          </div>
         </div>
+        <div>
+          <label class="block mb-1">제품명</label>
+          <div class="flex gap-2 items-center">
+            <InputText v-model="form.productName" class="w-full" />
+          </div>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">비고</label>
+          <div class="flex gap-2 items-center">
+            <InputText v-model="form.note" class="w-full" />
+          </div>
+        </div>
+      </div>
     </div>
-    <CommonModal v-model:visible="showModal" :modalType="modalType" :items="item" :columns="columns" v-model:selectedItem="selectedItem" @confirm="selectModalValue" />
+  </div>
+  <CommonModal
+    v-model:visible="showModal"
+    :modalType="modalType"
+    :items="item"
+    :columns="columns"
+    v-model:selectedItem="selectedItem"
+    @confirm="selectModalValue"
+  />
 </template>
 
 <style scoped>
 .card {
-    margin-bottom: 0 !important;
+  margin-bottom: 0 !important;
 }
 </style>
