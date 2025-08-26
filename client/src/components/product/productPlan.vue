@@ -11,7 +11,7 @@ import { useUserStore } from "@/store/index";
 let userInfo = useUserStore(); // user session information
 console.log(
   "session joined user name : ",
-  userInfo.lastname ? userInfo.lastname : null
+  userInfo.user.name ? userInfo.user.name : null
 );
 const search = ref({
   productPlanCode: "",
@@ -200,7 +200,7 @@ const addNewRow = () => {
     productPlanQty: 0,
     plannedQty: 1000,
     productType: "",
-    lastname: userInfo.lastname || "김관리",
+    lastname: userInfo.user.name || "김계획",
   };
   // Add the new object to the data array
   products.value.push(newProduct);
@@ -213,7 +213,7 @@ const planData = ref({
   planStartDate: null,
   planEndDate: null,
   dueDate: null,
-  director: userInfo.lastname || "김계획",
+  director: userInfo.user.name || "김계획",
 });
 
 // 계획 구분 Dropdown 옵션
@@ -238,7 +238,7 @@ const insertPlan = async () => {
       planStartDate: formatDate(planData.value.planStartDate),
       planEndDate: formatDate(planData.value.planEndDate),
       dueDate: formatDate(planData.value.dueDate),
-      director: userInfo.lastname || "김계획",
+      director: userInfo.user.name || "김계획",
       products: products.value.filter((p) => !hiddenProductIds.value.has(p.id)),
     };
     console.log("payload : ", payload);
@@ -271,7 +271,7 @@ onMounted(async () => {
       @click="dropContent"
     />
   </div>
-  <div class="font-semibold text-xl mb-4">생산계획관리</div>
+  <div class="font-semibold text-xl mb-4">계획등록</div>
   <div class="card flex justify-center gap-6 py-4">
     <!-- 생산계획코드 영역 -->
     <div class="flex flex-col">
@@ -354,7 +354,7 @@ onMounted(async () => {
       <InputText
         id="lastnameTxt"
         type="text"
-        v-model="userInfo.lastname"
+        v-model="userInfo.user.name"
         disabled
       />
     </div>

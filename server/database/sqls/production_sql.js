@@ -1,4 +1,4 @@
-const SelectMaxOrdNo = `SELECT MAX(ord_no) AS max_ord_no FROM production_order`;
+const SelectMaxOrdNo = `SELECT MAX(ord_no) AS max_ord_no FROM production_order WHERE ord_no LIKE ?;`;
 const insertPrdOrder = `INSERT INTO production_order(ord_no, director) VALUES(?, ?);`;
 const insertPrdOrderDetail = `
           INSERT INTO prd_order_detail(
@@ -315,6 +315,7 @@ const fetchPlanList = `
        pp.pl_ed_date AS "endDate",
        pd.product_name AS "product_name",
        pd.p_type AS "p_type",
+       pd.pl_qty AS "pl_qty",
        pd.planned_qty AS "planned_qty",
        pd.product_id AS "product_id",
        p.product_form AS "product_form",
@@ -328,7 +329,9 @@ ON pp.plan_no = pd.plan_no
 JOIN product p
 ON pd.product_id = p.product_id
 JOIN line l
-ON pd.line_id = l.line_id;`;
+ON pd.line_id = l.line_id
+ORDER BY pd.plan_detail_no DESC;
+`;
 
 module.exports = {
   selectAllOrder,
