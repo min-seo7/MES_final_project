@@ -105,7 +105,7 @@ function confirmEq() {
   <div class="mt-8 space-y-4 text-[14px]">
     <!-- 제목 + 버튼 -->
     <div class="flex items-center justify-between">
-      <div class="font-bold text-[18px]">등록/수정</div>
+      <div class="font-bold text-[18px]"></div>
       <div class="flex items-center gap-2">
         <!-- ✅ 조회로 바인딩되면 등록 버튼만 disable -->
         <Button label="등록" rounded @click="registRepair" :disabled="isEdit" />

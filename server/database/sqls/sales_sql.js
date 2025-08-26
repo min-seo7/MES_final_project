@@ -380,7 +380,7 @@ WHERE
   AND (? IS NULL OR ? = '' OR i.product_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR DATE(i.del_date) = ?)
 GROUP BY
-  o.order_id, i.product_id, o.partner_id, o.partner_name, o.delivery_addr, o.total_qty, o.order_manager, o.order_date, p.email, e.email
+  o.order_id
 ORDER BY
   o.order_id desc
 `;
