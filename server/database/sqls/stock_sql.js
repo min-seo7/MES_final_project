@@ -410,18 +410,21 @@ let returnListQurey = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_
                             re.quantity,
                             p.unit,
                             re.inbound_pro,
-				re.warehouse_name,
+							re.warehouse_name,
                             re.in_qty,
-                            re.in_comm
+                            re.in_comm,
+                            po.shipment_id
                        FROM returns re
                        LEFT JOIN tbl_prd_out po
                        ON re.shipment_id = po.shipment_id
                        LEFT JOIN product p
                        ON re.product_id = p.product_id
+                       LEFT JOIN shipment sh
+                       ON sh.order_detail_id = re.order_detail_id
                        ORDER BY case inbound_pro 
                        when '대기' then 1
                        when '확정' then 2 end asc,
-                            return_date DESC `;
+                            return_date DESC`;
 
 //반품조회
 let searchReturnListQuery = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_date,
