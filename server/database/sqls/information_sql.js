@@ -408,7 +408,6 @@ SET equipment_id = ?,
 const selectLineList = `
     SELECT l.line_id
          , l.line_name
-         , l.flow_id
          , f.flow_name
          , l.product_id
          , p.product_name
@@ -417,7 +416,6 @@ const selectLineList = `
          , l.status
     FROM line l
     INNER JOIN product p ON l.product_id = p.product_id
-    INNER JOIN flowchart f ON l.flow_id = f.flow_id
     WHERE 1=1
       AND l.line_id   = COALESCE(?, l.line_id)
       AND l.line_name = COALESCE(?, l.line_name)
@@ -450,7 +448,6 @@ VALUES (?,?,?,?,?)`;
 const updateLine = `
 UPDATE line
 SET line_name = ?,
-    flow_id = ?,
     product_id = ?,
     note = ?,
     status = ?

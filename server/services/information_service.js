@@ -570,11 +570,7 @@ const insertAllLine = async (lineInfo, lineDetails) => {
   try {
     conn = await mariadb.getConnection();
     await conn.beginTransaction();
-    const fId = await conn.query(
-      sqlList.selectFlowIdByProductId,
-      lineInfo.productId
-    );
-    const flowId = fId?.[0]?.flow_id || null;
+
     // 1. ë§ˆì?ë§?line_id ì¡°íšŒ (??
     const rows = await conn.query(sqlList.selectMaxLineId);
     const maxId = rows?.[0]?.max_line_id || null;
@@ -632,7 +628,6 @@ const insertAllLine = async (lineInfo, lineDetails) => {
 const updateLine = async (lineInfo) => {
   const insertData = convertToArray(lineInfo, [
     "lineName",
-    "flowId",
     "productId",
     "note",
     "status",
