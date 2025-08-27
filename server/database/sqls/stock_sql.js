@@ -403,7 +403,7 @@ let searchPrdLotSearchQuery = `SELECT DATE_FORMAT(pl.open_date, '%Y-%m-%d') AS o
 //반품=============================================================
 let returnListQurey = `SELECT DATE_FORMAT(re.return_date, '%Y-%m-%d') AS return_date,
                             re.id,
-                            po.prd_out_no,
+                            sh.prd_out_no,
                             p.product_type,
                             re.product_id,
                             p.product_name,
