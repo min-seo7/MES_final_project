@@ -122,11 +122,11 @@ const insertProduct = async (productInfo) => {
       }
     }
 
-    if (productInfo.productForm === "遺꾨쭚??) {
+    if (productInfo.productForm === "분말형") {
       productInfo.productCategory = "CAT001";
-    } else if (productInfo.productForm === "怨쇰┰??) {
+    } else if (productInfo.productForm === "과립형") {
       productInfo.productCategory = "CAT002";
-    } else if (productInfo.productForm === "?≪긽??) {
+    } else if (productInfo.productForm === "액상형") {
       productInfo.productCategory = "CAT003";
     }
     // 3. INSERT ?ㅽ뻾
