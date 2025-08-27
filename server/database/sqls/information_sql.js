@@ -443,9 +443,8 @@ INSERT INTO line (line_id,
                   line_name,
                   product_id,
                   note,
-                  status,
-                  flow_id)
-VALUES (?,?,?,?,?,?)`;
+                  status)
+VALUES (?,?,?,?,?)`;
 
 // 라인수정
 const updateLine = `

@@ -24,7 +24,6 @@ const emits = defineEmits(["resetLine"]); // emits 정의
 const form = ref({
   lineId: "",
   lineName: "",
-  flowId: "",
   productId: "",
   productName: "",
   note: "",
@@ -83,7 +82,6 @@ watch(
       form.value = {
         lineId: "",
         lineName: "",
-        flowId: "",
         productId: "",
         note: "",
         status: "",
@@ -113,7 +111,6 @@ const registLine = async () => {
         // 서버에서 받을 기본 정보
         lineId: form.value.lineId,
         lineName: form.value.lineName,
-        flowId: form.value.flowId,
         productId: form.value.productId,
         note: form.value.note,
         status: form.value.status,
@@ -127,7 +124,6 @@ const registLine = async () => {
     form.value = {
       lineId: "",
       lineName: "",
-      flowId: "",
       productId: "",
       productName: "",
       note: "",
@@ -149,7 +145,6 @@ const modifyLine = async () => {
     form.value = {
       lineId: "",
       lineName: "",
-      flowId: "",
       productId: "",
       productName: "",
       note: "",
@@ -178,7 +173,6 @@ const resetRegist = async () => {
     form.value = {
       lineId: "",
       lineName: "",
-      flowId: "",
       productId: "",
       productName: "",
       note: "",
