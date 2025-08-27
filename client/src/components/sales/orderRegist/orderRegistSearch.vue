@@ -514,7 +514,6 @@ onMounted(() => {
           ></Column>
           <Column field="partnerName" header="거래처명"></Column>
           <Column field="address" header="주소"></Column>
-          <Column field="ceo" header="대표자"></Column>
           <Column field="manager" header="담당자"></Column>
           <Column field="mainTel" header="전화번호"></Column>
         </DataTable>
