@@ -19,7 +19,7 @@ const search = ref({ productType: "", inspPurpose: "" });
 // 선택 항목 (초기값 유지)
 const selectItem = ref({
   testitem_code: null,
-  writer: "",
+  writer: "품질관리자",
   productType: "",
   inspector: "",
   inspItem: "",

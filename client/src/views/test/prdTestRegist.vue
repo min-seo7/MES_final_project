@@ -65,7 +65,7 @@ const handleRowSelect = async (e) => {
       제품명: item.제품명,
       생산수량: item.생산수량,
       실적등록날짜: item.실적등록날짜,
-      담당자: 1, // 담당자 임의 지정
+      담당자: "품질관리자", // 담당자 임의 지정
       비고: "",
       측정값리스트: inspItem.map((row) => ({
         검사항목: row.itemName || row.item_name,
