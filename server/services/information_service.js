@@ -938,6 +938,10 @@ const insertEmployee = async (employeeInfo) => {
   }
 };
 
+function convertToArray(obj, columns) {
+  return columns.map((col) => obj[col]);
+}
+
 module.exports = {
   findAllFlowchartName,
   updateBom,
