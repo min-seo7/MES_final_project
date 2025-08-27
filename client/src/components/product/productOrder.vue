@@ -271,8 +271,8 @@ const selectModalValue = (value) => {
 const productNameList = ref([
   {
     code: "P001",
-    name: "분말형비료",
-    product_cate: "P001",
+    name: "분말형_20kg",
+    product_cate: "CAT001",
     type: "분말형",
     specification: 20,
     unit: "kg",
@@ -282,8 +282,8 @@ const productNameList = ref([
   },
   {
     code: "P002",
-    name: "분말형비료",
-    product_cate: "P001",
+    name: "분말형_40kg",
+    product_cate: "CAT001",
     type: "분말형",
     specification: 40,
     unit: "kg",
@@ -293,8 +293,8 @@ const productNameList = ref([
   },
   {
     code: "P003",
-    name: "과립형비료",
-    product_cate: "P002",
+    name: "과립형_20kg",
+    product_cate: "CAT002",
     type: "과립형",
     specification: 20,
     unit: "kg",
@@ -304,8 +304,8 @@ const productNameList = ref([
   },
   {
     code: "P004",
-    name: "과립형비료",
-    product_cate: "P002",
+    name: "과립형_40kg",
+    product_cate: "CAT002",
     type: "과립형",
     specification: 40,
     unit: "kg",
@@ -315,8 +315,8 @@ const productNameList = ref([
   },
   {
     code: "P005",
-    name: "액상형비료",
-    product_cate: "P003",
+    name: "액상형_5L",
+    product_cate: "CAT003",
     type: "액상형",
     specification: 5,
     unit: "L",
@@ -326,8 +326,8 @@ const productNameList = ref([
   },
   {
     code: "P006",
-    name: "액상형비료",
-    product_cate: "P003",
+    name: "액상형_10L",
+    product_cate: "CAT003",
     type: "액상형",
     specification: 10,
     unit: "L",
@@ -337,8 +337,8 @@ const productNameList = ref([
   },
   {
     code: "P007",
-    name: "분말형비료",
-    product_cate: "P001",
+    name: "반제품_분말형",
+    product_cate: "CAT001",
     type: "분말형",
     specification: null,
     unit: null,
@@ -348,8 +348,8 @@ const productNameList = ref([
   },
   {
     code: "P008",
-    name: "과립형비료",
-    product_cate: "P002",
+    name: "반제품_과립형",
+    product_cate: "CAT002",
     type: "과립형",
     specification: null,
     unit: null,
@@ -359,8 +359,8 @@ const productNameList = ref([
   },
   {
     code: "P009",
-    name: "액상형비료",
-    product_cate: "P003",
+    name: "반제품_액상형",
+    product_cate: "CAT003",
     type: "액상형",
     specification: null,
     unit: null,

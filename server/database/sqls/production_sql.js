@@ -163,10 +163,10 @@ ON prc.process_id = ld.process_id;
 `;
 
 const selectProcessNotSearchList = `
-SELECT  pfm.process_id AS "product_id",
+SELECT  pfm.product_id AS "product_id",
         pfm.process_id AS "process_id",
 		p.process_name AS "process_name",
-        prd.product_name AS "product_name",
+        pfm.prd_name AS "product_name",
         prd.product_type AS "product_type",
         prd.product_form AS "product_form",
         prd.specification AS "specification",
@@ -228,7 +228,7 @@ SELECT DISTINCT p.product_id AS "product_id",
        l.line_name AS "line_name"
 FROM product p
 JOIN line l
-ON p.product_cate_id = l.product_id;
+ON p.product_cate_id = l.product_cate_id;
 
 `;
 
