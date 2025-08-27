@@ -4,7 +4,7 @@ let matListQuery = `SELECT material_id,
 	                         material_type,
                                 unit       
                     FROM material
-                    WHERE status = '활성'
+                    WHERE status = '사용'
                     AND material_id NOT IN ('MAT010')
                     AND material_type = '원자재'`;
 
@@ -20,7 +20,7 @@ let productListQuery = `SELECT product_id,
                                product_type,
                                product_name
                         FROM product
-                        WHERE status = '활성'`;
+                        WHERE status = '사용'`;
 
 //보관창고 (모달)
 let warehouseListQuery = `SELECT warehouse_id,
@@ -129,7 +129,7 @@ let MatPandigListQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_dat
                           ON p.partner_id = pa.partner_id
                           WHERE d.pro_status NOT IN ('취소', '입고완료', '반품')
                           AND t.lot_pro NOT IN ('생성', '반품')
-                          ORDER BY p.due_date DESC`;
+                          ORDER BY p.due_date`;
 
 //자재입고조회
 let MatInPandingSearchQuery = `SELECT  DATE_FORMAT(p.due_date, '%Y-%m-%d') AS due_date,
@@ -195,7 +195,7 @@ let prdPendigListQuery = `SELECT DATE_FORMAT(pi.createdAt, '%Y-%m-%d') AS inspec
                                      ON pi.product_id = p.product_id
                                      WHERE pi.result = '합격'
                                      AND pi.pro_status ='미생성'
-                                     ORDER BY pi.createdAt DESC`;
+                                     ORDER BY pi.createdAt `;
 //제품입고대기조회
 let searchPrdPandingListQuery = `SELECT DATE_FORMAT(pi.createdAt, '%Y-%m-%d') AS inspection_date,
                                           pi.pf_code,
@@ -246,7 +246,7 @@ let matReqListQuery = `SELECT DATE_FORMAT(mr.req_date, '%Y-%m-%d') AS req_date,
                      ON mr.material_id = m.material_id
                      WHERE pro_status = '출고대기'
                      AND mr.material_id NOT IN ('MAT010')
-                     ORDER BY mr.req_date DESC`;
+                     ORDER BY mr.req_date`;
 
 //자재출고요청조회
 let SearchMatReqListQuery = `SELECT DATE_FORMAT(mr.req_date, '%Y-%m-%d') AS req_date,
@@ -310,7 +310,7 @@ let prdShipWaitListQurey = `SELECT DATE_FORMAT(sh.shipment_date, '%Y-%m-%d') AS 
                             JOIN partner pt
                             ON o.partner_id = pt.partner_id
                             WHERE sh.ship_status = 1
-                            ORDER BY sh.shipment_date DESC`;
+                            ORDER BY sh.shipment_date`;
 //제품재고확인
 let checkStockQuery = `SELECT pl.product_id,
                          p.product_name,

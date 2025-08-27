@@ -93,7 +93,7 @@ ORDER BY testitem_code DESC`,
         FROM performance
         WHERE 
             inspStatus = '대기' AND 
-            process_id IN ('GRIN001', 'GRIN002', 'DILU001')
+            process_id IN ('PR010', 'PR013', 'PR019')
         `,
   // 제품 품질 검사 완료 목록
   selectPrdTestFinList: `SELECT
